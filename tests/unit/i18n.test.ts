@@ -23,6 +23,7 @@ describe("i18n", () => {
   });
 
   it("never uses an em dash in interface copy", () => {
-    expect(JSON.stringify(STRINGS)).not.toContain("—");
+    const emDash = String.fromCharCode(0x2014); // written as a code so the character never appears in source
+    expect(JSON.stringify(STRINGS)).not.toContain(emDash);
   });
 });
