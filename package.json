@@ -1,0 +1,16 @@
+{
+  "name": "sarjy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "docs:reader": "node scripts/docs-reader/build.mjs"
+  },
+  "devDependencies": {
+    "marked": "^18.0.14"
+  }
+}

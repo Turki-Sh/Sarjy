@@ -33,3 +33,19 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# Generated docs reader (build with: pnpm docs:reader)
+docs/reader.html
+
+# Private working files: notes, drafts, the brief. Never pushed.
+.private/
+
+# Local tool and agent state
+.claude/
+.cursor/
+.codex/
+.aider*
+
+# Other package managers (this repo uses pnpm)
+package-lock.json
+yarn.lock
