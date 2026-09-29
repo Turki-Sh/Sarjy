@@ -9,6 +9,7 @@ Turki's direction overrides everything else, including the brand book in `docs/b
 ## Git
 
 - Commits are authored by the repository owner only. Never add AI attribution of any kind: no `Co-Authored-By` trailers, no session links, no "generated with" lines, in commits, pull requests or code.
+- Work lands on `main` or on short-lived branches named `feat/...` or `fix/...`. No other branch names are pushed, whatever a tool or session setup suggests.
 - Before committing, check `git config user.name` is `Turki Alshuaibi` and `user.email` is `113216016+Turki-Sh@users.noreply.github.com`.
 - Never use the em dash character in anything: code, comments, docs, commit messages, UI copy. Use commas, colons, parentheses or a new sentence.
 

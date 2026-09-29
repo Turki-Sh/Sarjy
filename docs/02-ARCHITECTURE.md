@@ -27,7 +27,9 @@ flowchart LR
   end
 
   METEO["Open-Meteo<br/>weather"]
-  DB[("Postgres on Neon<br/>users, memories, chats")]
+  DB[("Postgres on Neon<br/>users, memories, chats, rooms")]
+  ABLY["Ably<br/>room fan-out and presence"]
+  OTHERS["Other people<br/>in the same room"]
 
   MIC -- "audio (WAV)" --> TURN
   TURN -- "event stream" --> UI
@@ -41,6 +43,8 @@ flowchart LR
   TURN --> DB
   MEM --> DB
   SESS --> DB
+  TURN -- "room events" --> ABLY
+  ABLY --> OTHERS
 ```
 
 Three rules keep this easy to reason about:
@@ -48,6 +52,7 @@ Three rules keep this easy to reason about:
 1. **Keys live only on the server.** The browser never talks to Groq directly. Everything under `src/server/` is marked server-only, so it cannot end up in the browser bundle by accident.
 2. **One turn is one request.** The browser sends one request per turn (your audio or your text) and reads one stream of events back. No WebSockets, no long-lived connections.
 3. **The server says what happened; the browser decides how it looks.** The server streams plain facts ("transcript is X", "weather tool took 412 ms", "memory saved", "here is audio for sentence 1"). All animation, timing and layout decisions are made in the browser.
+4. **Multiplayer is the same stream, fanned out.** In a room, the server also publishes each event to the room's channel, and every other participant renders it with the same code the speaker uses. There is no second rendering path to keep in sync.
 
 ## 2. Where the code lives
 
@@ -56,28 +61,35 @@ The top-level split under `src/` answers one question: **where does this code ru
 ```
 Sarjy/
 ├── README.md                       Start here: what Sarjy is, live URL, how to run it
-├── CLAUDE.md                       Working agreements for AI-assisted sessions
+├── AGENTS.md                       Working agreements for anyone (and any coding agent) changing the code
+├── SECURITY.md                     How secrets and user data are handled
 ├── docs/
 │   ├── 01-PRD.md                   What we build and why
 │   ├── 02-ARCHITECTURE.md          How it works (this file)
 │   ├── 03-IMPLEMENTATION-PLAN.md   The build plan, day by day
 │   ├── 04-ACCEPTANCE-TESTS.md      How we know it works
 │   ├── 05-DEPLOYMENT.md            How it ships, and how secrets stay secret
+│   ├── reader.html                 Generated, git-ignored: all five docs as one styled page
 │   └── brand/                      Brand book and visual identity (design source of truth)
 ├── public/
 │   ├── brand/                      Logo SVGs, favicon
 │   ├── voice/                      Pre-rendered audio for fixed lines (greeting, errors)
 │   └── vad/                        Voice activity model files, served to the browser
-├── scripts/                        One-off tools (pre-render voice lines, check the bundle for keys)
+├── scripts/                        One-off tools: docs reader, model bake-off, voice pre-render, bundle key scan
 ├── src/
 │   ├── app/                        Next.js routes: the page and the API endpoints
-│   │   ├── layout.tsx              Fonts, theme, <html lang dir>
+│   │   ├── layout.tsx              Fonts, theme, <html lang dir>, site metadata
 │   │   ├── page.tsx                The voice screen
+│   │   ├── r/[code]/page.tsx       A room: the same screen, joined to others
+│   │   ├── opengraph-image.tsx     The link preview image, drawn at request time
+│   │   ├── manifest.ts, robots.ts, sitemap.ts, icon.svg, apple-icon.png
 │   │   └── api/
 │   │       ├── session/route.ts    Create or resume the anonymous user
 │   │       ├── turn/route.ts       One turn: audio or text in, event stream out
 │   │       ├── memories/           List, edit, forget memories
 │   │       ├── conversations/      Recent chats
+│   │       ├── rooms/              Create, join, take the floor, fetch room audio, end
+│   │       ├── realtime/token/     Short-lived Ably token for one room
 │   │       └── health/route.ts     Which providers are configured (booleans only)
 │   │
 │   ├── client/                     Runs in the browser only
@@ -92,8 +104,10 @@ Sarjy/
 │   │   │   ├── machine.ts          The six states and every allowed transition
 │   │   │   ├── turnStream.ts       Sends a turn, reads the event stream back
 │   │   │   └── useSarjy.ts         The one hook the screen uses; wires everything together
-│   │   └── ui/                     React components: Orb, Caption, ToolChip, ControlBar,
-│   │                               Sidebar, MemoryCard, SettingsSheet, TextComposer, Logo
+│   │   ├── room/
+│   │   │   └── useRoom.ts          Joins the room channel, presence, the floor, remote events
+│   │   └── ui/                     React components: Orb, Companion, Caption, ToolChip, ControlBar,
+│   │                               Sidebar, MemoryCard, RoomBar, SettingsSheet, TextComposer, Logo
 │   │
 │   ├── server/                     Runs on the server only; the only place keys exist
 │   │   ├── env.ts                  Reads and validates environment variables
@@ -102,7 +116,15 @@ Sarjy/
 │   │   ├── turn/
 │   │   │   ├── pipeline.ts         Orchestrates one turn (the heart of the server)
 │   │   │   ├── prompt.ts           Builds the system prompt from rules, memory and context
+│   │   │   ├── onboarding.ts       The first-visit flow: which step, when to advance
 │   │   │   └── sentences.ts        Cuts streamed text into speakable chunks
+│   │   ├── rooms/
+│   │   │   ├── rooms.ts            Create, join, end; who is in the room
+│   │   │   └── floor.ts            Who holds the mic, claimed atomically in Postgres
+│   │   ├── realtime/
+│   │   │   ├── types.ts            Publisher interface
+│   │   │   ├── ably.ts             Publishes room events over Ably's REST API, mints tokens
+│   │   │   └── fake.ts             In-memory channels for tests
 │   │   ├── providers/
 │   │   │   ├── types.ts            The interfaces: SpeechToText, TextToSpeech, model
 │   │   │   ├── groq/               Real implementations
@@ -208,6 +230,13 @@ type TurnEvent =
   | { type: "segment"; index: number; text: string; lang: "en" | "ar"; audio: string | null } // base64 WAV; null means "use the backup voice"
   | { type: "error"; code: ErrorCode; say: string }                   // say: what Sarjy should say about it
   | { type: "done"; messageId: string; conversationId: string; timings: Timings };
+
+// In a room, every event above is also published to the room channel, wrapped with who said it,
+// and audio is replaced by a URL (Ably messages are capped at 64 KB).
+type RoomEvent =
+  | { type: "turn"; speaker: { id: string; name: string }; event: TurnEvent }
+  | { type: "floor"; holder: { id: string; name: string } | null }
+  | { type: "room_ended" };
 ```
 
 Every event is validated with zod on both sides in tests, so a change to the protocol breaks the build, not the demo.
@@ -300,11 +329,13 @@ interface TextToSpeech { synthesize(text: string, lang: Lang, voice: string): Pr
 | Capability | Live | Why |
 |---|---|---|
 | Speech to text | Groq `whisper-large-v3-turbo` | Fast, strong on Arabic, returns the detected language |
-| Language model | Groq `openai/gpt-oss-120b`, falling back to a second Groq model on rate limits | Fast first token, reliable tool calling |
+| Language model | Groq `openai/gpt-oss-120b` with low reasoning effort; `qwen/qwen3.8-27b` (thinking off) on rate limits or errors | About 500 tokens a second, the most reliable tool calling on Groq, cheapest per token. Qwen is the fallback because its limits are separate and its multilingual training is strong |
 | Text to speech | Groq `canopylabs/orpheus-v1-english` and `canopylabs/orpheus-arabic-saudi` | The brand requires a native Saudi voice for Arabic, never an English voice reading Arabic |
 | Weather | Open-Meteo forecast and geocoding | Free, no key, global, structured |
 
 `SARJY_PROVIDERS=fake` swaps in deterministic fakes: canned transcripts keyed by the fixture file, a scripted model that calls tools, and a tone generator for audio. All tests and all offline development use the fakes, so nothing depends on network access or quota.
+
+**The bake-off.** Before we lock the model, `scripts/bakeoff.ts` runs 20 fixed prompts (English and Arabic; saving, recalling and forgetting memories; weather with and without a city) against both models and records time to first token, total time, whether the right tool was called with the right arguments, and the Arabic replies for Turki to judge. The numbers go in the README. If Qwen is clearly better in Arabic, Arabic turns route to it.
 
 The model goes through the Vercel AI SDK (`streamText` with tools and a step limit), because it handles streaming and the tool loop. Whisper and Orpheus are plain `fetch` calls: two small HTTP requests are easier to read and explain than another abstraction.
 
@@ -327,7 +358,7 @@ Tool results are compact JSON with only the fields the model may quote. Numbers 
 2. **Language rule**: reply in the language of the user's last message; Arabic replies in everyday Saudi Arabic.
 3. **Tool rules**: facts about the world only from tools; only quote numbers a tool returned; if a tool fails, say so and offer to retry.
 4. **Memory rules**: save only what the user states about themselves; never secrets; when you use a memory, say so once, briefly.
-5. **Context**: today's date and time in the user's time zone, the interface language.
+5. **Context**: today's date and time in the user's time zone, the interface language, the onboarding step if one is active, and in a room, who is present and who is speaking.
 6. **Memory block**: `<memory>` ... `</memory>`, one line per fact with the day it was told.
 7. **Conversation**: the last 12 messages of this chat.
 
@@ -353,13 +384,97 @@ Tool results are compact JSON with only the fields the model may quote. Numbers 
 - **The orb**: DOM and SVG, following the visual identity's reference build: a blurred conic light (Saffron, Coral, Dusk), a glass sphere, and the wave path. Per frame, `useSarjy` writes three CSS variables (`--glow`, `--rot`, `--lvl`) and the wave's `d` attribute. No React re-render per frame.
 - **Glass vs solid**: floating things (control bar, orb, chips, toasts, header, sheets) are glass; things you read (captions, memory cards, settings) are solid. Never glass on glass.
 
-## 13. Data model
+## 13. Multiplayer rooms
+
+A room lets several people talk to one Sarjy at the same time, from their own devices. Everyone sees the same orb, captions and tool chips live and hears the same voice; one person holds the mic at a time; each person's memory stays their own.
+
+### Why it is cheap to add
+
+Single-player already sends every visible change as an event (section 4). A room is that same stream sent to more screens. The speaker's browser reads the stream from `/api/turn` as usual; the server also publishes each event to the room's Ably channel; everyone else's browser feeds those events into the same `useSarjy` hook and the same components. One rendering path, not two.
+
+### How a room works
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant H as Host browser
+  participant S as Sarjy server
+  participant A as Ably
+  participant G as Guest browser
+
+  H->>S: POST /api/rooms (from the current chat)
+  S-->>H: link /r/K7Q2M
+  G->>S: open /r/K7Q2M, POST /api/rooms/K7Q2M/join
+  G->>S: GET /api/realtime/token
+  S-->>G: token for channel room:K7Q2M (subscribe and presence only)
+  G->>A: subscribe, enter presence as "Sara"
+  A-->>H: presence: Sara joined
+  G->>S: POST /api/rooms/K7Q2M/floor
+  S->>A: floor: Sara
+  A-->>H: Sara is speaking (Host mic waits)
+  G->>S: POST /api/turn (audio, room K7Q2M)
+  S-->>G: event stream (as in single-player)
+  S->>A: the same events, with speaker = Sara
+  A-->>H: transcript, tool chip, segments
+  H->>S: GET /api/rooms/K7Q2M/segments/3 (audio)
+  S->>A: floor released
+```
+
+| Concern | Decision |
+|---|---|
+| Transport | Ably. Vercel Functions cannot hold WebSockets, so a managed realtime service carries the fan-out. The server publishes over Ably's REST API (one HTTPS call, fits serverless). Browsers connect with short-lived tokens from `/api/realtime/token`, scoped to one room, allowed to subscribe and use presence but not to publish. The Ably key never leaves the server. |
+| Audio | Ably messages are limited to 64 KB, and a spoken sentence is 100 to 300 KB. So room audio is stored briefly in Postgres (`room_segments`, deleted after an hour) and the event carries a URL. Listeners fetch and play it; they hear it 100 to 300 ms after the speaker, which is fine across devices. |
+| The floor | Claimed atomically in Postgres (`UPDATE rooms SET floor = me WHERE floor IS NULL OR floor_expires_at < now()`). It expires after 45 seconds so a dropped phone cannot hold the room hostage. Released at `done`. |
+| Who is talking | The speaker is known from their signed cookie, never from anything the browser claims. The prompt says who is in the room and who is speaking, so Sarjy can address them by name. |
+| Private memory | By construction: the pipeline loads only the speaker's memories. Other people's memories are never in the prompt, so they cannot leak. A saved fact is stitched in everyone's caption (it was said aloud), but the memory card appears only in the owner's sidebar. |
+| Late joiners | The room's conversation is an ordinary conversation; joining loads its messages, with speaker names. |
+| Privacy of the link | Room codes are random (about 40 bits). Room pages are `noindex`. The host can end a room; ended rooms refuse joins and tokens. |
+| Tests | `server/realtime/fake.ts` is an in-memory channel. E2E runs two browser contexts in one Playwright test, joined to one room. |
+
+## 14. Onboarding: a small multistep flow
+
+The first visit is a three-step flow: your name, your home city, your units. It is the baseline for the brief's "multistep workflows" option, and it makes the demo land fast (by step three, "how's tomorrow?" already works).
+
+- The step lives on the server (`users.onboarding_step`: `name`, `home_city`, `units`, `done`), not in the model's head.
+- `server/turn/onboarding.ts` adds one line to the prompt: which step is current and what to ask.
+- A step advances only when the matching memory key is actually saved (checked in code after the tool runs). The model cannot skip a step by saying it did.
+- Off-script: if you ask something else ("wait, what's the weather?"), Sarjy answers, then returns to the step it was on. After two off-script turns in a row it offers to skip.
+- "Skip" in the interface sets the step to `done`.
+
+## 15. Metadata and link previews
+
+Every link to Sarjy should look intentional when it is pasted into WhatsApp, Slack, X or LinkedIn.
+
+| What | How |
+|---|---|
+| Title, description, canonical | Next.js Metadata API in `app/layout.tsx`, localized by interface language. `metadataBase` comes from the production URL. |
+| Preview image | `app/opengraph-image.tsx` draws a 1200 x 630 image at request time with `next/og`: the bilingual lockup, the tagline in both scripts, the orb's light. Also used for X (`summary_large_image`). |
+| Room invites | `app/r/[code]/page.tsx` has `generateMetadata`: "Join Turki's Sarjy room", its own preview image, and `noindex`. |
+| Icons | `icon.svg` (the brand favicon), `favicon.ico` fallback, `apple-icon.png` at 180 px: white symbol on a Saddle Green tile, radius 22.4%, per the visual identity. |
+| Install | `manifest.ts`: name, short name, icons (192, 512, maskable), `theme_color`, `background_color`, `display: standalone`. |
+| Crawlers | `robots.ts` and `sitemap.ts`; rooms and APIs disallowed. |
+| Theme color | Two `theme-color` tags, one per `prefers-color-scheme`. |
+| Structured data | JSON-LD `SoftwareApplication` in the layout. |
+| Language | `<html lang dir>` from the interface language; `og:locale` `en_US` with `ar_SA` as alternate. |
+
+## 16. The companion avatar (stretch)
+
+Built only after every Must passes.
+
+- **Faceless companion first.** `client/ui/Companion.tsx` is an alternative to the orb, chosen in settings. It is a small creature drawn from Sarjy's own wave: the same path, with a body and spring physics for squash and stretch. It reads exactly the same inputs as the orb (the state machine and the audio levels), so it needs no new server work. It breathes when idle, perks up when it hears its name in the live preview, leans in while you talk, droops when a tool fails, and bounces on a save.
+- **Full mascot next.** A skin with a face in the spirit of Meta's Muse companion, drawn as SVG and animated with the same state-to-motion map. This deliberately overrides the brand book's "no face, no mascot" rule, by Turki's decision.
+- Both respect reduced motion: they hold a still pose.
+
+## 17. Data model
 
 ```mermaid
 erDiagram
   users ||--o{ memories : keeps
   users ||--o{ conversations : has
   conversations ||--o{ messages : contains
+  conversations ||--o| rooms : "shared as"
+  rooms ||--o{ room_members : has
+  rooms ||--o{ room_segments : "keeps audio for 1 h"
   users {
     uuid id PK
     text name
@@ -367,6 +482,7 @@ erDiagram
     text theme
     text voice_en
     text voice_ar
+    text onboarding_step
     timestamptz created_at
   }
   memories {
@@ -389,6 +505,7 @@ erDiagram
   messages {
     uuid id PK
     uuid conversation_id FK
+    uuid speaker_id FK
     text role
     text text
     text lang
@@ -396,11 +513,31 @@ erDiagram
     jsonb timings
     timestamptz created_at
   }
+  rooms {
+    uuid id PK
+    text code
+    uuid host_id FK
+    uuid conversation_id FK
+    uuid floor_id FK
+    timestamptz floor_expires_at
+    timestamptz ended_at
+  }
+  room_members {
+    uuid room_id FK
+    uuid user_id FK
+    text display_name
+  }
+  room_segments {
+    uuid id PK
+    uuid room_id FK
+    bytea audio
+    timestamptz created_at
+  }
 ```
 
 A small `rate_limits` table (key, window start, count) backs the limiter. Deleting a user cascades to everything they own.
 
-## 14. Latency: budget and measurement
+## 18. Latency: budget and measurement
 
 Latency is not the deep dive, but a voice product lives or dies by it, so we measure every turn and show it in the details panel.
 
@@ -418,7 +555,7 @@ Measurement points: the browser stamps end of speech, request sent, first segmen
 
 Things we will try and report, if time allows: a shorter VAD silence window, streaming the first sentence to the voice before the model finishes it, and pre-warming the connection to `/api/turn` when the mic opens.
 
-## 15. Security and abuse
+## 19. Security and abuse
 
 The repository is public and the URL will be shared, so:
 
@@ -430,8 +567,10 @@ The repository is public and the URL will be shared, so:
 | Forged identity | The cookie is HMAC-signed; a tampered cookie is treated as a new visitor. |
 | Prompt injection through memory or tool output | Clamped values, delimited data blocks, and prompt rules that treat them as data. |
 | Mic abuse | `Permissions-Policy: microphone=(self)`, plus a Content Security Policy. |
+| Someone publishes fake events into a room | Browser tokens can subscribe and use presence but cannot publish. Only the server publishes. |
+| One person's memory reaches another in a room | Only the speaker's memories are ever loaded into a turn (section 13). Tested directly. |
 
-## 16. When things fail
+## 20. When things fail
 
 | Failure | What you see and hear |
 |---|---|
@@ -441,8 +580,9 @@ The repository is public and the URL will be shared, so:
 | Weather service down or slow (4 s timeout) | "I couldn't reach the weather service. Want me to try again?" No numbers. |
 | Voice rate limit or error | The browser's voice speaks the same words; captions still sync; a small note says the backup voice is in use. |
 | Database unavailable | "I can't reach my memory right now." The turn still answers questions that need no memory. |
+| Realtime service unavailable | The speaker's own turn still works (it never depends on Ably). Other participants see "Reconnecting" and catch up from the transcript when the channel returns. |
 
-## 17. Decisions
+## 21. Decisions
 
 | Decision | Chosen | Instead of | Why |
 |---|---|---|---|
@@ -455,9 +595,12 @@ The repository is public and the URL will be shared, so:
 | Hosting | Next.js on Vercel, Neon Postgres | A long-running server | Git push deploys, preview URLs per branch, free tiers. |
 | Tests' database | PGlite (Postgres in WebAssembly) | A Docker Postgres | Same SQL, no services to start, runs in CI and offline. |
 | Styling | CSS Modules plus the brand tokens verbatim | Tailwind | The tokens file is the source of truth; no second color system. |
+| Model | `gpt-oss-120b`, Qwen 3.8 27B as fallback | Kimi K2 or Llama 4 Maverick | Both were retired by Groq in 2026. gpt-oss is the fastest reliable tool caller left; the bake-off confirms it. |
+| Multiplayer transport | Ably, with server-only publishing | Pusher, Liveblocks, our own SSE with Redis | Presence built in, 64 KB messages (Pusher: 10 KB), 200 connections free, token auth. Our own SSE would fight Vercel's function time limits. |
+| Room audio | Stored briefly in Postgres, fetched by URL | Sent through the realtime channel | Audio is larger than a realtime message allows; Postgres is already there. |
 | Caption timing | Estimated from the audio envelope | A second vendor with word timestamps | Keeps the Saudi voice and one vendor. Good enough per sentence; the timing function can take real timestamps later without changing the UI. |
 
-## 18. Reading guide: follow one turn through the code
+## 22. Reading guide: follow one turn through the code
 
 When you want to understand or explain the code, read these in order. Each file is short and does one thing.
 
@@ -472,3 +615,4 @@ When you want to understand or explain the code, read these in order. Each file 
 9. `src/server/turn/sentences.ts` and `providers/groq/tts.ts`: turning text into voice.
 10. `src/client/audio/player.ts` and `src/shared/wordTiming.ts`: playing it and syncing words.
 11. `src/client/ui/Orb.tsx` and `Caption.tsx`: how it looks.
+12. For rooms: `src/server/rooms/floor.ts`, then `src/server/realtime/ably.ts`, then `src/client/room/useRoom.ts`: the same events, sent to everyone.

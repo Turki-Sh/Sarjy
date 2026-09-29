@@ -8,7 +8,7 @@ How Sarjy gets from a git push to a URL a reviewer can open, and how the keys st
 
 ```mermaid
 flowchart LR
-  DEV["Working branch<br/>claude/blissful-keller-6di2cb"] -- push --> GH["GitHub<br/>Turki-Sh/Sarjy (public)"]
+  DEV["Feature branch<br/>feat/..."] -- push --> GH["GitHub<br/>Turki-Sh/Sarjy (public)"]
   GH -- "every push" --> CI["GitHub Actions<br/>typecheck, lint, tests, secret scan"]
   GH -- "every push" --> PREV["Vercel preview URL<br/>per branch"]
   GH -- "merge to main" --> PROD["Vercel production URL<br/>what the reviewer opens"]
@@ -16,6 +16,7 @@ flowchart LR
   PREV --> NEONP[("Neon Postgres<br/>preview branch")]
   PROD --> GROQ["Groq API"]
   PROD --> METEO["Open-Meteo"]
+  PROD --> ABLY["Ably<br/>multiplayer rooms"]
 ```
 
 | Piece | Service | Plan |
@@ -25,15 +26,17 @@ flowchart LR
 | Database | Neon Postgres, added through the Vercel Marketplace | Free |
 | Speech, model, voice | Groq | Free to start, upgrade if limits bite |
 | Weather | Open-Meteo | Free, no key |
+| Multiplayer fan-out and presence | Ably | Free (200 connections, 6M messages a month) |
 | CI | GitHub Actions | Free for public repositories |
 
 ## 2. Environments
 
 | | Local | Preview | Production |
 |---|---|---|---|
-| Where | Your machine or the Claude cloud session | A Vercel URL per branch and per push | The main Vercel URL |
-| Triggered by | `npm run dev` | Any push | Merge into `main` |
+| Where | Your machine or a cloud coding session | A Vercel URL per branch and per push | The main Vercel URL |
+| Triggered by | `pnpm dev` | Any push | Merge into `main` |
 | Providers | `fake` by default; `live` if a key is present | `live` | `live` |
+| Realtime | In-memory fake, or Ably if `ABLY_API_KEY` is set | Ably | Ably |
 | Database | PGlite (in-process, no setup) or a Neon dev branch | Neon branch for that git branch | Neon main branch |
 | Secrets from | `.env.local` (git-ignored) | Vercel environment variables (Preview) | Vercel environment variables (Production) |
 
@@ -55,6 +58,8 @@ The rules, in order of importance:
 | `GROQ_API_KEY` | Yes | Vercel (Production, Preview), `.env.local` | Whisper, the model, Orpheus |
 | `DATABASE_URL` | Yes | Set automatically by the Neon integration | Postgres |
 | `SESSION_SECRET` | Yes | Vercel, `.env.local` | Signs the identity cookie. `openssl rand -base64 32` |
+| `ABLY_API_KEY` | Yes | Vercel (Production, Preview), `.env.local` | Server-side publishing to rooms and minting browser tokens |
+| `VERCEL_PROJECT_PRODUCTION_URL` | No | Set by Vercel automatically | Absolute URLs for link previews (`metadataBase`) |
 | `SARJY_PROVIDERS` | No | CI and local only | `fake` or `live` (production defaults to `live`) |
 
 ## 4. First-time setup
@@ -74,14 +79,17 @@ You do these once, in your own accounts. About 20 minutes.
 **Neon**
 6. In the Vercel project: Storage, Create Database, Neon (Marketplace). Region: AWS Frankfurt (`eu-central-1`). Connect it to the project for Production and Preview, with preview branching on. This sets `DATABASE_URL`.
 
+**Ably**
+7. Sign up at ably.com (free). Create an app named `sarjy` and copy its root API key.
+
 **Environment variables**
-7. Settings, Environment Variables. Add `GROQ_API_KEY` and `SESSION_SECRET` for Production and Preview, and mark both Sensitive.
-8. Redeploy. Open `/api/health` on the deployment: it should report the providers and database as configured (true or false only, never values).
+8. Settings, Environment Variables. Add `GROQ_API_KEY`, `ABLY_API_KEY` and `SESSION_SECRET` for Production and Preview, and mark them Sensitive.
+9. Redeploy. Open `/api/health` on the deployment: it should report the providers and database as configured (true or false only, never values).
 
 **Git**
-9. When the first milestone is merged, set `main` as the repository's default branch on GitHub and as the production branch in Vercel (Settings, Git). Reviewers read the default branch.
+10. `main` is the default branch and the production branch in Vercel (Settings, Git). Reviewers read `main`.
 
-**Optional: live testing from the Claude cloud session.** The cloud session that builds Sarjy cannot reach Groq or Open-Meteo by default. To let it run live checks, open the cloud environment's settings (the environment menu in the session's title bar, then Edit): add `GROQ_API_KEY` as an environment variable, and allow `api.groq.com`, `api.open-meteo.com` and `geocoding-api.open-meteo.com` in network access. Without this, all development there uses the fake providers and you run the live checks on preview URLs.
+**Live testing from a cloud coding session.** A cloud session cannot reach the providers by default. In the cloud environment's settings, add `GROQ_API_KEY` and `ABLY_API_KEY` as environment variables, and allow `api.groq.com`, `api.open-meteo.com`, `geocoding-api.open-meteo.com` and Ably's domains (`ably.io`, `ably.net`, `ably-realtime.com`, with subdomains) in network access. Changes apply to new sessions. Without this, development there uses the fakes and live checks run on preview URLs.
 
 ## 5. Region
 
@@ -89,15 +97,15 @@ Put the functions and the database in the same region, as close as possible to t
 
 ## 6. Database migrations
 
-- The schema lives in `src/server/db/schema.ts`. `npm run db:generate` writes a SQL migration into `src/server/db/migrations/`, which is committed and reviewed like code.
-- Migrations run as part of the Vercel build (`npm run db:migrate && next build`), against the Neon branch for that deployment. A failed migration fails the deploy, so production is never left half-migrated.
+- The schema lives in `src/server/db/schema.ts`. `pnpm db:generate` writes a SQL migration into `src/server/db/migrations/`, which is committed and reviewed like code.
+- Migrations run as part of the Vercel build (`pnpm db:migrate && next build`), against the Neon branch for that deployment. A failed migration fails the deploy, so production is never left half-migrated.
 - Tests run the same migrations against PGlite, so the SQL that ships is the SQL that was tested.
 
 ## 7. CI and CD
 
 **On every push (GitHub Actions)**
 
-1. `npm ci`
+1. `pnpm install --frozen-lockfile`
 2. Typecheck, lint, format check
 3. Unit and integration tests (Vitest, fake providers, PGlite)
 4. Build, then scan the client bundle for secrets
@@ -108,7 +116,7 @@ Put the functions and the database in the same region, as close as possible to t
 
 - Every push gets a preview URL, posted on the pull request.
 - Merging into `main` deploys production.
-- We merge the working branch into `main` through a pull request at the end of each milestone, once CI is green.
+- Work happens on short `feat/...` branches merged into `main` through a pull request once CI is green, or directly on `main` for small changes.
 
 ## 8. Quota plan
 
@@ -137,8 +145,9 @@ Vercel keeps every deployment. If a production deploy breaks, use Instant Rollba
 - [ ] Production URL opens in a fresh incognito window, no login, and the demo script runs end to end
 - [ ] The same, on a phone
 - [ ] `/api/health` all true
-- [ ] CI green on `main`; `main` is the default branch
+- [ ] CI green on `main`
 - [ ] Gitleaks clean; bundle scan clean; no `.env` files in the repository
 - [ ] Groq key upgraded (or limits confirmed sufficient) and spend cap set
+- [ ] A room tested across two real devices on production
 - [ ] README has the live URL, the API justification, the deep dive write-up and the latency numbers
 - [ ] Repository URL and deployment URL entered in the Ashby questionnaire

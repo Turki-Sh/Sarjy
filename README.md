@@ -6,7 +6,7 @@ A voice assistant that remembers what you tell it, answers from real tools, and 
 
 Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one rider and breaks in to them over time. Tell Sarjy something once, and the next answer fits a little better.
 
-**Status:** planned, building. Live URL coming on Day 1.
+**Status:** planned, building. The live URL will be here once deployed.
 
 ## Read the plan
 
@@ -19,6 +19,8 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 | 05 | [Deployment](docs/05-DEPLOYMENT.md) | How it ships, and how keys stay secret in a public repo |
 | | [Brand](docs/brand/) | The brand book and visual identity: the design source of truth |
 
+Prefer a single styled page? Run `pnpm install && pnpm docs:reader` and open `docs/reader.html`.
+
 ## In one picture
 
 ```
@@ -26,8 +28,9 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
                                                               ├──► Groq model + tools (weather, memory)
                                                               └──► Groq Orpheus (English or Saudi Arabic voice)
  you hear  ◄── orb, captions and audio in sync     ◄── one stream of events
+                                                              └──► in a room, the same events go to everyone (Ably)
 ```
 
 ## Stack
 
-Next.js on Vercel · Groq (Whisper, gpt-oss, Orpheus) · Open-Meteo · Postgres on Neon · Vitest and Playwright
+Next.js on Vercel · Groq (Whisper, gpt-oss-120b, Orpheus) · Open-Meteo · Ably · Postgres on Neon · pnpm · Vitest and Playwright

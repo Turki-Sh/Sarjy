@@ -6,9 +6,10 @@ What we are building, for whom, and how we will know it is good. Read this first
 |---|---|
 | Product | Sarjy, a bilingual voice assistant with visible memory |
 | Owner | Turki ([@Turki-Sh](https://github.com/Turki-Sh)) |
-| Status | Planned, 29 Sep 2026 |
-| Deep dive | UI/UX and multimodal, in English and Saudi Arabic |
-| Design source of truth | [`docs/brand/`](brand/) (brand book and visual identity, v3) |
+| Status | Planned, 29 Sep 2026 (revised the same day) |
+| Deep dive | UI/UX and multimodal, in English and Saudi Arabic, plus multiplayer rooms |
+| Language model | Groq `openai/gpt-oss-120b`, with `qwen/qwen3.8-27b` as fallback |
+| Design source of truth | [`docs/brand/`](brand/) (brand book and visual identity, v3). Turki's decisions in these docs override it where they differ. |
 
 ---
 
@@ -39,7 +40,23 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 | R3 | Calls at least one external API, justified | Weather through Open-Meteo, using the remembered home city and units. Justification in section 7. |
 | R4 | Deployed URL, no special setup | Vercel production URL. No login: a signed cookie identifies the browser. Text input works without a mic. |
 | D1 | Deep dive: UI/UX and multimodal | The orb driven by real audio, captions that sharpen word by word as Sarjy speaks, tool chips with timings, the memory stitch, sound cues, dark mode, and full Arabic with a mirrored layout. |
+| D2 | Multiplayer: the conversation available to several participants at once | Rooms: share a link, everyone sees the same orb and captions live and hears Sarjy, one person holds the mic at a time, and each person's memory stays their own. |
+| D3 | Every other deep-dive option gets a working baseline | See section 3.1. |
+| P1 | A shareable, well-presented product | Complete page metadata: link previews (Open Graph and X cards) with a branded image, icons, manifest, and a preview card for room invites. |
 | C1 | Communication: plan first, give updates | These docs are the PRD and TDD. Daily progress notes to Sarj. |
+
+### 3.1 Coverage of every deep-dive option
+
+The brief asks us to go deep on one area. We go deep on two (the interface, and multiplayer) and give every other option a real, working baseline, so nothing on the list is missing when the reviewers look.
+
+| Option in the brief | Depth | What exists |
+|---|---|---|
+| UI/UX and multimodal | **Deep** | Everything in section 5, Interface |
+| Multiplayer | **Deep** | Everything in section 5, Multiplayer |
+| Latency | Baseline | Every stage timed, time to first audio shown per turn, first-sentence voice streaming, measured numbers in the README |
+| Guardrails and reliability | Baseline | Numbers only from tools, no secrets stored, prompt-injection hardening for memory, rate limits, graceful fallbacks for every provider |
+| Multistep workflows | Baseline | Onboarding is a small structured flow (name, home city, units) with state kept on the server, and recovery when you answer something else |
+| Something else: bilingual | **Deep** (part of the interface) | Arabic in, Arabic out, a native Saudi voice, a mirrored interface |
 
 ## 4. What we hold to
 
@@ -78,7 +95,7 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | M5 | Asks instead of guessing when it does not know something about you | Must |
 | M6 | Refuses to store secrets (passwords, card numbers, ID numbers) and says why | Should |
 | M7 | Memory works across languages (saved in Arabic, recalled in English) | Should |
-| M8 | Onboarding: on first visit Sarjy introduces itself and asks your name, which becomes the first memory | Should |
+| M8 | Onboarding: on first visit Sarjy introduces itself and walks you through three questions (your name, home city, units). Each answer becomes a memory. If you go off-script, Sarjy answers you, then comes back to the step it was on | Should |
 | M9 | "Forget everything" in settings | Should |
 
 ### Tools
@@ -107,9 +124,41 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | U10 | Responsive: below 900 px the sidebar becomes a sheet | Should |
 | U11 | Reduced motion and reduced transparency respected | Should |
 
+### Multiplayer
+
+| ID | Feature | Priority |
+|---|---|---|
+| MP1 | Invite: turn the current chat into a room and share its link; anyone who opens it joins with no setup | Must |
+| MP2 | Everyone in the room sees the same orb state, captions, tool chips and transcript live, and hears Sarjy's voice | Must |
+| MP3 | Presence: who is in the room, and who is speaking, shown at the top | Must |
+| MP4 | The floor: one person holds the mic at a time; others see "Sara is speaking" and their mic waits | Must |
+| MP5 | Sarjy knows who is talking and addresses them by name | Must |
+| MP6 | Private memory in a shared room: Sarjy only uses the current speaker's memories, and never reveals one person's memories to another | Must |
+| MP7 | Late joiners see the room's transcript so far | Should |
+| MP8 | The host can end the room; the link stops working | Should |
+
+### Presentation and metadata
+
+| ID | Feature | Priority |
+|---|---|---|
+| P1 | Title, description and canonical URL on every page, in the interface language | Must |
+| P2 | Open Graph and X (Twitter) cards with a branded 1200 x 630 preview image, in English and Arabic | Must |
+| P3 | Room invites get their own preview: "Join Turki's Sarjy room" | Must |
+| P4 | Icons: SVG favicon, ICO fallback, 180 px Apple touch icon, the app icon tile from the brand | Must |
+| P5 | Web app manifest with name, icons and theme colors, so Sarjy installs to a home screen | Must |
+| P6 | `theme-color` for light and dark, `robots.txt`, `sitemap.xml`, and structured data (SoftwareApplication) | Must |
+| P7 | `lang` and `dir` on the page match the interface language | Must |
+
+### Companion avatar (stretch, after all Musts)
+
+| ID | Feature | Priority |
+|---|---|---|
+| A1 | A faceless companion: a pet-like creature made from Sarjy's own wave. It breathes when idle, perks up when you say its name, leans in while you talk, droops when it can't help, and bounces on a save. Personality through motion only | Could |
+| A2 | A full mascot in the spirit of Meta's Muse companion, with a face, as an optional skin in settings. This overrides the brand book's "no face, no mascot" rule by Turki's decision | Could, after A1 |
+
 ## 6. Out of scope
 
-Accounts and cross-device sync, native apps, telephony, multiple participants, vector search over memories, voice cloning, any feature not in the tables above.
+Accounts and cross-device sync, native apps, telephony, vector search over memories, voice cloning, any feature not in the tables above.
 
 ## 7. Why weather (the API justification)
 
@@ -123,8 +172,10 @@ The brand book's speaking rules become the system prompt. In short: answer first
 
 | Metric | Target | How we measure |
 |---|---|---|
-| Memory recall across a reload | 100% of acceptance script | Acceptance tests AT-11 to AT-17 |
-| Invented numbers in tool answers | 0 | AT-20, AT-22, plus a numeric grounding check in tests |
+| Memory recall across a reload | 100% of acceptance script | Acceptance tests AT-10 to AT-17 |
+| Multiplayer | Two browsers in one room stay in sync; no memory crosses between people | AT-90 to AT-97 |
+| Link preview | Correct card in WhatsApp, X, Slack and LinkedIn previews | AT-100 to AT-104 |
+| Invented numbers in tool answers | 0 | AT-31, AT-34, plus a numeric grounding check in tests |
 | Time to first audio, no tool | p50 under 2.0 s | Per-turn timings, logged and shown in the details panel |
 | Time to first audio, with weather | p50 under 3.0 s | Same |
 | First words from a cold visit | Under 10 s from opening the URL | Manual, fresh incognito window |
@@ -141,3 +192,6 @@ The brand book's speaking rules become the system prompt. In short: answer first
 | Caption timing drift (Orpheus returns audio without word times) | Blur reveal looks off | Estimate timings from the audio envelope, per sentence, so drift cannot accumulate |
 | Reviewer has no mic or denies permission | Cannot use voice | Text input is a Must; the mic shows the dashed "no access" state |
 | Container used for development cannot reach Groq or Open-Meteo | Cannot test live APIs here | Fake providers for all tests; live checks on Vercel preview deployments |
+| Scope: two deep areas plus baselines in three days | Something ships half-done | Multiplayer reuses the single-player event stream (no second rendering path); strict cut line in the plan; companion avatar only after every Must |
+| gpt-oss-120b's Arabic is weaker than its English | Stiff or wrong Saudi Arabic replies | Arabic prompts in the day-2 bake-off; switch Arabic turns to the Qwen fallback if it scores clearly better |
+| Realtime service free tier (Ably: 200 connections, 6M messages a month) | Rooms stop syncing | Far above demo needs; audio is fetched from our server, not sent through Ably, so messages stay small |
