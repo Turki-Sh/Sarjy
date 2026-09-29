@@ -26,6 +26,7 @@ export const ICONS = {
   keyboard:
     '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.5 10h.01M14 10h.01M17 10h.01M8 14h8"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  sidebar: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/>',
 } as const;
 
 export type IconName = keyof typeof ICONS;

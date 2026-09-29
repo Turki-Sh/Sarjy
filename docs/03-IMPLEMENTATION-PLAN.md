@@ -121,9 +121,16 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] The stitch: underline on the saved fact, card appears in the sidebar (tick sound comes with the cues in M4)
 - [ ] Memory cards with Edit and Forget; Forget everything
 - [x] Tool chip with label and timing
-- [ ] Settings sheet: theme, interface language, voice per language (with preview)
+- [ ] Settings panel, opened by clicking your name in the sidebar (or the ⋯ beside it), in the style of ChatGPT's settings (Turki's review, Day 2):
+  - Memory: the full list with Edit and Forget lives here; the sidebar shows it as a collapsible section, not always open
+  - Appearance: System, Light and Dark as small preview cards of the screen, not a sun and moon
+  - Language: Auto detect, English, العربية
+  - Voice: one per language, with a preview
+  - The language and theme buttons leave the top bar once this lands; the sliders button in the control bar opens Voice
 - [ ] Onboarding in the interface (pre-rendered greeting, Skip)
-- [ ] Recent chats and New chat
+- [x] Recent chats and New chat: New chat clears the stage and says so; a past chat reopens with its last answer; the one on screen is highlighted; search filters chats and memories
+- [x] Collapsible sidebar, remembered across visits
+- [ ] A transcript of the open chat (earlier turns, not only the last answer)
 - [ ] Details panel: latency waterfall and cost per turn
 - [ ] Images: drop, paste or photograph; resized in the browser; thumbnail in the transcript
 - [ ] Below 900 px: sidebar becomes a sheet; reduced motion and reduced transparency
@@ -168,10 +175,16 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] CI test summary on every run, Playwright report kept, README badge
 - [x] Sarjy's voice: a casual Saudi friend, not a formal assistant (prompt, fake replies, PRD section 8)
 
-### After the main work (Turki's requests)
-- [ ] A 404 page in the brand, bilingual, with a way back to Sarjy
-- [ ] Maybe: a home page that introduces Sarjy before the voice screen (decide after M6)
+### Pages (Turki's requests, after M5)
+- [ ] A high-quality home page that introduces Sarjy, with a clear way into the voice screen
+- [ ] A custom, animated 404 page in the brand, bilingual, with a way back (references: dribbble.com/tags/404-page, 404s.design)
 - [ ] Maybe: onboarding screens, a short first-run walkthrough (decide after M5's onboarding in the interface)
+
+### Fixed from Turki's review (Day 2)
+- [x] The "Sarjy" title left the top bar (the sidebar already carries the name)
+- [x] End appears only during a turn; the settings button returns with the settings panel
+- [x] Onboarding never forced: asked once, early, lightly; skipping is fine; units are not asked (Celsius by default)
+- [x] The dev-only Next.js badge moved off the logo
 
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface

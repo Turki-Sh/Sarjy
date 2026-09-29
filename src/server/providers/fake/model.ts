@@ -104,14 +104,14 @@ function firstReply(user: string, system: string): Reply {
   // Onboarding: a bare answer to "what should I call you?" is a name (a greeting is not).
   const greeting = /^(hi|hello|hey|salam|marhaba|مرحبا|هلا|السلام عليكم|أهلا)\b/i.test(clean(user));
   if (
-    system.includes("Current step: ask for their name") &&
+    system.includes("Current step: ask their name") &&
     !greeting &&
     /^[\p{L}' -]{2,30}$/u.test(clean(user))
   ) {
     const name = cap(clean(user));
     return { tool: { name: "remember", input: { key: "name", label: ar ? "الاسم" : "Name", value: name } } };
   }
-  if (system.includes("Current step: ask for their name")) {
+  if (system.includes("Current step: ask their name")) {
     return {
       text: ar
         ? "هلا والله! أنا سرجي، وأتذكر اللي تقوله لي. وش أناديك؟"
@@ -120,9 +120,6 @@ function firstReply(user: string, system: string): Reply {
   }
   if (system.includes("Current step: ask which city")) {
     return { text: ar ? "وين ساكن؟ بأي مدينة؟" : "Which city do you live in?" };
-  }
-  if (system.includes("Current step: ask whether they prefer Celsius")) {
-    return { text: ar ? "تبي الحرارة بالمئوي ولا الفهرنهايت؟" : "Do you prefer Celsius or Fahrenheit?" };
   }
 
   if (lower.includes("system prompt") || /pretend|ignore (all|your)|dan\b/i.test(lower)) {

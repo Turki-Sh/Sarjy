@@ -20,7 +20,8 @@ export async function listConversations(db: Db, userId: string, limit = 12): Pro
 
 /** The conversation to continue: the given one if it is this user's, otherwise a new one. */
 export async function openConversation(db: Db, userId: string, id: string | null, firstText: string) {
-  if (id) {
+  // Only a real id is looked up; anything else (a stale or tampered value) starts a new chat.
+  if (id && /^[0-9a-f-]{36}$/i.test(id)) {
     const [found] = await db
       .select()
       .from(conversations)
@@ -84,4 +85,31 @@ export async function saveTurn(
     .set({ updatedAt: new Date() })
     .where(eq(conversations.id, input.conversationId));
   return assistant!.id;
+}
+
+export type ChatMessage = { role: "user" | "assistant"; text: string; lang: "en" | "ar"; createdAt: string };
+
+/** One of the user's chats with its messages, oldest first; null if it is not theirs. */
+export async function getConversation(
+  db: Db,
+  userId: string,
+  id: string,
+): Promise<{ id: string; title: string; messages: ChatMessage[] } | null> {
+  const [found] = await db
+    .select()
+    .from(conversations)
+    .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
+    .limit(1);
+  if (!found) return null;
+  const rows = await recentMessages(db, id, 40);
+  return {
+    id: found.id,
+    title: found.title ?? "",
+    messages: rows.map((m) => ({
+      role: m.role as "user" | "assistant",
+      text: m.text,
+      lang: m.lang as "en" | "ar",
+      createdAt: m.createdAt.toISOString(),
+    })),
+  };
 }

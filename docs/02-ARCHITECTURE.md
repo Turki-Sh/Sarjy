@@ -372,7 +372,7 @@ The brief's multimodal example: Sarjy can see an image while you talk about it.
 2. **Language rule**: reply in the language of the user's last message; Arabic replies in everyday Saudi Arabic.
 3. **Tool rules**: facts about the world only from tools; only quote numbers a tool returned; if a tool fails, say so and offer to retry.
 4. **Memory rules**: save only what the user states about themselves; never secrets; when you use a memory, say so once, briefly.
-5. **Context**: today's date and time in the user's time zone, the interface language, the onboarding step if one is active, and in a room, who is present and who is speaking.
+5. **Context**: today's date and time in the user's time zone, the interface language, the onboarding step if one is active (only early in a conversation), and in a room, who is present and who is speaking.
 6. **Memory block**: `<memory>` ... `</memory>`, one line per fact with the day it was told.
 7. **Conversation**: the last 12 messages of this chat.
 
@@ -461,13 +461,17 @@ sequenceDiagram
 
 ## 14. Onboarding: a small multistep flow
 
-The first visit is a three-step flow: your name, your home city, your units. It is the baseline for the brief's "multistep workflows" option, and it makes the demo land fast (by step three, "how's tomorrow?" already works).
+The first visit is a two-step flow: your name, then your home city. It is the baseline for the brief's "multistep workflows" option, and it makes the demo land fast (once the city is known, "how's tomorrow?" already works).
 
-- The step lives on the server (`users.onboarding_step`: `name`, `home_city`, `units`, `done`), not in the model's head.
-- `server/turn/onboarding.ts` adds one line to the prompt: which step is current and what to ask.
+It must never feel forced (Turki's direction, Day 2). Sarjy helps with whatever you asked first; the question comes after, in a few words.
+
+- The step lives on the server (`users.onboarding_step`: `name`, `home_city`, `done`), not in the model's head.
+- `server/turn/onboarding.ts` adds a few lines to the prompt: the current step, and what may come next once it is saved.
 - A step advances only when the matching memory key is actually saved (checked in code after the tool runs). The model cannot skip a step by saying it did.
-- Off-script: if you ask something else ("wait, what's the weather?"), Sarjy answers, then returns to the step it was on. After two off-script turns in a row it offers to skip.
-- "Skip" in the interface sets the step to `done`.
+- Each question is asked at most once per conversation. If you skip it, change the subject or would rather not say, Sarjy drops it.
+- After your second message in a conversation, the prompt stops asking altogether: Sarjy only saves the fact if you happen to mention it.
+- Units are never asked. Celsius is the default; "use Fahrenheit" saves the preference whenever you say it.
+- "Skip" in the interface (M5) sets the step to `done`.
 
 ## 15. Metadata and link previews
 

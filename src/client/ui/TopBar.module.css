@@ -7,11 +7,6 @@
   color: var(--text-2);
   font-size: 13px;
 }
-.title {
-  color: var(--text);
-  font-weight: 600;
-  font-size: 15px;
-}
 .actions {
   display: flex;
   align-items: center;
@@ -47,4 +42,25 @@
 .icon svg {
   width: 17px;
   height: 17px;
+}
+
+/* Borderless icon buttons for the sidebar controls, matching the sidebar's own close button. */
+.bare {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.bare:hover {
+  background: var(--sunken);
+  color: var(--text);
+}
+.bare svg {
+  width: 18px;
+  height: 18px;
 }

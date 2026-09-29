@@ -82,6 +82,9 @@ export function useSarjy(lang: Lang) {
   /** Sarjy's last answer, so it can be shared. */
   const [lastMessageId, setLastMessageId] = useState<string | null>(null);
   const [micLook, setMicLook] = useState<MicLook>("ready");
+  /** The chat on screen (null: a new one, not yet started), and what the stage says about it. */
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [chatNote, setChatNote] = useState<"fresh" | "continuing" | null>(null);
 
   const player = useRef<Player | null>(null);
   const turn = useRef<Turn | null>(null);
@@ -195,6 +198,7 @@ export function useSarjy(lang: Lang) {
           return;
         case "done":
           conversationId.current = event.conversationId;
+          setActiveChatId(event.conversationId);
           setTimings(event.timings);
           setLastMessageId(event.messageId);
           t.streamDone = true;
@@ -223,6 +227,7 @@ export function useSarjy(lang: Lang) {
       abort.current = new AbortController();
       setChip(null);
       setFreshId(null);
+      setChatNote(null);
       if (input.text) {
         setCaption({ speaker: "user", lang, words: input.text.split(/\s+/), shown: Infinity, style: "dim" });
       }
@@ -384,13 +389,46 @@ export function useSarjy(lang: Lang) {
     if (res.ok) setMemories((list) => list.filter((m) => m.id !== id));
   }, []);
 
+  /** A clean slate: the next turn starts a new chat, and the stage says so. */
   const newChat = useCallback(() => {
     stop();
     conversationId.current = null;
+    setActiveChatId(null);
     setLastMessageId(null);
     setCaption(null);
     setChip(null);
+    setChatNote("fresh");
   }, [stop]);
+
+  /** Opens a past chat from Recent: the next turn continues it, and its last answer is on screen. */
+  const openChat = useCallback(
+    async (id: string) => {
+      stop();
+      const res = await fetch(`/api/chats/${id}`);
+      if (!res.ok) return;
+      const { chat } = (await res.json()) as {
+        chat: { id: string; messages: { role: string; text: string; lang: Lang }[] };
+      };
+      conversationId.current = chat.id;
+      setActiveChatId(chat.id);
+      setLastMessageId(null);
+      setChip(null);
+      setChatNote("continuing");
+      const last = [...chat.messages].reverse().find((m) => m.role === "assistant");
+      setCaption(
+        last
+          ? {
+              speaker: "sarjy",
+              lang: last.lang,
+              words: last.text.split(/\s+/),
+              shown: Infinity,
+              style: "speak",
+            }
+          : null,
+      );
+    },
+    [stop],
+  );
 
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
   const inputLevel = useCallback(() => ear.current?.mic.level() ?? null, []);
@@ -419,6 +457,9 @@ export function useSarjy(lang: Lang) {
     send,
     stop,
     newChat,
+    openChat,
+    activeChatId,
+    chatNote,
     editMemory,
     forgetMemory,
     outputLevel,

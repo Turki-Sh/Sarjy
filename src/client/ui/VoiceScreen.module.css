@@ -6,6 +6,9 @@
   min-height: 100dvh;
   background: var(--bg);
 }
+.screen[data-sidebar="closed"] {
+  grid-template-columns: minmax(0, 1fr);
+}
 
 .main {
   position: relative;
@@ -36,6 +39,7 @@
 }
 
 .stage {
+  animation: stage-in var(--t-slow) var(--ease-rein) both;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -72,6 +76,14 @@
   align-items: center;
   gap: 14px;
   width: 100%;
+}
+
+/* A new or reopened chat fades up into place. */
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 /* A toast floats, so it is glass (with text on it, the text-glass fill). */

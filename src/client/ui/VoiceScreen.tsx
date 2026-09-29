@@ -22,9 +22,14 @@ const rememberChoice = (name: string, value: string) => {
   document.cookie = `${name}=${value}; path=/; max-age=${YEAR}; samesite=lax`;
 };
 
-export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; initialTheme: Theme }) {
+type Props = { initialLang: Lang; initialTheme: Theme; initialSidebarOpen: boolean };
+
+export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: Props) {
   const [lang, setLang] = useState(initialLang);
   const [theme, setTheme] = useState(initialTheme);
+  const [sidebarOpen, setSidebarOpen] = useState(initialSidebarOpen);
+  /** Bumped when you switch chats, to replay the stage's fade (only on your click, never mid-answer). */
+  const [switches, setSwitches] = useState(0);
   const sarjy = useSarjy(lang);
   const composer = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -54,6 +59,20 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
     setTheme(next);
   };
 
+  const newChat = () => {
+    sarjy.newChat();
+    setSwitches((n) => n + 1);
+  };
+  const openChat = async (id: string) => {
+    await sarjy.openChat(id);
+    setSwitches((n) => n + 1);
+  };
+
+  const setSidebar = (open: boolean) => {
+    rememberChoice(COOKIE.sidebar, open ? "open" : "closed");
+    setSidebarOpen(open);
+  };
+
   const toggleLang = () => {
     const next: Lang = lang === "ar" ? "en" : "ar";
     document.documentElement.lang = next;
@@ -71,17 +90,30 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
     flash(s.micBlocked);
   };
   const showChip = sarjy.state === "tool" || sarjy.state === "speaking" || sarjy.state === "thinking";
+  const busy = sarjy.state !== "idle" && sarjy.state !== "saving";
+  // At rest, the line under the orb says where you are: a new chat, or one picked back up.
+  const note =
+    sarjy.state === "idle" && sarjy.chatNote
+      ? sarjy.chatNote === "fresh"
+        ? s.freshChat
+        : s.continuing
+      : s.status[sarjy.state];
 
   return (
-    <div className={styles.screen} data-state={sarjy.state}>
-      <Sidebar
-        lang={lang}
-        memories={sarjy.memories}
-        freshId={sarjy.freshId}
-        recent={sarjy.chats}
-        userName={sarjy.profile?.name ?? null}
-        onNewChat={sarjy.newChat}
-      />
+    <div className={styles.screen} data-state={sarjy.state} data-sidebar={sidebarOpen ? "open" : "closed"}>
+      {sidebarOpen && (
+        <Sidebar
+          lang={lang}
+          memories={sarjy.memories}
+          freshId={sarjy.freshId}
+          recent={sarjy.chats}
+          userName={sarjy.profile?.name ?? null}
+          activeChatId={sarjy.activeChatId}
+          onNewChat={newChat}
+          onOpenChat={(id) => void openChat(id)}
+          onClose={() => setSidebar(false)}
+        />
+      )}
 
       <main className={styles.main}>
         <TopBar
@@ -90,13 +122,16 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
           onToggleLang={toggleLang}
           onToggleTheme={toggleTheme}
           onShare={sarjy.canShare && sarjy.state === "idle" ? () => void share() : undefined}
+          onOpenSidebar={sidebarOpen ? undefined : () => setSidebar(true)}
+          onNewChat={newChat}
         />
 
-        <section className={styles.stage} aria-label={s.talk}>
+        {/* Switching chats replays the stage's fade, so the change is felt. */}
+        <section key={switches} className={styles.stage} aria-label={s.talk}>
           <Orb state={sarjy.state} inputLevel={sarjy.inputLevel} outputLevel={sarjy.outputLevel} />
           <ToolChip chip={showChip ? sarjy.chip : null} />
           <Caption caption={sarjy.caption} />
-          <p className={styles.status}>{s.status[sarjy.state]}</p>
+          <p className={styles.status}>{note}</p>
         </section>
 
         <div className={styles.dock}>
@@ -110,8 +145,7 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
             mic={sarjy.micLook}
             labels={{ talk: s.talk, stop: s.stop, end: s.end, settings: s.voiceSettings }}
             onMic={() => void onMic()}
-            onEnd={sarjy.stop}
-            onSettings={() => {}}
+            onEnd={busy ? sarjy.stop : undefined}
           />
         </div>
 

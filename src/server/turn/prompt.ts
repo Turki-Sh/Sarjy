@@ -90,6 +90,8 @@ export type PromptContext = {
   userName: string | null;
   memories: Memory[];
   onboarding: OnboardingStep;
+  /** How many messages the user has already sent in this conversation (onboarding asks early, once). */
+  userTurns?: number;
   /** The language the user spoke or typed this turn: the reply's language. */
   replyLang: "en" | "ar";
 };
@@ -101,7 +103,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
     `Hijri date (Umm al-Qura): ${hijriDate(now, "en", timeZone)} / ${hijriDate(now, "ar", timeZone)}.`,
     `Interface language: ${ctx.uiLang === "ar" ? "Arabic" : "English"}.`,
     ctx.userName ? `The user's name: ${ctx.userName}.` : "You don't know the user's name yet.",
-    onboardingInstruction(ctx.onboarding),
+    onboardingInstruction(ctx.onboarding, ctx.userTurns ?? 0),
   ]
     .filter(Boolean)
     .join("\n");

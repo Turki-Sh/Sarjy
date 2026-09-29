@@ -33,6 +33,12 @@ type Strings = {
   linkCopied: string;
   /** Shown when the mic can't be used; the text box takes over. */
   micBlocked: string;
+  /** Under the orb after New chat, and after opening a past chat. */
+  freshChat: string;
+  continuing: string;
+  noMatches: string;
+  openSidebar: string;
+  closeSidebar: string;
   sharedMoment: string;
   sharedNote: string;
   about: string;
@@ -76,6 +82,11 @@ export const STRINGS: Record<Lang, Strings> = {
     share: "Share this moment",
     linkCopied: "Link copied",
     micBlocked: "No mic access. You can type instead.",
+    freshChat: "A new chat. What's on your mind?",
+    continuing: "Picking up where you left off",
+    noMatches: "Nothing matches",
+    openSidebar: "Open sidebar",
+    closeSidebar: "Close sidebar",
     sharedMoment: "A moment with Sarjy",
     sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
     about: "About Sarjy",
@@ -118,6 +129,11 @@ export const STRINGS: Record<Lang, Strings> = {
     share: "شارك هاللحظة",
     linkCopied: "تم نسخ الرابط",
     micBlocked: "ما فيه وصول للمايك. تقدر تكتب بدلها.",
+    freshChat: "سالفة جديدة. وش في بالك؟",
+    continuing: "نكمل من حيث وقفنا",
+    noMatches: "ما فيه نتائج",
+    openSidebar: "افتح القائمة",
+    closeSidebar: "اقفل القائمة",
     sharedMoment: "لحظة مع سرجي",
     sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",
     about: "عن سرجي",

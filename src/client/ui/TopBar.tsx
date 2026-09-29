@@ -1,5 +1,6 @@
-// The top of the voice area: about, the assistant's name, and quick switches for language and theme.
-// (The settings sheet in milestone M5 takes over the switches; these stay as shortcuts.)
+// The top of the voice area. With the sidebar closed: buttons to reopen it and start a new chat.
+// On the other side: share (when there is an answer) and quick switches for language and theme.
+// (The settings panel in milestone M5 takes over the switches.)
 
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
@@ -14,13 +15,47 @@ type Props = {
   onToggleTheme: () => void;
   /** Present when there is an answer to share. */
   onShare?: () => void;
+  /** Present when the sidebar is closed. */
+  onOpenSidebar?: () => void;
+  onNewChat: () => void;
 };
 
-export function TopBar({ lang, theme, onToggleLang, onToggleTheme, onShare }: Props) {
+export function TopBar({
+  lang,
+  theme,
+  onToggleLang,
+  onToggleTheme,
+  onShare,
+  onOpenSidebar,
+  onNewChat,
+}: Props) {
   const s = t(lang);
   return (
     <header className={styles.top}>
-      <b className={styles.title}>{lang === "ar" ? "سرجي" : "Sarjy"}</b>
+      <div className={styles.actions}>
+        {onOpenSidebar && (
+          <>
+            <button
+              type="button"
+              className={styles.bare}
+              onClick={onOpenSidebar}
+              aria-label={s.openSidebar}
+              title={s.openSidebar}
+            >
+              <Icon name="sidebar" />
+            </button>
+            <button
+              type="button"
+              className={styles.bare}
+              onClick={onNewChat}
+              aria-label={s.newChat}
+              title={s.newChat}
+            >
+              <Icon name="plus" />
+            </button>
+          </>
+        )}
+      </div>
       <div className={styles.actions}>
         {onShare && (
           <button

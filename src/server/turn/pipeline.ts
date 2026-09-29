@@ -103,6 +103,7 @@ export async function runTurn(
     userName: input.user.name,
     memories,
     onboarding,
+    userTurns: history.filter((m) => m.role === "user").length,
     replyLang: lang,
   });
   const messages: ModelMessage[] = [

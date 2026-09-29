@@ -11,6 +11,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // The dev-only "N" badge sits over the logo in its default corner; keep it out of the way.
+  devIndicators: { position: "bottom-right" },
   // PGlite ships its own WebAssembly and data files; load it from node_modules instead of bundling it.
   serverExternalPackages: ["@electric-sql/pglite"],
   // /notes serves the docs reader, generated into public/notes/ by every build.

@@ -52,3 +52,14 @@
   outline-offset: -4px;
   color: var(--text-2);
 }
+
+/* End slides in beside the mic when a turn begins. */
+.appear {
+  animation: appear var(--t-base) var(--ease-rein) both;
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
