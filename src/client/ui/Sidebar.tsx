@@ -5,7 +5,6 @@
 // Search filters both lists as you type. The sidebar can be closed; the top bar reopens it.
 
 import { useState } from "react";
-import { AVATARS, avatarUrl, type AvatarId } from "@/shared/avatars";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
 import type { Memory } from "@/shared/protocol";
@@ -22,8 +21,9 @@ type Props = {
   freshId: string | null;
   recent: ChatItem[];
   userName: string | null;
-  avatar: AvatarId | null;
-  onAvatar: (id: AvatarId) => void;
+  /** Your picture: a painting's URL or your own image's data URL. */
+  avatarSrc: string | null;
+  onOpenSettings: () => void;
   /** The chat on screen; null for a new one. */
   activeChatId: string | null;
   onNewChat: () => void;
@@ -42,8 +42,8 @@ export function Sidebar({
   freshId,
   recent,
   userName,
-  avatar,
-  onAvatar,
+  avatarSrc,
+  onOpenSettings,
   activeChatId,
   onNewChat,
   onOpenChat,
@@ -52,7 +52,8 @@ export function Sidebar({
 }: Props) {
   const s = t(lang);
   const [query, setQuery] = useState("");
-  const [picking, setPicking] = useState(false);
+  /** Memory folds away: it's always one tap from view, but it doesn't have to fill the sidebar. */
+  const [memoryOpen, setMemoryOpen] = useState(true);
   /** The chat whose title is being edited, if any. */
   const [renaming, setRenaming] = useState<string | null>(null);
   const q = query.trim();
@@ -95,12 +96,23 @@ export function Sidebar({
         {s.newChat}
       </button>
 
-      <h2 className={styles.group}>{s.memory}</h2>
-      {memories.length === 0 && <p className={styles.empty}>{s.emptyMemory}</p>}
+      <h2 className={styles.group}>
+        <button
+          type="button"
+          className={styles.fold}
+          aria-expanded={memoryOpen || !!q}
+          onClick={() => setMemoryOpen((o) => !o)}
+        >
+          {s.memory}
+          {memories.length > 0 && <span className={styles.count}>{memories.length}</span>}
+          <Icon name="chev" className={styles.chev} />
+        </button>
+      </h2>
+      {(memoryOpen || q) && memories.length === 0 && <p className={styles.empty}>{s.emptyMemory}</p>}
       {q && memories.length > 0 && shownMemories.length === 0 && (
         <p className={styles.empty}>{s.noMatches}</p>
       )}
-      <ul className={styles.list}>
+      <ul className={styles.list} hidden={!memoryOpen && !q}>
         {shownMemories.map((m) => (
           <li
             key={m.id}
@@ -177,52 +189,22 @@ export function Sidebar({
         )}
       </ul>
 
-      {/* You, at the bottom: your picture (tap to choose another) and your name. */}
-      <div className={styles.foot}>
-        {picking && (
-          <div className={styles.picker} role="radiogroup" aria-label={s.changePicture}>
-            {AVATARS.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                role="radio"
-                aria-checked={a.id === avatar}
-                aria-label={a[lang]}
-                title={a[lang]}
-                onClick={() => {
-                  onAvatar(a.id);
-                  setPicking(false);
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size image, nothing to optimize */}
-                <img src={avatarUrl(a.id)} alt="" width={56} height={56} />
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className={styles.me}>
-          <button
-            type="button"
-            className={styles.avatar}
-            aria-label={s.changePicture}
-            aria-expanded={picking}
-            title={s.changePicture}
-            onClick={() => setPicking((p) => !p)}
-          >
-            {avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size image, nothing to optimize
-              <img src={avatarUrl(avatar)} alt="" width={32} height={32} />
-            ) : (
-              <i aria-hidden="true">{(userName ?? "?").slice(0, 1).toUpperCase()}</i>
-            )}
-          </button>
-          <div>
-            {userName ?? "…"}
-            <span>{s.memoryOn}</span>
-          </div>
-        </div>
-      </div>
+      {/* You, at the bottom: your picture and name. Tap to open settings. */}
+      <button type="button" className={styles.me} onClick={onOpenSettings} aria-label={s.settings.open}>
+        <span className={styles.avatar}>
+          {avatarSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size image, nothing to optimize
+            <img src={avatarSrc} alt="" width={32} height={32} />
+          ) : (
+            <i aria-hidden="true">{(userName ?? "?").slice(0, 1).toUpperCase()}</i>
+          )}
+        </span>
+        <span className={styles.who}>
+          {userName ?? "…"}
+          <span>{s.memoryOn}</span>
+        </span>
+        <Icon name="sliders" className={styles.gear} />
+      </button>
     </aside>
   );
 }

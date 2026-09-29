@@ -40,6 +40,36 @@ type Strings = {
   openSidebar: string;
   changePicture: string;
   rename: string;
+  /** The settings popup. */
+  settings: {
+    title: string;
+    open: string;
+    close: string;
+    general: string;
+    appearance: string;
+    profile: string;
+    memory: string;
+    language: string;
+    languageHint: string;
+    auto: string;
+    mode: string;
+    system: string;
+    light: string;
+    dark: string;
+    picture: string;
+    upload: string;
+    uploadHint: string;
+    badImage: string;
+    name: string;
+    save: string;
+    memoryHint: string;
+    edit: string;
+    forget: string;
+    cancel: string;
+    forgetAll: string;
+    forgetAllHint: string;
+    forgetAllConfirm: string;
+  };
   closeSidebar: string;
   sharedMoment: string;
   sharedNote: string;
@@ -90,6 +120,35 @@ export const STRINGS: Record<Lang, Strings> = {
     openSidebar: "Open sidebar",
     changePicture: "Change your picture",
     rename: "Rename",
+    settings: {
+      title: "Settings",
+      open: "Open settings",
+      close: "Close settings",
+      general: "General",
+      appearance: "Appearance",
+      profile: "Profile",
+      memory: "Memory",
+      language: "Language",
+      languageHint: "The language of the app. Sarjy always answers in the language you speak.",
+      auto: "Auto detect",
+      mode: "Mode",
+      system: "System",
+      light: "Light",
+      dark: "Dark",
+      picture: "Picture",
+      upload: "Upload your own",
+      uploadHint: "Any photo works; it's cropped to a square and kept small.",
+      badImage: "That picture couldn't be used. Try a JPG or PNG.",
+      name: "Your name",
+      save: "Save",
+      memoryHint: "Everything Sarjy remembers about you. Change or forget anything.",
+      edit: "Edit",
+      forget: "Forget",
+      cancel: "Cancel",
+      forgetAll: "Forget everything",
+      forgetAllHint: "Deletes your memories, chats and profile. This can't be undone.",
+      forgetAllConfirm: "Yes, forget everything",
+    },
     closeSidebar: "Close sidebar",
     sharedMoment: "A moment with Sarjy",
     sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
@@ -139,6 +198,35 @@ export const STRINGS: Record<Lang, Strings> = {
     openSidebar: "افتح القائمة",
     changePicture: "غيّر صورتك",
     rename: "غيّر الاسم",
+    settings: {
+      title: "الإعدادات",
+      open: "افتح الإعدادات",
+      close: "اقفل الإعدادات",
+      general: "عام",
+      appearance: "المظهر",
+      profile: "ملفك",
+      memory: "الذاكرة",
+      language: "اللغة",
+      languageHint: "لغة التطبيق. سرجي دايم يرد باللغة اللي تتكلم فيها.",
+      auto: "تلقائي",
+      mode: "الوضع",
+      system: "حسب الجهاز",
+      light: "فاتح",
+      dark: "داكن",
+      picture: "الصورة",
+      upload: "ارفع صورتك",
+      uploadHint: "أي صورة تمشي؛ نقصّها مربعة ونصغّرها.",
+      badImage: "ما قدرت أستخدم هالصورة. جرّب JPG أو PNG.",
+      name: "اسمك",
+      save: "حفظ",
+      memoryHint: "كل اللي يتذكره سرجي عنك. عدّل أو احذف أي شي.",
+      edit: "تعديل",
+      forget: "انسَ",
+      cancel: "إلغاء",
+      forgetAll: "انسَ كل شي",
+      forgetAllHint: "يحذف ذاكرتك وسوالفك وملفك. ما تقدر ترجعها.",
+      forgetAllConfirm: "إي، انسَ كل شي",
+    },
     closeSidebar: "اقفل القائمة",
     sharedMoment: "لحظة مع سرجي",
     sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",

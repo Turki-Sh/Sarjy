@@ -173,29 +173,32 @@
   font-weight: 600;
 }
 
-.foot {
-  margin-block-start: auto;
-}
+/* You, at the bottom: one button that opens settings. */
 .me {
+  margin-block-start: auto;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-block: 12px 2px;
-  padding-inline: 6px;
+  width: 100%;
+  padding: 10px 6px;
+  border: 0;
   border-block-start: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
 }
-/* Your picture: one of Turki's paintings. Tap it to choose another. */
+.me:hover {
+  background: var(--sunken);
+}
+/* Your picture, a painting or your own photo. */
 .avatar {
   flex: none;
   width: 32px;
   height: 32px;
-  padding: 0;
-  border: 0;
   border-radius: 9px;
   overflow: hidden;
-  cursor: pointer;
   background: var(--sunken);
-  outline-offset: 2px;
 }
 .avatar img {
   width: 100%;
@@ -203,38 +206,56 @@
   object-fit: cover;
   display: block;
 }
-.avatar i {
-  width: 100%;
-  height: 100%;
-}
-.picker {
-  display: flex;
-  gap: 8px;
-  padding: 10px 6px 4px;
-  animation: settle var(--t-base) var(--ease-rein) both;
-}
-.picker button {
-  width: 56px;
-  height: 56px;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 12px;
+.who {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  font-weight: 600;
+  white-space: nowrap;
   overflow: hidden;
-  cursor: pointer;
-  background: none;
+  text-overflow: ellipsis;
 }
-.picker button[aria-checked="true"] {
-  border-color: var(--accent);
+.gear {
+  width: 16px;
+  height: 16px;
+  color: var(--text-2);
+  flex: none;
 }
-.picker img {
+
+/* The Memory heading folds the list. */
+.fold {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.count {
+  font-size: 11px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+}
+.chev {
+  width: 14px;
+  height: 14px;
+  margin-inline-start: auto;
+  transition: transform var(--t-base) var(--ease-rein);
+}
+.fold[aria-expanded="false"] .chev {
+  transform: rotate(-90deg);
+}
+:dir(rtl) .fold[aria-expanded="false"] .chev {
+  transform: rotate(90deg);
 }
 .me i {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
   border-radius: 8px;
   background: var(--text);
   color: var(--bg);
@@ -243,9 +264,11 @@
   font: 600 12px var(--font-ui);
   font-style: normal;
 }
-.me span {
+/* "Memory on", under your name. */
+.who span {
   display: block;
   font-size: 11px;
+  font-weight: 400;
   color: var(--text-2);
 }
 

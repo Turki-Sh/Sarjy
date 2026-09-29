@@ -8,7 +8,7 @@
 // Components only render what this hook returns.
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import type { AvatarId } from "@/shared/avatars";
+import type { AvatarChoice, AvatarId } from "@/shared/avatars";
 import type { Lang } from "@/shared/i18n";
 import type { Memory, Timings, TurnEvent } from "@/shared/protocol";
 import type { VoiceState } from "@/shared/states";
@@ -31,7 +31,14 @@ export type ChatLine = { role: "user" | "assistant"; text: string; lang: Lang };
 
 /** How many earlier lines show above the caption. */
 const EARLIER = 3;
-export type Profile = { id: string; name: string | null; onboardingStep: string; avatar: AvatarId };
+export type Profile = {
+  id: string;
+  name: string | null;
+  onboardingStep: string;
+  avatar: AvatarChoice;
+  /** Your own picture as a data URL, when avatar is "upload". */
+  avatarImage: string | null;
+};
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
 type Turn = {
@@ -441,12 +448,17 @@ export function useSarjy(lang: Lang) {
     if (res.ok) {
       const { memory } = (await res.json()) as { memory: Memory };
       setMemories((list) => list.map((m) => (m.id === id ? memory : m)));
+      if (memory.key === "name") setProfile((p) => (p ? { ...p, name: memory.value } : p));
     }
   }, []);
 
   const forgetMemory = useCallback(async (id: string) => {
     const res = await fetch(`/api/memories/${id}`, { method: "DELETE" });
-    if (res.ok) setMemories((list) => list.filter((m) => m.id !== id));
+    if (!res.ok) return;
+    setMemories((list) => {
+      if (list.find((m) => m.id === id)?.key === "name") setProfile((p) => (p ? { ...p, name: null } : p));
+      return list.filter((m) => m.id !== id);
+    });
   }, []);
 
   /** A clean slate: the next turn starts a new chat, and the stage says so. */
@@ -500,11 +512,36 @@ export function useSarjy(lang: Lang) {
     await fetch(`/api/chats/${id}`, { method: "PATCH", body: JSON.stringify({ title: clean }) });
   }, []);
 
-  /** Your profile picture: shown at once, then saved. */
+  /** Your profile picture, one of the paintings: shown at once, then saved. */
   const setAvatar = useCallback(async (avatar: AvatarId) => {
-    setProfile((p) => (p ? { ...p, avatar } : p));
+    setProfile((p) => (p ? { ...p, avatar, avatarImage: null } : p));
     await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ avatar }) });
   }, []);
+
+  /** Your own picture (already shrunk in the browser): shown at once, then saved. */
+  const uploadAvatar = useCallback(async (image: string) => {
+    setProfile((p) => (p ? { ...p, avatar: "upload", avatarImage: image } : p));
+    await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ image }) });
+  }, []);
+
+  /** Your name, on the profile and as the `name` memory. */
+  const setName = useCallback(
+    async (name: string) => {
+      const res = await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ name, lang }) });
+      if (!res.ok) return;
+      const { memory } = (await res.json()) as { memory: Memory };
+      setProfile((p) => (p ? { ...p, name: memory.value } : p));
+      setMemories((list) => [...list.filter((m) => m.key !== "name"), memory]);
+    },
+    [lang],
+  );
+
+  /** Forget everything: the user and all they own are deleted; the page starts over as a stranger. */
+  const forgetEverything = useCallback(async () => {
+    stop();
+    await fetch("/api/session", { method: "DELETE" });
+    window.location.reload();
+  }, [stop]);
 
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
   const inputLevel = useCallback(() => ear.current?.mic.level() ?? null, []);
@@ -535,6 +572,9 @@ export function useSarjy(lang: Lang) {
     newChat,
     openChat,
     setAvatar,
+    uploadAvatar,
+    setName,
+    forgetEverything,
     renameChat,
     activeChatId,
     chatNote,

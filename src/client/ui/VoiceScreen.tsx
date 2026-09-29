@@ -5,12 +5,14 @@
 // from useSarjy, and the pieces below only render it.
 
 import { useRef, useState } from "react";
+import { avatarUrl } from "@/shared/avatars";
 import { dir, t, type Lang } from "@/shared/i18n";
-import { COOKIE, type Theme } from "@/shared/preferences";
+import { COOKIE, type LangChoice, type ThemeChoice } from "@/shared/preferences";
 import { useSarjy } from "../voice/useSarjy";
 import { Caption } from "./Caption";
 import { ControlBar } from "./ControlBar";
 import { Earlier } from "./Earlier";
+import { Settings, type SettingsSection } from "./settings/Settings";
 import { Orb } from "./Orb";
 import { Sidebar } from "./Sidebar";
 import { TextComposer } from "./TextComposer";
@@ -23,12 +25,28 @@ const rememberChoice = (name: string, value: string) => {
   document.cookie = `${name}=${value}; path=/; max-age=${YEAR}; samesite=lax`;
 };
 
-type Props = { initialLang: Lang; initialTheme: Theme; initialSidebarOpen: boolean };
+type Props = {
+  initialLang: Lang;
+  initialLangChoice: LangChoice;
+  initialThemeChoice: ThemeChoice;
+  initialSidebarOpen: boolean;
+};
 
-export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: Props) {
+/** The language "Auto detect" resolves to: the browser's own. */
+const browserLang = (): Lang => (navigator.language.toLowerCase().startsWith("ar") ? "ar" : "en");
+
+export function VoiceScreen({
+  initialLang,
+  initialLangChoice,
+  initialThemeChoice,
+  initialSidebarOpen,
+}: Props) {
   const [lang, setLang] = useState(initialLang);
-  const [theme, setTheme] = useState(initialTheme);
+  const [langChoice, setLangChoice] = useState(initialLangChoice);
+  const [themeChoice, setThemeChoice] = useState(initialThemeChoice);
   const [sidebarOpen, setSidebarOpen] = useState(initialSidebarOpen);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [section, setSection] = useState<SettingsSection>("general");
   /** Bumped when you switch chats, to replay the stage's fade (only on your click, never mid-answer). */
   const [switches, setSwitches] = useState(0);
   const sarjy = useSarjy(lang);
@@ -53,11 +71,14 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
   };
   const s = t(lang);
 
-  const toggleTheme = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    rememberChoice(COOKIE.theme, next);
-    setTheme(next);
+  /** Light, dark, or follow the device (the script in layout.tsx keeps following it). */
+  const chooseTheme = (choice: ThemeChoice) => {
+    const html = document.documentElement;
+    html.dataset.themeChoice = choice;
+    html.dataset.theme =
+      choice === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : choice;
+    rememberChoice(COOKIE.theme, choice);
+    setThemeChoice(choice);
   };
 
   const newChat = () => {
@@ -74,12 +95,19 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
     setSidebarOpen(open);
   };
 
-  const toggleLang = () => {
-    const next: Lang = lang === "ar" ? "en" : "ar";
+  /** English, Arabic, or the browser's language. The whole screen mirrors for Arabic. */
+  const chooseLang = (choice: LangChoice) => {
+    const next = choice === "auto" ? browserLang() : choice;
     document.documentElement.lang = next;
     document.documentElement.dir = dir(next);
-    rememberChoice(COOKIE.lang, next);
+    rememberChoice(COOKIE.lang, choice);
+    setLangChoice(choice);
     setLang(next);
+  };
+
+  const openSettings = (at: SettingsSection = "general") => {
+    setSection(at);
+    setSettingsOpen(true);
   };
 
   // The mic: tap to talk, tap again when you're done (or just stop talking). Tapping while Sarjy
@@ -109,8 +137,14 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
           freshId={sarjy.freshId}
           recent={sarjy.chats}
           userName={sarjy.profile?.name ?? null}
-          avatar={sarjy.profile?.avatar ?? null}
-          onAvatar={(id) => void sarjy.setAvatar(id)}
+          avatarSrc={
+            !sarjy.profile
+              ? null
+              : sarjy.profile.avatar === "upload"
+                ? sarjy.profile.avatarImage
+                : avatarUrl(sarjy.profile.avatar)
+          }
+          onOpenSettings={() => openSettings("general")}
           activeChatId={sarjy.activeChatId}
           onNewChat={newChat}
           onOpenChat={(id) => void openChat(id)}
@@ -122,9 +156,6 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
       <main className={styles.main}>
         <TopBar
           lang={lang}
-          theme={theme}
-          onToggleLang={toggleLang}
-          onToggleTheme={toggleTheme}
           onShare={sarjy.canShare && sarjy.state === "idle" ? () => void share() : undefined}
           onOpenSidebar={sidebarOpen ? undefined : () => setSidebar(true)}
           onNewChat={newChat}
@@ -167,6 +198,28 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
             {toast}
           </p>
         )}
+
+        <Settings
+          open={settingsOpen}
+          section={section}
+          lang={lang}
+          langChoice={langChoice}
+          themeChoice={themeChoice}
+          name={sarjy.profile?.name ?? null}
+          avatar={sarjy.profile?.avatar ?? null}
+          avatarImage={sarjy.profile?.avatarImage ?? null}
+          memories={sarjy.memories}
+          onSection={setSection}
+          onClose={() => setSettingsOpen(false)}
+          onLangChoice={chooseLang}
+          onThemeChoice={chooseTheme}
+          onAvatar={(id) => void sarjy.setAvatar(id)}
+          onUpload={(image) => void sarjy.uploadAvatar(image)}
+          onName={(name) => void sarjy.setName(name)}
+          onEditMemory={(id, value) => void sarjy.editMemory(id, value)}
+          onForgetMemory={(id) => void sarjy.forgetMemory(id)}
+          onForgetAll={() => void sarjy.forgetEverything()}
+        />
 
         {/* One polite announcement per state change, for screen readers. */}
         <p className="sr-only" aria-live="polite">

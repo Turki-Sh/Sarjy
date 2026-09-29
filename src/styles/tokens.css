@@ -34,6 +34,11 @@
   --light-b: rgba(228, 116, 88, 0.75);
   --light-c: rgba(131, 82, 152, 0.7);
 
+  /* Behind a popup (settings): dims the page in both themes. */
+  --scrim: rgba(0, 0, 0, 0.45);
+  /* Destructive actions (Forget everything). */
+  --danger: var(--coral);
+
   /* Shape and motion */
   --r-s: 6px;
   --r-m: 12px;

@@ -57,10 +57,26 @@ const jsonLd = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
+/**
+ * Runs before paint. While the theme choice is "system", it matches the device, and keeps matching
+ * it when the device switches (checked at each change, so choosing System later also follows).
+ */
+const FOLLOW_DEVICE = `(function(){var d=document.documentElement,m=matchMedia("(prefers-color-scheme: dark)");var f=function(){if(d.dataset.themeChoice==="system")d.dataset.theme=m.matches?"dark":"light"};f();m.addEventListener("change",f)})()`;
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { lang, theme } = await readPreferences();
+  const { lang, theme, themeChoice } = await readPreferences();
   return (
-    <html lang={lang} dir={dir(lang)} data-theme={theme} className={fontVariables}>
+    <html
+      lang={lang}
+      dir={dir(lang)}
+      data-theme={theme}
+      data-theme-choice={themeChoice}
+      className={fontVariables}
+    >
+      <head>
+        {/* "Follow my device": pick light or dark before the first paint, so there is no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: FOLLOW_DEVICE }} />
+      </head>
       <body>
         {children}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

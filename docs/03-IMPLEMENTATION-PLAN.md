@@ -119,14 +119,15 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] Orb driven by real audio: mic level while listening, output level while speaking; light, rotation and grain per the brand
 - [x] Caption word timing from the audio envelope (`shared/wordTiming.ts`), unit tested; unspoken words blurred
 - [x] The stitch: underline on the saved fact, card appears in the sidebar (tick sound comes with the cues in M4)
-- [ ] Memory cards with Edit and Forget; Forget everything
+- [x] Memory cards with Edit and Forget; Forget everything (in Settings)
 - [x] Tool chip with label and timing
-- [ ] Settings panel, opened by clicking your name in the sidebar (or the ⋯ beside it), in the style of ChatGPT's settings (Turki's review, Day 2):
-  - Memory: the full list with Edit and Forget lives here; the sidebar shows it as a collapsible section, not always open
-  - Appearance: System, Light and Dark as small preview cards of the screen, not a sun and moon
-  - Language: Auto detect, English, العربية
-  - Voice: one per language, with a preview
-  - The language and theme buttons leave the top bar once this lands; the sliders button in the control bar opens Voice
+- [x] Settings as a popup like Claude's (sections beside content), opened from your name at the bottom of the sidebar (Turki's review, Day 2):
+  - [x] General: language, with Auto detect
+  - [x] Appearance: System, Light and Dark as small pictures of the screen; System follows the device live
+  - [x] Profile: your picture (one of the three paintings, or your own photo, shrunk to 192 px in the browser) and your name
+  - [x] Memory: every fact with Edit and Forget; Forget everything with one confirmation. The sidebar's Memory list folds
+  - [x] The language and theme buttons left the top bar
+  - [ ] Voice: one per language, with a preview; the sliders button in the control bar opens it
 - [ ] Onboarding in the interface (pre-rendered greeting, Skip)
 - [x] Recent chats and New chat: New chat clears the stage and says so; a past chat reopens with its last answer; the one on screen is highlighted; search filters chats and memories
 - [x] Collapsible sidebar, remembered across visits

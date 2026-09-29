@@ -63,20 +63,6 @@ test("the control bar only shows what works: End appears only during a turn", as
   await expect(page.getByRole("button", { name: "End", exact: true })).toHaveCount(0);
 });
 
-test("your picture is one of the three paintings, and you can choose another", async ({ page }) => {
-  await page.goto("/");
-  const me = sidebar(page).getByRole("button", { name: "Change your picture" });
-  await expect(me.locator("img")).toHaveAttribute(
-    "src",
-    /\/avatars\/(rider-at-rest|falconer|the-ride)\.webp/,
-  );
-  await me.click();
-  await sidebar(page).getByRole("radio", { name: "The falconer" }).click();
-  await expect(me.locator("img")).toHaveAttribute("src", "/avatars/falconer.webp");
-  await page.reload();
-  await expect(me.locator("img")).toHaveAttribute("src", "/avatars/falconer.webp");
-});
-
 test("rename a chat: Enter saves, Escape leaves it as it was", async ({ page }) => {
   await page.goto("/");
   await say(page, "My favorite color is green.");

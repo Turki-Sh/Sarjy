@@ -14,8 +14,10 @@ export const users = pgTable("users", {
   voiceAr: text("voice_ar"),
   /** The first-visit flow: name, home_city, done (architecture, section 14). */
   onboardingStep: text("onboarding_step").notNull().default("name"),
-  /** The chosen profile picture (shared/avatars.ts); empty means the one picked from the id. */
+  /** The chosen profile picture (shared/avatars.ts), or "upload"; empty means the one picked from the id. */
   avatar: text("avatar"),
+  /** Your own picture, when avatar is "upload": a 192 px square, shrunk in the browser, as a data URL. */
+  avatarImage: text("avatar_image"),
   createdAt,
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });
