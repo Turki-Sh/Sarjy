@@ -1,15 +1,15 @@
 // The link preview image (Open Graph, also used for X): 1200 x 630.
-// White canvas, the bilingual horizontal lockup drawn from the brand's paths, the tagline in the
-// voice face, and the orb with its light. Rendered by next/og at build time, then cached.
+// White canvas, the bilingual horizontal lockup drawn from the brand's paths, one plain line saying
+// what Sarjy is, and the orb with its light. No headline, no italics: the logo is the title.
+// Rendered by next/og at build time, then cached.
 
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { COLORS } from "@/shared/brand/colors";
 import { ARABIC_WORDMARK_PATH, SYMBOL_PATH, WORDMARK_PATHS } from "@/shared/brand/marks";
-import { t } from "@/shared/i18n";
 
-export const alt = "Sarjy, a voice assistant that remembers what you tell it. Shaped to its rider.";
+export const alt = "Sarjy, a voice assistant that remembers what you tell it.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -76,10 +76,7 @@ function Orb({ size: d }: { size: number }) {
 }
 
 export default async function OpenGraphImage() {
-  const [figtree, newsreader] = await Promise.all([
-    font("figtree/files/figtree-latin-400-normal.woff"),
-    font("newsreader/files/newsreader-latin-400-italic.woff"),
-  ]);
+  const figtree = await font("figtree/files/figtree-latin-400-normal.woff");
 
   return new ImageResponse(
     <div
@@ -97,19 +94,7 @@ export default async function OpenGraphImage() {
     >
       <div style={{ display: "flex", flexDirection: "column", width: 620 }}>
         <BilingualLockup width={580} />
-        <div
-          style={{
-            marginTop: 52,
-            fontFamily: "Newsreader",
-            fontStyle: "italic",
-            fontSize: 62,
-            lineHeight: 1.1,
-            color: COLORS.ink,
-          }}
-        >
-          {t("en").tagline}
-        </div>
-        <div style={{ marginTop: 20, fontSize: 27, lineHeight: 1.45, color: COLORS.graphite }}>
+        <div style={{ marginTop: 56, fontSize: 32, lineHeight: 1.4, color: COLORS.ink }}>
           A voice assistant that remembers what you tell it, answers from real tools, and shows you everything
           it keeps.
         </div>
@@ -118,10 +103,7 @@ export default async function OpenGraphImage() {
     </div>,
     {
       ...size,
-      fonts: [
-        { name: "Figtree", data: figtree, weight: 400, style: "normal" },
-        { name: "Newsreader", data: newsreader, weight: 400, style: "italic" },
-      ],
+      fonts: [{ name: "Figtree", data: figtree, weight: 400, style: "normal" }],
     },
   );
 }

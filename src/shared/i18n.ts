@@ -30,7 +30,6 @@ type Strings = {
   send: string;
   emptyMemory: string;
   about: string;
-  tagline: string;
   description: string;
 };
 
@@ -69,7 +68,6 @@ export const STRINGS: Record<Lang, Strings> = {
     send: "Send",
     emptyMemory: "Nothing yet. Tell Sarjy something about you.",
     about: "About Sarjy",
-    tagline: "Shaped to its rider.",
     description:
       "Sarjy is a voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.",
   },
@@ -107,7 +105,6 @@ export const STRINGS: Record<Lang, Strings> = {
     send: "إرسال",
     emptyMemory: "ما فيه شي للحين. قل لسرجي شي عنك.",
     about: "عن سرجي",
-    tagline: "على مقاس فارسه.",
     description: "سرجي مساعد صوتي يتذكر اللي تقوله، ويجاوب من أدوات حقيقية، ويوريك كل شي يحفظه.",
   },
 };

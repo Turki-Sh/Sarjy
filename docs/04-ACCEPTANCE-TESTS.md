@@ -108,7 +108,7 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | ID | Given | When | Then | Req | Priority | Verified by |
 |---|---|---|---|---|---|---|
 | AT-100 | Production | We fetch `/` | The head has title, description, canonical, `og:title`, `og:description`, `og:image` (1200 x 630), `og:locale` with `ar_SA` alternate, `twitter:card=summary_large_image`, two `theme-color` tags, a manifest link and JSON-LD | P1, P2, P6 | Must | E2E (head inspected) |
-| AT-101 | Production | We fetch `/opengraph-image` | A 1200 x 630 PNG with the bilingual lockup and the tagline in both scripts, legible at small size | P2 | Must | E2E, Live |
+| AT-101 | Production | We fetch `/opengraph-image` | A 1200 x 630 PNG with the bilingual lockup, a one-line description and the orb, legible at small size | P2 | Must | E2E, Live |
 | AT-102 | A Majlis link | We fetch `/majlis/{code}` | Title "Join Turki's Majlis on Sarjy", its own preview image, and `robots: noindex` | P3 | Must | E2E |
 | AT-103 | Production | We fetch the icons, `/manifest.webmanifest`, `/robots.txt`, `/sitemap.xml` | All return 200 with valid content; the app installs to a phone home screen with the green tile icon | P4, P5, P6 | Must | E2E, Live |
 | AT-104 | The production URL and a room link | Each is pasted into WhatsApp, X, Slack and LinkedIn | Each shows the right title, description and image | P2, P3 | Must | Live |

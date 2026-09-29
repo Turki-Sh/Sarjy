@@ -22,6 +22,38 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 
 Prefer a single styled page? Run `pnpm install && pnpm docs:reader` and open `docs/reader.html`.
 
+## Run it on your machine
+
+You need Node 22 or newer. pnpm comes with Node through Corepack.
+
+```bash
+git clone https://github.com/Turki-Sh/Sarjy.git
+cd Sarjy
+corepack enable        # once, makes pnpm available
+pnpm install
+pnpm dev               # then open http://localhost:3000
+```
+
+With no keys, Sarjy runs on stand-in providers: typed turns, memory, weather (recorded answers) and the full interface all work, and nothing leaves your machine. Its database lives in `.data/` (delete the folder to start fresh).
+
+To use the real services, create a file named `.env.local` in the project folder (it is git-ignored, never committed):
+
+```bash
+SARJY_PROVIDERS=live
+GROQ_API_KEY=your-groq-key
+ABLY_API_KEY=your-ably-key
+```
+
+Restart `pnpm dev` after changing it. `http://localhost:3000/api/health` shows which keys were picked up (true or false, never the values).
+
+| Command | Does |
+|---|---|
+| `pnpm dev` | The app with live reload, at http://localhost:3000 |
+| `pnpm preview` | A production build, then serves it |
+| `pnpm test` | Unit and integration tests |
+| `pnpm test:e2e` | Browser tests (Playwright) |
+| `pnpm check` | Typecheck, lint and tests |
+
 ## In one picture
 
 ```

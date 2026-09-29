@@ -11,7 +11,8 @@ import "@/styles/globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await readPreferences();
   const s = t(lang);
-  const title = lang === "ar" ? `سرجي · ${s.tagline}` : `${SITE_NAME} · ${s.tagline}`;
+  // Just the name, in both scripts: the description says what it is.
+  const title = lang === "ar" ? "سرجي · Sarjy" : "Sarjy · سرجي";
   return {
     metadataBase: siteUrl(),
     title: { default: title, template: `%s · ${lang === "ar" ? "سرجي" : SITE_NAME}` },

@@ -474,7 +474,7 @@ Every link to Sarjy should look intentional when it is pasted into WhatsApp, Sla
 | What | How |
 |---|---|
 | Title, description, canonical | Next.js Metadata API in `app/layout.tsx`, localized by interface language. `metadataBase` comes from the production URL. |
-| Preview image | `app/opengraph-image.tsx` draws a 1200 x 630 image at request time with `next/og`: the bilingual lockup, the tagline in both scripts, the orb's light. Also used for X (`summary_large_image`). |
+| Preview image | `app/opengraph-image.tsx` draws a 1200 x 630 image with `next/og`: the bilingual lockup, one plain line saying what Sarjy is, and the orb with its light. No headline and no italics (Turki's call): the logo is the title. Also used for X (`summary_large_image`). |
 | Room invites | `app/majlis/[code]/page.tsx` has `generateMetadata`: "Join Turki's Majlis on Sarjy", its own preview image, and `noindex`. |
 | Icons | `icon.svg` (the brand favicon), `favicon.ico` fallback, `apple-icon.png` at 180 px: white symbol on a Saddle Green tile, radius 22.4%, per the visual identity. |
 | Install | `manifest.ts`: name, short name, icons (192, 512, maskable), `theme_color`, `background_color`, `display: standalone`. |
