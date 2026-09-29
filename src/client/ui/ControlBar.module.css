@@ -1,0 +1,54 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--r-pill);
+}
+
+.ctl {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background var(--t-base) var(--ease-rein),
+    color var(--t-base) var(--ease-rein),
+    transform var(--t-quick) var(--ease-rein);
+}
+.ctl svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.ctl:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+.ctl:active {
+  transform: scale(0.94);
+}
+
+.mic {
+  width: 52px;
+  height: 52px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.mic svg {
+  width: 22px;
+  height: 22px;
+}
+.mic[data-look="live"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.mic[data-look="blocked"] {
+  background: transparent;
+  outline: 1.5px dashed var(--text-2);
+  outline-offset: -4px;
+  color: var(--text-2);
+}

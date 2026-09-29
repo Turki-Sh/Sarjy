@@ -1,0 +1,67 @@
+/* The voice screen, from the visual identity, section 6. Below 900 px the sidebar is hidden. */
+
+.screen {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.main {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  padding-block: 16px 28px;
+  padding-inline: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  min-width: 0;
+}
+
+/* Soft diagonal streaks of light from above, fading out by 72% of the height. */
+.main::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(104deg, transparent 36%, var(--streak) 43%, transparent 51%),
+    linear-gradient(97deg, transparent 57%, var(--streak) 63%, transparent 71%),
+    linear-gradient(112deg, transparent 10%, var(--streak) 17%, transparent 26%),
+    linear-gradient(101deg, transparent 72%, var(--streak) 78%, transparent 84%);
+  -webkit-mask: linear-gradient(180deg, #000, transparent 72%);
+  mask: linear-gradient(180deg, #000, transparent 72%);
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 640px;
+  padding-block: 16px;
+}
+
+.status {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-2);
+  margin: 4px 0 0;
+  min-height: 20px;
+}
+
+@media (max-width: 900px) {
+  .screen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .screen > aside {
+    display: none;
+  }
+  .main {
+    padding-inline: 16px;
+  }
+}

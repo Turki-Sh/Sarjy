@@ -7,8 +7,9 @@ The build, day by day. Each milestone ends with something you can open in a brow
 | Start | Tuesday 29 Sep 2026 |
 | Submission | Friday 2 Oct, midday. The email allows four calendar days from Monday 28 Sep; confirm the exact cutoff with Sarj. |
 | Scope | Every Must in the [PRD](01-PRD.md): voice, memory, weather, the interface deep dive (including images), multiplayer rooms, guardrails, full metadata, and a baseline for every other deep-dive option. Line-by-line check: [06 · Brief coverage](06-BRIEF-COVERAGE.md) |
+| Pace | The day on each milestone is the latest it may land, not when it will. Each milestone starts the moment the previous one is done; any time saved goes to the companion and extra touches. |
 | Order of work | De-risk first: skeleton and metadata on Day 1, real voice on Day 2, interface and multiplayer on Day 3, hardening on Friday morning |
-| Tooling | pnpm, Next.js 16, TypeScript strict, Vitest, Playwright |
+| Tooling | pnpm, Next.js 16, React 19, TypeScript 6 strict (7 is not yet supported by the lint tooling), ESLint 9, Vitest, Playwright |
 
 ## What you do in parallel
 
@@ -43,15 +44,15 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Decisions: gpt-oss-120b with Qwen fallback, multiplayer as a Must, companion avatar as stretch
 - [x] Repository hygiene: author-only history, `AGENTS.md`, `SECURITY.md`, docs reader
 
-### M1 · Skeleton, brand and metadata
-- [ ] Next.js 16 (App Router), React 19, TypeScript strict, lint and format, Vitest, Playwright, all through pnpm
-- [ ] `styles/tokens.css` from the brand; `glass.css`; fonts through `next/font`
-- [ ] Logo components from the brand SVGs (symbol, wordmark, combined, Arabic, favicon)
-- [ ] Static voice screen matching the visual identity: sidebar, orb, caption, status, glass control bar, cycling through the six states with demo data
-- [ ] Light and dark themes; English and Arabic layout (mirrored)
-- [ ] Metadata: titles and descriptions, Open Graph and X cards, `opengraph-image.tsx`, icons, manifest, robots, sitemap, JSON-LD, theme colors
-- [ ] `/api/health`
-- [ ] GitHub Actions: typecheck, lint, unit tests, gitleaks
+### M1 · Skeleton, brand and metadata ✅
+- [x] Next.js 16 (App Router), React 19, TypeScript strict, lint and format, Vitest, Playwright, all through pnpm
+- [x] `styles/tokens.css` from the brand; `glass.css`; fonts through `next/font`
+- [x] Logo components from the brand SVGs (symbol, wordmark, combined, Arabic, favicon)
+- [x] Static voice screen matching the visual identity: sidebar, orb, caption, status, glass control bar, cycling through the six states with demo data
+- [x] Light and dark themes; English and Arabic layout (mirrored)
+- [x] Metadata: titles and descriptions, Open Graph and X cards, `opengraph-image.tsx`, icons, manifest, robots, sitemap, JSON-LD, theme colors
+- [x] `/api/health`
+- [x] GitHub Actions: typecheck, lint, unit tests, gitleaks
 
 **Done when:** `pnpm dev` shows the idle screen in light and dark, in English and Arabic; the preview image renders at `/opengraph-image`; CI is green.
 

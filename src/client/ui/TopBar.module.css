@@ -1,0 +1,50 @@
+.top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.title {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn,
+.icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background var(--t-base) var(--ease-rein);
+}
+.btn {
+  padding-block: 6px;
+  padding-inline: 10px 12px;
+  font-size: 13px;
+}
+.icon {
+  width: 34px;
+  height: 34px;
+  justify-content: center;
+}
+.btn:hover,
+.icon:hover {
+  background: var(--sunken);
+}
+.btn svg,
+.icon svg {
+  width: 17px;
+  height: 17px;
+}

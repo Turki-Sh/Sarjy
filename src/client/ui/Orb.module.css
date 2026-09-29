@@ -1,0 +1,96 @@
+/* The orb, from the visual identity, section 6 ("The orb"). */
+
+.wrap {
+  position: relative;
+  width: min(300px, 62vw);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+/* The light: Saffron, Coral and Dusk, blooming only while Sarjy is live. */
+.light {
+  position: absolute;
+  inset: 10%;
+  z-index: -1;
+  border-radius: 50%;
+  background: conic-gradient(
+    from var(--rot, 0deg),
+    var(--light-a),
+    var(--light-b),
+    var(--light-c),
+    var(--light-a)
+  );
+  -webkit-mask: radial-gradient(closest-side, #000 55%, transparent 100%);
+  mask: radial-gradient(closest-side, #000 55%, transparent 100%);
+  filter: blur(24px);
+  opacity: var(--glow, 0);
+  transform: scale(var(--lvl, 1));
+  transition: opacity var(--t-slow) var(--ease-rein);
+}
+
+/* The glass sphere. */
+.orb {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background: var(--orb-fill);
+  border: 1px solid var(--orb-edge);
+  box-shadow: var(--orb-shadow);
+  -webkit-backdrop-filter: blur(4px) saturate(160%);
+  backdrop-filter: blur(4px) saturate(160%);
+}
+.orb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 42% 20% at 38% 16%, var(--orb-spec), transparent 72%);
+}
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: var(--grain);
+  opacity: var(--orb-grain);
+  mix-blend-mode: overlay;
+}
+
+/* The wave: 56% of the orb, in the logo color. */
+.wave {
+  position: relative;
+  width: 56%;
+  color: var(--mark);
+}
+.wave svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.master,
+.moving {
+  transition: opacity var(--t-slow) var(--ease-rein);
+}
+.master {
+  opacity: 0;
+}
+.wave[data-rest="true"] .master {
+  opacity: 1;
+}
+.wave[data-rest="true"] .moving {
+  opacity: 0;
+}
+
+/* Thinking: a Dusk segment travels the line. */
+.trace {
+  stroke: var(--memory);
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease-rein);
+}
+.wrap[data-state="thinking"] .trace {
+  opacity: 0.95;
+}

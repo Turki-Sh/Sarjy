@@ -1,0 +1,153 @@
+/* The sidebar, from the reference build of the voice screen. Solid surface: it is read, not floated. */
+
+.side {
+  background: var(--side);
+  border-inline-end: 1px solid var(--line);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.brand {
+  color: var(--mark);
+  padding-inline: 6px;
+  padding-block: 2px 14px;
+}
+.logo {
+  height: 24px;
+  width: auto;
+  display: block;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sunken);
+  border-radius: var(--r-s);
+  padding-block: 7px;
+  padding-inline: 10px;
+  color: var(--text-2);
+  margin-block-end: 6px;
+}
+.search svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.search input {
+  border: 0;
+  background: transparent;
+  outline: 0;
+  width: 100%;
+  font-size: 13px;
+  color: var(--text);
+}
+.search input::placeholder {
+  color: var(--text-2);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding-block: 7px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+  font-size: 13px;
+}
+.item:hover,
+.on {
+  background: var(--sunken);
+}
+.item svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--text-2);
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group {
+  font: 500 12px/1.4 var(--font-ui);
+  color: var(--text-2);
+  padding-inline: 8px;
+  margin-block: 14px 4px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A stitched memory: Dusk dashes on all four sides. */
+.memory {
+  position: relative;
+  padding-block: 8px;
+  padding-inline: 10px;
+  margin-block: 4px;
+  border-radius: 8px;
+}
+.memory::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--memory) 60%, transparent 60%) top / 8px 1px repeat-x,
+    linear-gradient(90deg, var(--memory) 60%, transparent 60%) bottom / 8px 1px repeat-x,
+    linear-gradient(0deg, var(--memory) 60%, transparent 60%) left / 1px 8px repeat-y,
+    linear-gradient(0deg, var(--memory) 60%, transparent 60%) right / 1px 8px repeat-y;
+  opacity: 0.75;
+}
+.memory span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.memory b {
+  font-weight: 600;
+}
+
+.me {
+  margin-block-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 12px 2px;
+  padding-inline: 6px;
+  border-block-start: 1px solid var(--line);
+}
+.me i {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+  font: 600 12px var(--font-ui);
+  font-style: normal;
+}
+.me span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-2);
+}

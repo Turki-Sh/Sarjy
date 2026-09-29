@@ -115,7 +115,10 @@ function renderDoc(doc) {
         const labels = token.header.map((c) => stripTags(this.parser.parseInline(c.tokens)) || "Item");
         const head = token.header.map((c) => `<th>${this.parser.parseInline(c.tokens)}</th>`).join("");
         const rows = token.rows
-          .map((row) => `<tr>${row.map((c, i) => `<td data-label="${escapeHtml(labels[i] ?? "Item")}">${this.parser.parseInline(c.tokens)}</td>`).join("")}</tr>`)
+          .map(
+            (row) =>
+              `<tr>${row.map((c, i) => `<td data-label="${escapeHtml(labels[i] ?? "Item")}">${this.parser.parseInline(c.tokens)}</td>`).join("")}</tr>`,
+          )
           .join("\n");
         const title = docs.find((d) => d === doc)?.title ?? "Table";
         return `<div aria-label="${escapeHtml(title)}, table ${tableCount}" class="table-scroll" role="region" tabindex="0"><table class="doc-table"><thead><tr>${head}</tr></thead><tbody>\n${rows}\n</tbody></table></div>\n`;
@@ -125,7 +128,10 @@ function renderDoc(doc) {
         const tag = token.ordered ? "ol" : "ul";
         const items = token.items
           .map((item) => {
-            const body = this.parser.parse(item.tokens.filter((t) => t.type !== "checkbox"), !!item.loose);
+            const body = this.parser.parse(
+              item.tokens.filter((t) => t.type !== "checkbox"),
+              !!item.loose,
+            );
             if (!item.task) return `<li>${body}</li>`;
             taskCount += 1;
             const key = `${doc.no}-${taskCount}-${slug(item.text).slice(0, 40)}`;
@@ -140,7 +146,10 @@ function renderDoc(doc) {
 
   // The first heading is the chapter title; the first paragraph is its lead.
   const tokens = [...doc.tokens];
-  const titleToken = tokens.splice(tokens.findIndex((t) => t.type === "heading" && t.depth === 1), 1)[0];
+  const titleToken = tokens.splice(
+    tokens.findIndex((t) => t.type === "heading" && t.depth === 1),
+    1,
+  )[0];
   doc.title = titleToken.text.replace(/^\d+\s*·\s*/, "");
   const leadIndex = tokens.findIndex((t) => t.type === "paragraph");
   const leadToken = tokens.splice(leadIndex, 1)[0];
@@ -169,7 +178,10 @@ const sidebar = docs
   .join("\n");
 
 const index = docs
-  .map((d) => `<a class="index-row" href="#chapter-${d.no}"><span class="index-number">${d.no}</span><span class="index-main"><strong>${escapeHtml(d.title)}</strong><small>${CHAPTER_INFO[d.no]?.blurb ?? ""}</small></span><span class="index-arrow">↗</span></a>`)
+  .map(
+    (d) =>
+      `<a class="index-row" href="#chapter-${d.no}"><span class="index-number">${d.no}</span><span class="index-main"><strong>${escapeHtml(d.title)}</strong><small>${CHAPTER_INFO[d.no]?.blurb ?? ""}</small></span><span class="index-arrow">↗</span></a>`,
+  )
   .join("\n");
 
 // Mermaid renders in the browser, in the reader's own colors, and again when the theme changes.
@@ -201,7 +213,9 @@ new MutationObserver(draw).observe(document.documentElement, { attributes: true,
 <style>.diagram-wrap pre.mermaid{background:transparent;border:0;margin:0;padding:0;text-align:center}.diagram-wrap pre.mermaid svg{max-width:100%;height:auto}</style>`;
 
 const now = new Date();
-const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+const date = now
+  .toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+  .toUpperCase();
 const dateDots = `${String(now.getDate()).padStart(2, "0")}.${String(now.getMonth() + 1).padStart(2, "0")}.${now.getFullYear()}`;
 
 const html = template

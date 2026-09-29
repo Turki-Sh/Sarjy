@@ -1,0 +1,134 @@
+/*
+ * Sarjy design tokens.
+ * Copied verbatim from docs/brand/sarjy-visual-identity-v3.md, section 12 (plus the --grain tile it describes).
+ * Colors live here and nowhere else. Components use the role tokens (--bg, --text, --accent, --memory, ...).
+ */
+
+:root {
+  /* Neutrals, light */
+  --white: #ffffff;
+  --snow: #fafafa;
+  --fog: #f3f3f3;
+  --hairline: #eaeaea;
+  --graphite: #6b6b6b;
+  --ink: #111111;
+
+  /* Neutrals, dark */
+  --night: #111111;
+  --night-side: #0d0d0d;
+  --night-raised: #1c1c1c;
+  --night-line: #262626;
+  --ash: #a0a0a0;
+  --frost: #f2f2f2;
+
+  /* Green, for elements */
+  --saddle: #273b35;
+  --oasis: #6bc7ab;
+
+  /* The light and memory */
+  --saffron: #e3a72f;
+  --coral: #e47458;
+  --dusk: #835298;
+  --dusk-light: #c4a5d8;
+  --light-a: rgba(227, 167, 47, 0.85);
+  --light-b: rgba(228, 116, 88, 0.75);
+  --light-c: rgba(131, 82, 152, 0.7);
+
+  /* Shape and motion */
+  --r-s: 6px;
+  --r-m: 12px;
+  --r-l: 22px;
+  --r-pill: 999px;
+  --ease-rein: cubic-bezier(0.3, 0.7, 0.2, 1);
+  --t-quick: 120ms;
+  --t-base: 240ms;
+  --t-slow: 480ms;
+
+  /* Type */
+  --font-ui: "Figtree", system-ui, sans-serif;
+  --font-voice: "Newsreader", Georgia, serif;
+  --font-ar: "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  --font-ar-voice: "Noto Naskh Arabic", serif;
+  --font-data: "JetBrains Mono", ui-monospace, monospace;
+
+  /* --grain: an feTurbulence noise tile, used at 5% light and 16% dark on the orb */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Roles. Light is the default everywhere; dark is an option. */
+:root,
+.scheme-light {
+  --bg: var(--white);
+  --side: var(--snow);
+  --surface: var(--snow);
+  --sunken: var(--fog);
+  --text: var(--ink);
+  --text-2: var(--graphite);
+  --line: var(--hairline);
+  --mark: var(--saddle);
+  --accent: var(--saddle);
+  --on-accent: var(--white);
+  --memory: var(--dusk);
+  --focus: var(--saddle);
+  --hatch: #efefef;
+  --streak: rgba(0, 0, 0, 0.025);
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-text: rgba(255, 255, 255, 0.78);
+  --glass-edge: rgba(255, 255, 255, 0.9);
+  --glass-rim: rgba(0, 0, 0, 0.07);
+  --glass-sheen: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --orb-fill: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0) 56%,
+    rgba(255, 255, 255, 0.5) 86%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  --orb-edge: rgba(0, 0, 0, 0.07);
+  --orb-shadow:
+    inset 0 -14px 30px rgba(0, 0, 0, 0.05), inset 0 2px 2px rgba(255, 255, 255, 0.95),
+    0 24px 60px rgba(0, 0, 0, 0.09);
+  --orb-spec: rgba(255, 255, 255, 0.9);
+  --orb-grain: 0.05;
+  --frame-shadow: 0 30px 80px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+:root[data-theme="dark"],
+.scheme-dark {
+  --bg: var(--night);
+  --side: var(--night-side);
+  --surface: var(--night-raised);
+  --sunken: #181818;
+  --text: var(--frost);
+  --text-2: var(--ash);
+  --line: var(--night-line);
+  --mark: var(--frost);
+  --accent: var(--oasis);
+  --on-accent: var(--ink);
+  --memory: var(--dusk-light);
+  --focus: var(--oasis);
+  --hatch: #1b1b1b;
+  --streak: rgba(255, 255, 255, 0.04);
+  --glass: rgba(255, 255, 255, 0.07);
+  --glass-text: rgba(24, 24, 24, 0.62);
+  --glass-edge: rgba(255, 255, 255, 0.16);
+  --glass-rim: rgba(0, 0, 0, 0.5);
+  --glass-sheen: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --orb-fill: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0) 54%,
+    rgba(255, 255, 255, 0.07) 80%,
+    rgba(255, 255, 255, 0.42) 97%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  --orb-edge: rgba(255, 255, 255, 0.55);
+  --orb-shadow: 0 0 34px rgba(255, 255, 255, 0.09), inset 0 0 22px rgba(255, 255, 255, 0.1);
+  --orb-spec: rgba(255, 255, 255, 0.06);
+  --orb-grain: 0.16;
+  --frame-shadow: 0 30px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.scheme-light,
+.scheme-dark {
+  color: var(--text);
+  background-color: var(--bg);
+}
