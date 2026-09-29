@@ -1,0 +1,131 @@
+// Link previews (Open Graph cards). The home page has its own generated card
+// (src/app/opengraph-image.tsx). Every other kind of link picks one of Turki's illustrated cards
+// (public/og/) by what the link is about and the language it is in, so a shared weather answer
+// looks like weather, a Majlis invite looks like a conversation, a saved fact looks like a keepsake.
+//
+// The choice is deterministic: the same link always gets the same card (crawlers cache previews,
+// and a card should not change under someone's message), but different links get different cards.
+
+export type CardKind =
+  | "weather" // a shared weather answer
+  | "weather_tomorrow" // a shared answer about tomorrow
+  | "recall" // Sarjy answering from memory ("You told me on Sunday")
+  | "saved" // Sarjy keeping a new fact
+  | "chat" // any other shared moment
+  | "image" // a moment with a picture in it
+  | "majlis" // an invite to a Majlis (multiplayer room)
+  | "notes"; // the build notes
+
+export type Card = {
+  file: string;
+  alt: string;
+  kinds: CardKind[];
+  /** The language written on the card, or "any" when it reads in both. */
+  lang: "en" | "ar" | "any";
+};
+
+export const CARDS: Card[] = [
+  {
+    file: "little-more-you.png",
+    alt: "A little more you. A voice assistant that remembers.",
+    kinds: ["saved", "chat"],
+    lang: "en",
+  },
+  {
+    file: "cassette-sunday.png",
+    alt: "Some things stay with you. A cassette labelled: You told me on Sunday.",
+    kinds: ["recall"],
+    lang: "en",
+  },
+  {
+    file: "hafazt-kalamak.png",
+    alt: "حفظت كلامك: I kept your words. From a shared conversation.",
+    kinds: ["majlis", "saved", "recall"],
+    lang: "ar",
+  },
+  {
+    file: "one-small-thing.png",
+    alt: "شيء صغير يخصك: one small thing, yours.",
+    kinds: ["saved", "chat"],
+    lang: "ar",
+  },
+  {
+    file: "notes-from-building.png",
+    alt: "Small things, made to matter. Notes from building Sarjy.",
+    kinds: ["notes"],
+    lang: "en",
+  },
+  {
+    file: "little-things-big-picture.png",
+    alt: "Little things, big picture. Remember this.",
+    kinds: ["image", "chat"],
+    lang: "en",
+  },
+  {
+    file: "thought-and-reply.png",
+    alt: "A thought, a reply. What did I tell you? You prefer Celsius.",
+    kinds: ["majlis", "recall", "chat"],
+    lang: "en",
+  },
+  {
+    file: "little-more-personal.png",
+    alt: "A little more personal. A voice assistant that remembers.",
+    kinds: ["chat"],
+    lang: "en",
+  },
+  {
+    file: "room-for-little-things.png",
+    alt: "Room for the little things. Keep something good.",
+    kinds: ["saved", "chat"],
+    lang: "en",
+  },
+  {
+    file: "useful-unexpected.png",
+    alt: "Useful, and a little unexpected. An example weather result.",
+    kinds: ["weather"],
+    lang: "any",
+  },
+  {
+    file: "record-sunday.png",
+    alt: "You told me on Sunday. Selected words from Sarjy.",
+    kinds: ["recall"],
+    lang: "en",
+  },
+  {
+    file: "tomorrow-at-a-glance.png",
+    alt: "Tomorrow, at a glance. A shared weather snapshot.",
+    kinds: ["weather_tomorrow", "weather"],
+    lang: "any",
+  },
+];
+
+/** A small, stable hash (FNV-1a), so a seed always maps to the same card. */
+export function hash(seed: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
+ * The card for a link. Prefers cards written in the link's language, then cards that read in
+ * both, then any card of the right kind; falls back to a general "chat" card.
+ */
+export function pickCard(kind: CardKind, lang: "en" | "ar", seed: string): Card {
+  const ofKind = (k: CardKind) => CARDS.filter((c) => c.kinds.includes(k));
+  let pool = ofKind(kind);
+  if (kind === "weather_tomorrow" && !pool.length) pool = ofKind("weather");
+  if (!pool.length) pool = ofKind("chat");
+
+  const sameLang = pool.filter((c) => c.lang === lang);
+  const either = pool.filter((c) => c.lang === "any");
+  const choices = sameLang.length ? sameLang : either.length ? either : pool;
+  return choices[hash(`${kind}:${seed}`) % choices.length]!;
+}
+
+/** Open Graph image metadata for a card. */
+export function cardImage(card: Card) {
+  return { url: `/og/${card.file}`, width: 1200, height: 630, alt: card.alt, type: "image/png" };
+}

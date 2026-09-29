@@ -1,5 +1,7 @@
 # Sarjy · سرجي
 
+[![CI](https://github.com/Turki-Sh/Sarjy/actions/workflows/ci.yml/badge.svg)](https://github.com/Turki-Sh/Sarjy/actions/workflows/ci.yml)
+
 A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.
 
 > Shaped to its rider. على مقاس فارسه.
@@ -53,6 +55,14 @@ Restart `pnpm dev` after changing it. `http://localhost:3000/api/health` shows w
 | `pnpm test` | Unit and integration tests |
 | `pnpm test:e2e` | Browser tests (Playwright) |
 | `pnpm check` | Typecheck, lint and tests |
+
+## Tests and CI
+
+Every push to `main` runs the full suite on GitHub Actions: typecheck, lint, format, unit and integration tests, a production build, a scan of the browser bundle for secrets, end-to-end tests in Chromium, and a secret scan of the whole git history.
+
+- **Live status:** the badge above, or [the Actions tab](https://github.com/Turki-Sh/Sarjy/actions/workflows/ci.yml).
+- **What ran:** open any run; its summary page lists every test file and every test, passed or failed.
+- **Browser report:** each run attaches a `playwright-report` artifact (download, unzip, open `index.html`) with a trace for any failure.
 
 ## In one picture
 

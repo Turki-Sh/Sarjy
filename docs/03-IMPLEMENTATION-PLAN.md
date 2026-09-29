@@ -146,6 +146,13 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] `main` is the default branch and holds everything
 - [ ] Submit in Ashby: deployment URL and repository URL
 
+### Added on Day 2 (Turki's requests)
+- [x] Link-preview card system: twelve illustrated cards, picked per link by kind and language
+- [x] Share a moment (`/s/{code}`), with its own card
+- [x] Build notes served at `/notes`
+- [x] Brand art added (`docs/brand/art/`)
+- [x] CI test summary on every run, Playwright report kept, README badge
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

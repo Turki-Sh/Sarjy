@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // PGlite ships its own WebAssembly and data files; load it from node_modules instead of bundling it.
   serverExternalPackages: ["@electric-sql/pglite"],
+  // /notes serves the docs reader, generated into public/notes/ by every build.
+  async rewrites() {
+    return [{ source: "/notes", destination: "/notes/index.html" }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

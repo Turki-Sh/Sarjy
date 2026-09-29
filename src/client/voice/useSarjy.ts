@@ -51,6 +51,8 @@ export function useSarjy(lang: Lang) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [timings, setTimings] = useState<Timings | null>(null);
+  /** Sarjy's last answer, so it can be shared. */
+  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
 
   const player = useRef<Player | null>(null);
   const turn = useRef<Turn | null>(null);
@@ -144,6 +146,7 @@ export function useSarjy(lang: Lang) {
         case "done":
           conversationId.current = event.conversationId;
           setTimings(event.timings);
+          setLastMessageId(event.messageId);
           t.streamDone = true;
           return;
       }
@@ -247,11 +250,24 @@ export function useSarjy(lang: Lang) {
   const newChat = useCallback(() => {
     stop();
     conversationId.current = null;
+    setLastMessageId(null);
     setCaption(null);
     setChip(null);
   }, [stop]);
 
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
+
+  /** Shares the last exchange as a link. Returns the full URL, or null if it could not be made. */
+  const shareLast = useCallback(async (): Promise<string | null> => {
+    if (!lastMessageId) return null;
+    const res = await fetch("/api/shares", {
+      method: "POST",
+      body: JSON.stringify({ messageId: lastMessageId }),
+    });
+    if (!res.ok) return null;
+    const { path } = (await res.json()) as { path: string };
+    return new URL(path, window.location.origin).toString();
+  }, [lastMessageId]);
 
   return {
     state,
@@ -268,5 +284,7 @@ export function useSarjy(lang: Lang) {
     editMemory,
     forgetMemory,
     outputLevel,
+    canShare: lastMessageId !== null,
+    shareLast,
   };
 }

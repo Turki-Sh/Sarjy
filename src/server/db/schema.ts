@@ -71,6 +71,24 @@ export const messages = pgTable(
   (t) => [index("messages_conversation_created").on(t.conversationId, t.createdAt)],
 );
 
+/**
+ * A shared moment: one exchange the user chose to share, copied at the time of sharing.
+ * Link-only (random code, noindex). Deleting the user deletes their shares.
+ */
+export const shares = pgTable("shares", {
+  code: text("code").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** What the moment was about; picks its link-preview card. */
+  kind: text("kind").notNull(),
+  lang: text("lang").notNull().default("en"),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  toolLabel: text("tool_label"),
+  createdAt,
+});
+
 /** Fixed-window counters for rate limits: key is e.g. "user:<id>:minute" or "ip:<hash>:day". */
 export const rateLimits = pgTable("rate_limits", {
   key: text("key").primaryKey(),
@@ -81,3 +99,4 @@ export const rateLimits = pgTable("rate_limits", {
 export type User = typeof users.$inferSelect;
 export type MemoryRow = typeof memories.$inferSelect;
 export type MessageRow = typeof messages.$inferSelect;
+export type ShareRow = typeof shares.$inferSelect;

@@ -2,7 +2,7 @@
 // The Markdown files stay the source of truth; this page is generated and git-ignored.
 // Usage: pnpm docs:reader
 
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Marked } from "marked";
@@ -212,6 +212,32 @@ new MutationObserver(draw).observe(document.documentElement, { attributes: true,
 </script>
 <style>.diagram-wrap pre.mermaid{background:transparent;border:0;margin:0;padding:0;text-align:center}.diagram-wrap pre.mermaid svg{max-width:100%;height:auto}</style>`;
 
+// Link-preview tags for /notes: the "Notes from building Sarjy" card. Absolute URLs when the
+// production address is known (on Vercel), otherwise relative.
+function social() {
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const base = host ? `https://${host}` : "";
+  const title = "Notes from building Sarjy";
+  const description =
+    "How Sarjy was planned and built: requirements, architecture, the build plan, acceptance tests and deployment.";
+  const image = `${base}/og/notes-from-building.png`;
+  return [
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:site_name" content="Sarjy">`,
+    `<meta property="og:title" content="${title}">`,
+    `<meta property="og:description" content="${description}">`,
+    `<meta property="og:url" content="${base}/notes">`,
+    `<meta property="og:image" content="${image}">`,
+    `<meta property="og:image:width" content="1200">`,
+    `<meta property="og:image:height" content="630">`,
+    `<meta property="og:image:alt" content="Small things, made to matter. Notes from building Sarjy.">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+    `<meta name="twitter:title" content="${title}">`,
+    `<meta name="twitter:description" content="${description}">`,
+    `<meta name="twitter:image" content="${image}">`,
+  ].join("");
+}
+
 const now = new Date();
 const date = now
   .toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
@@ -230,7 +256,13 @@ const html = template
     "Generated from the Markdown files in <code>docs/</code>, which stay the source of truth. Styled from Sarjy visual identity v3. Checklist changes here are stored only in your browser, not in the Markdown.",
   )
   .replace("{{CHAPTERS}}", chapters)
-  .replace("{{MERMAID}}", mermaid);
+  .replace("{{MERMAID}}", mermaid)
+  .replace("{{SOCIAL}}", social());
 
 writeFileSync(join(docsDir, "reader.html"), html);
+
+// The same page, served by the app at /notes (git-ignored; rebuilt by every `pnpm build`).
+const notesDir = join(here, "..", "..", "public", "notes");
+mkdirSync(notesDir, { recursive: true });
+writeFileSync(join(notesDir, "index.html"), html);
 console.log(`docs/reader.html: ${docs.length} chapters, ${(html.length / 1024).toFixed(0)} KB`);

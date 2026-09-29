@@ -27,6 +27,24 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
   const [theme, setTheme] = useState(initialTheme);
   const sarjy = useSarjy(lang);
   const composer = useRef<HTMLInputElement>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const flash = (message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 2200);
+  };
+
+  // Share the last exchange: the phone's share sheet when there is one, otherwise copy the link.
+  const share = async () => {
+    const url = await sarjy.shareLast();
+    if (!url) return;
+    if (navigator.share) {
+      await navigator.share({ title: s.sharedMoment, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      flash(s.linkCopied);
+    }
+  };
   const s = t(lang);
 
   const toggleTheme = () => {
@@ -62,7 +80,13 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
       />
 
       <main className={styles.main}>
-        <TopBar lang={lang} theme={theme} onToggleLang={toggleLang} onToggleTheme={toggleTheme} />
+        <TopBar
+          lang={lang}
+          theme={theme}
+          onToggleLang={toggleLang}
+          onToggleTheme={toggleTheme}
+          onShare={sarjy.canShare && sarjy.state === "idle" ? () => void share() : undefined}
+        />
 
         <section className={styles.stage} aria-label={s.talk}>
           <Orb state={sarjy.state} outputLevel={sarjy.outputLevel} />
@@ -86,6 +110,12 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
             onSettings={() => {}}
           />
         </div>
+
+        {toast && (
+          <p className={`${styles.toast} glass text`} role="status">
+            {toast}
+          </p>
+        )}
 
         {/* One polite announcement per state change, for screen readers. */}
         <p className="sr-only" aria-live="polite">

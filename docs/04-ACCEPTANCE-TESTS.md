@@ -114,6 +114,10 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-104 | The production URL and a room link | Each is pasted into WhatsApp, X, Slack and LinkedIn | Each shows the right title, description and image | P2, P3 | Must | Live |
 | AT-105 | Interface in Arabic | We load the page | `<html lang="ar" dir="rtl">`; title and description in Arabic | P7 | Must | E2E |
 
+| AT-106 | A shared weather answer about tomorrow | We fetch `/s/{code}` | The page shows the question, the answer and the tool; `og:image` is `tomorrow-at-a-glance.png`; `robots` is `noindex` | P8, P9 | Must | Int, E2E |
+| AT-107 | Any card kind, either language | The card is picked twice for the same link | The same card both times; across many links of one kind, more than one card appears | P8 | Must | Unit |
+| AT-108 | Production | We fetch `/notes` | The docs reader loads, with the "Notes from building Sarjy" card as its preview | P10 | Should | E2E |
+
 ## Turki's touches
 
 | ID | Given | When | Then | Req | Priority | Verified by |
@@ -172,6 +176,11 @@ The three-minute path we rehearse, and the path we expect a reviewer to take. Ru
 8. Switch to dark. Open the details panel on the last turn. *(Where the time went.)*
 9. Press "Invite to your Majlis" and open the link on a phone. Ask from the phone: "What's the weather in Dammam?" *(Both screens move together; the laptop shows who is speaking.)*
 10. From the phone: "What's Turki's favorite color?" *(Sarjy does not know: your memory is yours.)*
+
+## Where to see the tests
+
+- **Every push:** GitHub Actions runs the whole suite. The README badge shows the latest result; each run's summary page lists every test file and every test; each run attaches the Playwright report as an artifact.
+- **Locally:** `pnpm test` (unit and integration), `pnpm test:e2e` (browser), `pnpm check` (typecheck, lint, tests).
 
 ## How the fake mic works
 

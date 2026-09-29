@@ -480,6 +480,9 @@ Every link to Sarjy should look intentional when it is pasted into WhatsApp, Sla
 | Install | `manifest.ts`: name, short name, icons (192, 512, maskable), `theme_color`, `background_color`, `display: standalone`. |
 | Crawlers | `robots.ts` and `sitemap.ts`; rooms and APIs disallowed. |
 | Theme color | Two `theme-color` tags, one per `prefers-color-scheme`. |
+| A card per link | `shared/og.ts` holds a catalog of Turki's twelve illustrated cards (`public/og/`), each tagged with the kinds of link it suits and the language written on it. `pickCard(kind, lang, seed)` prefers the link's language, then cards that read in both, and chooses among them by a stable hash of the link, so the same link always shows the same card and different links vary. The home page keeps its generated card. |
+| Shared moments | Share on an answer calls `POST /api/shares`, which copies that exchange into `shares` with its kind (from the tools used: weather, weather tomorrow, a saved fact, a recall, chat). `/s/{code}` renders it and picks its card. Codes are random (about 60 bits); pages are `noindex`. |
+| Build notes | The docs reader is generated into `public/notes/` by every build and served at `/notes`, with the "Notes from building Sarjy" card. |
 | Structured data | JSON-LD `SoftwareApplication` in the layout. |
 | Language | `<html lang dir>` from the interface language; `og:locale` `en_US` with `ar_SA` as alternate. |
 

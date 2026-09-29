@@ -1,0 +1,89 @@
+/* A shared moment: a solid card (it is read), centered on the white canvas. */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 48px 16px;
+  background: var(--bg);
+}
+
+.brand {
+  color: var(--mark);
+}
+.logo {
+  height: 30px;
+  width: auto;
+  display: block;
+}
+
+.card {
+  width: min(560px, 100%);
+  padding: 28px 32px;
+  border-radius: var(--r-l);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.meta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+
+.user {
+  margin: 0;
+  font: 500 19px/1.45 var(--font-ui);
+}
+.user:lang(ar) {
+  font-family: var(--font-ar);
+}
+
+.chip {
+  align-self: flex-start;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: var(--sunken);
+  font: 400 12.5px/1.35 var(--font-data);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* Sarjy's words in the voice face, as everywhere else. */
+.sarjy {
+  margin: 0;
+  font: italic 400 23px/1.4 var(--font-voice);
+}
+.sarjy:lang(ar) {
+  font: 500 24px/1.6 var(--font-ar-voice);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--t-quick) var(--ease-rein);
+}
+.cta:active {
+  transform: scale(0.97);
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: center;
+}

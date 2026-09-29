@@ -192,6 +192,9 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | P5 | Web app manifest with name, icons and theme colors, so Sarjy installs to a home screen | Must |
 | P6 | `theme-color` for light and dark, `robots.txt`, `sitemap.xml`, and structured data (SoftwareApplication) | Must |
 | P7 | `lang` and `dir` on the page match the interface language | Must |
+| P8 | A link-preview card per kind of link: the home page has its own generated card; shared moments, Majlis invites and the build notes each get one of Turki's twelve illustrated cards, chosen by what the link is about (weather, a recall, a saved fact, a conversation, a picture) and its language, the same card every time for the same link | Must |
+| P9 | Share a moment: after an answer, Share makes a link to that one exchange (`/s/{code}`), read-only, link-only (noindex), deleted by Forget everything | Should |
+| P10 | The build notes (these documents) are served in the app at `/notes`, in the reader design | Should |
 
 ### Rafeeq, the companion (stretch, after all Musts)
 

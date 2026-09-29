@@ -12,14 +12,27 @@ type Props = {
   theme: Theme;
   onToggleLang: () => void;
   onToggleTheme: () => void;
+  /** Present when there is an answer to share. */
+  onShare?: () => void;
 };
 
-export function TopBar({ lang, theme, onToggleLang, onToggleTheme }: Props) {
+export function TopBar({ lang, theme, onToggleLang, onToggleTheme, onShare }: Props) {
   const s = t(lang);
   return (
     <header className={styles.top}>
       <b className={styles.title}>{lang === "ar" ? "سرجي" : "Sarjy"}</b>
       <div className={styles.actions}>
+        {onShare && (
+          <button
+            type="button"
+            className={styles.icon}
+            onClick={onShare}
+            aria-label={s.share}
+            title={s.share}
+          >
+            <Icon name="share" />
+          </button>
+        )}
         <button type="button" className={styles.btn} onClick={onToggleLang} aria-label={s.language}>
           <Icon name="globe" />
           <span lang={lang === "ar" ? "en" : "ar"}>{s.otherLanguage}</span>

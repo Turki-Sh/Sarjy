@@ -29,6 +29,10 @@ type Strings = {
   typePlaceholder: string;
   send: string;
   emptyMemory: string;
+  share: string;
+  linkCopied: string;
+  sharedMoment: string;
+  sharedNote: string;
   about: string;
   description: string;
 };
@@ -67,6 +71,10 @@ export const STRINGS: Record<Lang, Strings> = {
     typePlaceholder: "Type to Sarjy…",
     send: "Send",
     emptyMemory: "Nothing yet. Tell Sarjy something about you.",
+    share: "Share this moment",
+    linkCopied: "Link copied",
+    sharedMoment: "A moment with Sarjy",
+    sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
     about: "About Sarjy",
     description:
       "Sarjy is a voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.",
@@ -104,6 +112,10 @@ export const STRINGS: Record<Lang, Strings> = {
     typePlaceholder: "اكتب لسرجي…",
     send: "إرسال",
     emptyMemory: "ما فيه شي للحين. قل لسرجي شي عنك.",
+    share: "شارك هاللحظة",
+    linkCopied: "تم نسخ الرابط",
+    sharedMoment: "لحظة مع سرجي",
+    sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",
     about: "عن سرجي",
     description: "سرجي مساعد صوتي يتذكر اللي تقوله، ويجاوب من أدوات حقيقية، ويوريك كل شي يحفظه.",
   },

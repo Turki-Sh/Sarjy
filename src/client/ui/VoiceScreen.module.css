@@ -73,3 +73,23 @@
   gap: 14px;
   width: 100%;
 }
+
+/* A toast floats, so it is glass (with text on it, the text-glass fill). */
+.toast {
+  position: absolute;
+  inset-block-start: 68px;
+  inset-inline: 0;
+  margin-inline: auto;
+  width: max-content;
+  margin-block: 0;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  animation: toast-in var(--t-base) var(--ease-rein) both;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
