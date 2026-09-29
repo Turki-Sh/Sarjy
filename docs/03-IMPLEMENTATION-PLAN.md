@@ -106,7 +106,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] No-mic path: dashed mic, text box focused
 - [x] Live word preview while speaking (Web Speech API, where available)
 - [x] Barge-in by tap: tapping the mic over Sarjy stops playback and listens
-- [ ] Barge-in by voice, with hands-free mode (needs headphones to be safe; see architecture, section 11)
+- [ ] Barge-in by voice (needs headphones to be safe; see architecture, section 11)
 - [x] E2E with Chromium's fake microphone and a recorded sentence; the no-mic path
 
 **Done when:** you tap the mic, say "My favorite color is green", hear the confirmation, reload, ask, and hear "Green. You told me today." On laptop and phone. (Automated in the browser with a fake mic; the laptop and phone check needs a deployed URL.)
@@ -186,6 +186,14 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Onboarding never forced: asked once, early, lightly; skipping is fine; units are not asked (Celsius by default)
 - [x] The dev-only Next.js badge moved off the logo
 
+### Fixed from Turki's second review (Day 2)
+- [x] Leaked model planning spoken aloud ("We need to respond? Actually answer already given."): the turn now stops after the step that answers, and any sentence of self-talk is dropped before it is spoken, shown or saved
+- [x] Numbers written as digits ("39", not "thirty nine"); a sentence said twice in a row is said once
+- [x] Onboarding only asks with a reason: the name when Sarjy introduces itself, the city only for a weather question with no place
+- [x] Hands-free (V7, now a Must): after a spoken answer the mic reopens by itself; 8 s of quiet, End or typing ends it. A loudness backstop ends a turn if the speech detector hangs on in a noisy room
+- [x] The light orb has grain like the dark one (a black grain tile; tokens.css notes the override)
+- [x] Profile pictures from Turki's three paintings: one at random per person, changeable from the sidebar
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)
@@ -207,12 +215,11 @@ If we fall behind, cut in this order, top first. Musts are never cut.
 4. Prayer times tool (T5)
 5. Hijri and greetings (H1)
 6. Cost per turn and cost model (CM1)
-7. Hands-free mode (V7)
-8. Details panel (U9)
-9. Host can end a Majlis (MP8)
-10. Barge-in (V6)
-11. Live word preview (V5)
-12. Recent chats (U8)
+7. Details panel (U9)
+8. Host can end a Majlis (MP8)
+9. Barge-in (V6)
+10. Live word preview (V5)
+11. Recent chats (U8)
 
 ## Communication
 

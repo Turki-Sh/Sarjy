@@ -24,7 +24,8 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-03 | Sarjy is listening | I tap the mic again | Before I have said anything: the mic closes, nothing is sent, state returns to `idle`. Mid-sentence: the tap means "I'm done", and what I said is sent. The End button always cancels | V1 | Must | Unit, E2E |
 | AT-04 | No mic, or permission denied | I open the page | The mic shows the dashed "no access" state, the text box has focus, and a typed question gets a spoken answer | V4, R4 | Must | E2E |
 | AT-05 | Chrome, Edge or Safari | I speak | My words appear while I am still speaking, then are replaced by the final transcript | V5 | Should | Live |
-| AT-06 | Sarjy is speaking | I tap the mic (or, in hands-free mode, start talking) | Playback stops within 300 ms and Sarjy listens to me | V6 | Should | Live |
+| AT-06 | Sarjy is speaking | I tap the mic | Playback stops within 300 ms and Sarjy listens to me | V6 | Should | Live |
+| AT-07 | I asked something by voice | Sarjy finishes answering | The mic reopens by itself (open cue, `listening`); if I say nothing for 8 s it closes; End or typing leaves hands-free | V7 | Must | E2E |
 
 ## Memory
 

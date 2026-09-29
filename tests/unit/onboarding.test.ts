@@ -16,19 +16,19 @@ describe("onboarding", () => {
     expect(isStep("units")).toBe(false);
   });
 
-  it("asks lightly, once, and names the next step", () => {
+  it("asks for a name only when introducing itself, in the first reply", () => {
     expect(onboardingInstruction("done")).toBe("");
     const first = onboardingInstruction("name", 0);
-    expect(first).toContain("introduce yourself");
     expect(first).toContain("never forced");
-    expect(first).toContain("drop it and don't ask again");
-    expect(first).toContain("you may ask which city");
-    expect(onboardingInstruction("home_city", 1)).toContain("you're done getting to know them");
+    expect(first).toContain("ask what to call them");
+    expect(first).toContain("If they asked for something, help with that and don't ask.");
+    expect(onboardingInstruction("name", 1)).toContain("Don't ask.");
   });
 
-  it("stops asking after the first couple of messages in a conversation", () => {
-    const later = onboardingInstruction("name", 2);
-    expect(later).toContain("Don't ask.");
-    expect(later).not.toContain("Current step");
+  it("asks for the city only when the weather needs it, never after small talk", () => {
+    const city = onboardingInstruction("home_city", 0);
+    expect(city).toContain("Don't ask for it on your own.");
+    expect(city).toContain("ask about the weather without naming a place");
+    expect(city).toContain("Never ask for it in reply to small talk");
   });
 });

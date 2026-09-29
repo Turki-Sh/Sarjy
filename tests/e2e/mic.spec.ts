@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 // The real mic path in a real browser: Chromium's fake microphone plays a recorded sentence
 // (tests/fixtures/hello-sarjy.wav, then silence). The speech detector hears it start and end,
 // the recording goes to /api/turn as a WAV, and the fake speech to text returns "Hello".
-// Acceptance tests AT-01 (a voice turn), AT-02 (the turn ends on its own), AT-03 (tap to close).
+// Acceptance tests AT-01 (a voice turn), AT-02 (the turn ends on its own), AT-03 (tap to close),
+// AT-07 (hands-free: the next turn needs no tap).
 
 const speech = fileURLToPath(new URL("../fixtures/hello-sarjy.wav", import.meta.url));
 
@@ -34,7 +35,11 @@ test("tap the mic, speak, and Sarjy answers when you stop", async ({ page }) => 
   await expect(screen(page)).toHaveAttribute("data-state", /thinking|tool|speaking/, { timeout: 15_000 });
   // "Hello" was heard, and Sarjy introduces itself (a first visit).
   await expect(page.locator("main section p[lang]")).toHaveText(/I'm Sarjy/, { timeout: 10_000 });
-  await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
+
+  // Hands-free: once Sarjy has answered, it listens again without a tap. End stops the conversation.
+  await expect(screen(page)).toHaveAttribute("data-state", "listening", { timeout: 15_000 });
+  await page.getByRole("button", { name: "End", exact: true }).click();
+  await expect(screen(page)).toHaveAttribute("data-state", "idle");
 });
 
 test("tapping the mic while listening, before speaking, closes it quietly", async ({ page }) => {

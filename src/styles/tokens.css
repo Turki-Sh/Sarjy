@@ -51,8 +51,11 @@
   --font-ar-voice: "Noto Naskh Arabic", serif;
   --font-data: "JetBrains Mono", ui-monospace, monospace;
 
-  /* --grain: an feTurbulence noise tile, used at 5% light and 16% dark on the orb */
+  /* --grain: an feTurbulence noise tile, used at 16% on the dark orb (white specks, overlay) */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* --grain-ink: the same tile in black, for the light orb. The book's 5% white grain vanished on a
+     white orb; Turki asked for the light orb to be as grainy as the dark one (Day 2). */
+  --grain-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Roles. Light is the default everywhere; dark is an option. */
@@ -89,7 +92,9 @@
     inset 0 -14px 30px rgba(0, 0, 0, 0.05), inset 0 2px 2px rgba(255, 255, 255, 0.95),
     0 24px 60px rgba(0, 0, 0, 0.09);
   --orb-spec: rgba(255, 255, 255, 0.9);
-  --orb-grain: 0.05;
+  --orb-grain-tile: var(--grain-ink);
+  --orb-grain: 0.13;
+  --orb-grain-blend: multiply;
   --frame-shadow: 0 30px 80px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 :root[data-theme="dark"],
@@ -124,7 +129,9 @@
   --orb-edge: rgba(255, 255, 255, 0.55);
   --orb-shadow: 0 0 34px rgba(255, 255, 255, 0.09), inset 0 0 22px rgba(255, 255, 255, 0.1);
   --orb-spec: rgba(255, 255, 255, 0.06);
+  --orb-grain-tile: var(--grain);
   --orb-grain: 0.16;
+  --orb-grain-blend: overlay;
   --frame-shadow: 0 30px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 .scheme-light,

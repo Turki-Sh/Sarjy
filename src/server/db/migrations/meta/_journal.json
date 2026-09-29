@@ -15,6 +15,13 @@
       "when": 1790716513561,
       "tag": "0001_tense_the_liberteens",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790721772869,
+      "tag": "0002_fluffy_freak",
+      "breakpoints": true
     }
   ]
 }

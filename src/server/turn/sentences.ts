@@ -11,14 +11,36 @@ const ENDING = /([.!?؟…]+)(?=\s|$)/g;
 const GLUED = /([a-z\u0600-\u06ff][.!?؟])(?=[A-Z\u0600-\u06ff])/g;
 export const unglue = (text: string) => text.replace(GLUED, "$1 ");
 
+// A model sometimes leaks its own planning into the answer ("We need to respond? Actually answer
+// already given. Probably just end."). Sarjy must never say that aloud, so any sentence that talks
+// about the conversation instead of to the person is dropped.
+const SELF_TALK = [
+  /^(we|i) (need|should|must|have) to (respond|answer|reply|say|call|use|check|end|ask)\b/i,
+  /^(the )?user (is|was|asks|asked|wants|said|says|just)\b/i,
+  /\b(answer|response|reply) (is )?already (given|provided|sent)\b/i,
+  /\b(just|should|probably) (end|stop)( here| now)?[.!?]?$/i,
+  /\bno need to (respond|answer|reply|say more)\b/i,
+  /^(let me|let's) (think|check|see|respond|answer)\b/i,
+  /^(actually|probably|okay|ok|so|hmm),? (we|i|the user|answer|respond|just)\b/i,
+];
+export const isSelfTalk = (sentence: string) => SELF_TALK.some((p) => p.test(sentence.trim()));
+
 /**
  * Last fixes to what Sarjy is about to say, for slips a prompt can't fully prevent:
- * glued sentences, long dashes (a comma reads and sounds the same), and "on today".
+ * leaked planning, glued sentences, long dashes (a comma reads and sounds the same), "on today".
  */
-export const tidy = (text: string) =>
-  unglue(text)
+export function tidy(text: string): string {
+  const cleaned = unglue(text)
     .replace(/\s*[\u2014\u2013]\s*/g, ", ")
     .replace(/\bon (today|yesterday)\b/gi, "$1");
+  const { sentences, rest } = splitSentences(cleaned);
+  const kept: string[] = [];
+  for (const s of [...sentences, rest.trim()]) {
+    // Skip planning, and a sentence said twice in a row ("Got it. Got it.").
+    if (s && !isSelfTalk(s) && s !== kept.at(-1)) kept.push(s);
+  }
+  return kept.join(" ");
+}
 
 /** Splits text into complete sentences and the unfinished rest. */
 export function splitSentences(text: string): { sentences: string[]; rest: string } {

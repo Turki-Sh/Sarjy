@@ -8,6 +8,7 @@
 // Components only render what this hook returns.
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import type { AvatarId } from "@/shared/avatars";
 import type { Lang } from "@/shared/i18n";
 import type { Memory, Timings, TurnEvent } from "@/shared/protocol";
 import type { VoiceState } from "@/shared/states";
@@ -25,7 +26,7 @@ import { previewWords } from "./preview";
 import { sendTurn } from "./turnStream";
 
 export type ChatSummary = { id: string; title: string; updatedAt: string };
-export type Profile = { id: string; name: string | null; onboardingStep: string };
+export type Profile = { id: string; name: string | null; onboardingStep: string; avatar: AvatarId };
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
 type Turn = {
@@ -42,6 +43,15 @@ const SETTLE_MS = 1200;
 /** Listening gives up if you say nothing for this long, and ends a turn that runs this long. */
 const SILENT_MS = 8000;
 const LONGEST_MS = 30_000;
+/**
+ * A backstop for the speech detector: once you have spoken, this long below this loudness also
+ * ends the turn. The detector normally ends it first (after 600 ms); this catches a noisy room
+ * where the model keeps hearing "maybe speech".
+ */
+const QUIET_LEVEL = 0.08;
+const QUIET_MS = 1300;
+/** Hands-free: after Sarjy answers a spoken question, the mic reopens by itself after this pause. */
+const RELISTEN_MS = 350;
 
 /** The open mic, while listening. */
 type Ear = { mic: Mic; vad: Listening | null; stopPreview: () => void; timers: number[]; sent: boolean };
@@ -91,6 +101,12 @@ export function useSarjy(lang: Lang) {
   const abort = useRef<AbortController | null>(null);
   const conversationId = useRef<string | null>(null);
   const ear = useRef<Ear | null>(null);
+  /**
+   * True while you are in a spoken conversation: each answer is followed by listening again, so
+   * you never tap between turns. Ends when you stay quiet, press End, or type.
+   */
+  const conversing = useRef(false);
+  const listenRef = useRef<() => Promise<boolean>>(async () => false);
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -131,6 +147,7 @@ export function useSarjy(lang: Lang) {
 
   /** Stops whatever is in flight: listening, the request, the audio. */
   const stop = useCallback(() => {
+    conversing.current = false;
     if (ear.current) {
       void closeEar(false);
       player.current?.cue("close");
@@ -228,6 +245,7 @@ export function useSarjy(lang: Lang) {
       setChip(null);
       setFreshId(null);
       setChatNote(null);
+      if (input.text) conversing.current = false; // typing steps out of hands-free
       if (input.text) {
         setCaption({ speaker: "user", lang, words: input.text.split(/\s+/), shown: Infinity, style: "dim" });
       }
@@ -280,6 +298,7 @@ export function useSarjy(lang: Lang) {
     setMicLook("live");
     const e: Ear = { mic, vad: null, stopPreview: () => {}, timers: [], sent: false };
     ear.current = e;
+    conversing.current = true;
 
     // Called by the VAD when you stop speaking, or when listening is closed mid-sentence with submit.
     const finish = async (audio: Float32Array) => {
@@ -294,9 +313,16 @@ export function useSarjy(lang: Lang) {
     try {
       e.vad = await detectSpeech(mic, {
         onSpeechStart: () => {
-          // Heard something: the "nothing said" timer is replaced by the "too long" one.
+          // Heard something: the "nothing said" timer is replaced by the "too long" one,
+          // and the loudness backstop starts watching for the end of your sentence.
           e.timers.forEach((id) => window.clearTimeout(id));
-          e.timers = [window.setTimeout(() => void closeEar(true), LONGEST_MS)];
+          let loudAt = performance.now();
+          const watch = window.setInterval(() => {
+            if (mic.level() > QUIET_LEVEL) loudAt = performance.now();
+            else if (performance.now() - loudAt > QUIET_MS) void closeEar(true);
+          }, 100);
+          // (clearTimeout also clears an interval: both share one list of ids.)
+          e.timers = [window.setTimeout(() => void closeEar(true), LONGEST_MS), watch];
         },
         onSpeechEnd: (audio) => void finish(audio),
       });
@@ -320,6 +346,7 @@ export function useSarjy(lang: Lang) {
     e.timers.push(
       window.setTimeout(() => {
         if (ear.current !== e) return;
+        conversing.current = false; // nothing said: the conversation rests
         void closeEar(false);
         setMicLook("ready");
         getPlayer().cue("close");
@@ -328,6 +355,9 @@ export function useSarjy(lang: Lang) {
     );
     return true;
   }, [closeEar, lang, send]);
+  useEffect(() => {
+    listenRef.current = listen;
+  }, [listen]);
 
   /** Tap while listening: "I'm done". Sends what was said so far, or closes quietly if nothing was. */
   const finishListening = useCallback(async () => {
@@ -337,6 +367,7 @@ export function useSarjy(lang: Lang) {
     await closeEar(true);
     setMicLook("ready");
     if (!e.sent) {
+      conversing.current = false;
       getPlayer().cue("close");
       dispatch({ type: "CANCEL" });
     }
@@ -367,6 +398,15 @@ export function useSarjy(lang: Lang) {
           // The stitch: the saved fact is underlined and its card lands, with one dry tick.
           if (t.changedMemory) p.cue("saved");
           if (t.changedMemory) window.setTimeout(() => dispatch({ type: "SETTLED" }), SETTLE_MS);
+          // Hands-free: your turn again. Only after Sarjy has finished, so it never hears itself.
+          if (conversing.current) {
+            window.setTimeout(
+              () => {
+                if (conversing.current && !ear.current && !turn.current) void listenRef.current();
+              },
+              t.changedMemory ? SETTLE_MS : RELISTEN_MS,
+            );
+          }
         }
       }
       raf = requestAnimationFrame(tick);
@@ -430,6 +470,12 @@ export function useSarjy(lang: Lang) {
     [stop],
   );
 
+  /** Your profile picture: shown at once, then saved. */
+  const setAvatar = useCallback(async (avatar: AvatarId) => {
+    setProfile((p) => (p ? { ...p, avatar } : p));
+    await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ avatar }) });
+  }, []);
+
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
   const inputLevel = useCallback(() => ear.current?.mic.level() ?? null, []);
 
@@ -458,6 +504,7 @@ export function useSarjy(lang: Lang) {
     stop,
     newChat,
     openChat,
+    setAvatar,
     activeChatId,
     chatNote,
     editMemory,

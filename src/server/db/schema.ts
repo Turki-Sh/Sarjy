@@ -12,8 +12,10 @@ export const users = pgTable("users", {
   uiLang: text("ui_lang").notNull().default("en"),
   voiceEn: text("voice_en"),
   voiceAr: text("voice_ar"),
-  /** The first-visit flow: name, home_city, units, done (architecture, section 14). */
+  /** The first-visit flow: name, home_city, done (architecture, section 14). */
   onboardingStep: text("onboarding_step").notNull().default("name"),
+  /** The chosen profile picture (shared/avatars.ts); empty means the one picked from the id. */
+  avatar: text("avatar"),
   createdAt,
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });

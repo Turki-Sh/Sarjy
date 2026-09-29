@@ -4,6 +4,7 @@
 
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
+import { avatarFor } from "@/shared/avatars";
 import { listConversations } from "@/server/chat/repo";
 import { users } from "@/server/db/schema";
 import { currentUser, json } from "@/server/http";
@@ -17,7 +18,12 @@ export async function POST(request: Request) {
   const { db, user } = await currentUser(body.lang === "ar" ? "ar" : "en");
   const [memories, chats] = await Promise.all([listMemories(db, user.id), listConversations(db, user.id)]);
   return json({
-    user: { id: user.id, name: user.name, onboardingStep: user.onboardingStep },
+    user: {
+      id: user.id,
+      name: user.name,
+      onboardingStep: user.onboardingStep,
+      avatar: avatarFor(user.id, user.avatar),
+    },
     memories,
     chats,
   });

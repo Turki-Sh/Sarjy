@@ -99,7 +99,7 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | V4 | Text input as a fallback when there is no mic or the room is noisy | Must |
 | V5 | Your words stream in live while you speak (browser speech preview, final text from Whisper) | Should |
 | V6 | Interrupt Sarjy by speaking over it (barge-in) | Should |
-| V7 | Hands-free mode: after Sarjy answers, it listens again without a tap | Could |
+| V7 | Hands-free: after Sarjy answers a spoken question, it listens again without a tap (Turki's review, Day 2: raised from Could) | Must |
 
 ### Memory
 

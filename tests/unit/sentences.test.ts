@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SpeechChunker, splitSentences, tidy, unglue } from "@/server/turn/sentences";
+import { isSelfTalk, SpeechChunker, splitSentences, tidy, unglue } from "@/server/turn/sentences";
 
 describe("splitSentences", () => {
   it("splits on sentence endings in both languages", () => {
@@ -60,5 +60,32 @@ describe("tidy", () => {
     expect(tidy(`All set, Turki${dash}what's next?`)).toBe("All set, Turki, what's next?");
     expect(tidy("Kabsa. You told me on today.")).toBe("Kabsa. You told me today.");
     expect(tidy("Green. You told me on Sunday.")).toBe("Green. You told me on Sunday.");
+  });
+});
+
+describe("self-talk", () => {
+  it("drops a model's leaked planning, keeps the answer (seen live, Day 2)", () => {
+    const leaked =
+      "Clear skies, high of 39, low of 29 in Dammam. Got it. We need to respond? Actually answer already given. Probably just end. Got it.";
+    expect(tidy(leaked)).toBe("Clear skies, high of 39, low of 29 in Dammam. Got it.");
+  });
+
+  it("recognises planning, not ordinary answers", () => {
+    for (const s of [
+      "We need to respond?",
+      "The user asks about weather.",
+      "Let me check the tool.",
+      "No need to reply.",
+    ]) {
+      expect(isSelfTalk(s)).toBe(true);
+    }
+    for (const s of [
+      "Got it.",
+      "Actually, it's 39 tomorrow.",
+      "I need an umbrella? Not tomorrow.",
+      "Saved. Your city is Dammam.",
+    ]) {
+      expect(isSelfTalk(s)).toBe(false);
+    }
   });
 });

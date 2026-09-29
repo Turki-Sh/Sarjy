@@ -5,6 +5,7 @@
 // Search filters both lists as you type. The sidebar can be closed; the top bar reopens it.
 
 import { useState } from "react";
+import { AVATARS, avatarUrl, type AvatarId } from "@/shared/avatars";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
 import type { Memory } from "@/shared/protocol";
@@ -21,6 +22,8 @@ type Props = {
   freshId: string | null;
   recent: ChatItem[];
   userName: string | null;
+  avatar: AvatarId | null;
+  onAvatar: (id: AvatarId) => void;
   /** The chat on screen; null for a new one. */
   activeChatId: string | null;
   onNewChat: () => void;
@@ -38,6 +41,8 @@ export function Sidebar({
   freshId,
   recent,
   userName,
+  avatar,
+  onAvatar,
   activeChatId,
   onNewChat,
   onOpenChat,
@@ -45,6 +50,7 @@ export function Sidebar({
 }: Props) {
   const s = t(lang);
   const [query, setQuery] = useState("");
+  const [picking, setPicking] = useState(false);
   const q = query.trim();
   const shownMemories = q ? memories.filter((m) => matches(`${m.label} ${m.value}`, q)) : memories;
   const shownChats = recent.filter((c) => c.title && (!q || matches(c.title, q)));
@@ -124,11 +130,50 @@ export function Sidebar({
         ))}
       </ul>
 
-      <div className={styles.me}>
-        <i aria-hidden="true">{(userName ?? "?").slice(0, 1).toUpperCase()}</i>
-        <div>
-          {userName ?? "…"}
-          <span>{s.memoryOn}</span>
+      {/* You, at the bottom: your picture (tap to choose another) and your name. */}
+      <div className={styles.foot}>
+        {picking && (
+          <div className={styles.picker} role="radiogroup" aria-label={s.changePicture}>
+            {AVATARS.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                role="radio"
+                aria-checked={a.id === avatar}
+                aria-label={a[lang]}
+                title={a[lang]}
+                onClick={() => {
+                  onAvatar(a.id);
+                  setPicking(false);
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size image, nothing to optimize */}
+                <img src={avatarUrl(a.id)} alt="" width={56} height={56} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={styles.me}>
+          <button
+            type="button"
+            className={styles.avatar}
+            aria-label={s.changePicture}
+            aria-expanded={picking}
+            title={s.changePicture}
+            onClick={() => setPicking((p) => !p)}
+          >
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size image, nothing to optimize
+              <img src={avatarUrl(avatar)} alt="" width={32} height={32} />
+            ) : (
+              <i aria-hidden="true">{(userName ?? "?").slice(0, 1).toUpperCase()}</i>
+            )}
+          </button>
+          <div>
+            {userName ?? "…"}
+            <span>{s.memoryOn}</span>
+          </div>
         </div>
       </div>
     </aside>

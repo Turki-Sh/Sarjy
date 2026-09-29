@@ -108,6 +108,8 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
           freshId={sarjy.freshId}
           recent={sarjy.chats}
           userName={sarjy.profile?.name ?? null}
+          avatar={sarjy.profile?.avatar ?? null}
+          onAvatar={(id) => void sarjy.setAvatar(id)}
           activeChatId={sarjy.activeChatId}
           onNewChat={newChat}
           onOpenChat={(id) => void openChat(id)}

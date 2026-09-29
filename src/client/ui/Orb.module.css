@@ -53,9 +53,9 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background-image: var(--grain);
+  background-image: var(--orb-grain-tile);
   opacity: var(--orb-grain);
-  mix-blend-mode: overlay;
+  mix-blend-mode: var(--orb-grain-blend);
 }
 
 /* The wave: 56% of the orb, in the logo color. */

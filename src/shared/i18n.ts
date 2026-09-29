@@ -38,6 +38,7 @@ type Strings = {
   continuing: string;
   noMatches: string;
   openSidebar: string;
+  changePicture: string;
   closeSidebar: string;
   sharedMoment: string;
   sharedNote: string;
@@ -86,6 +87,7 @@ export const STRINGS: Record<Lang, Strings> = {
     continuing: "Picking up where you left off",
     noMatches: "Nothing matches",
     openSidebar: "Open sidebar",
+    changePicture: "Change your picture",
     closeSidebar: "Close sidebar",
     sharedMoment: "A moment with Sarjy",
     sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
@@ -133,6 +135,7 @@ export const STRINGS: Record<Lang, Strings> = {
     continuing: "نكمل من حيث وقفنا",
     noMatches: "ما فيه نتائج",
     openSidebar: "افتح القائمة",
+    changePicture: "غيّر صورتك",
     closeSidebar: "اقفل القائمة",
     sharedMoment: "لحظة مع سرجي",
     sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",

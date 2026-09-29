@@ -164,6 +164,7 @@ export async function runTurn(
   let sending = Promise.resolve();
   const speak = (raw: string) => {
     const text = tidy(raw);
+    if (!text) return;
     const index = segmentIndex++;
     // Normally the user's language; if the model slipped into the other one, the matching voice reads it.
     const voice = writtenIn(text, lang);
@@ -181,7 +182,9 @@ export async function runTurn(
       system,
       messages,
       tools,
-      stopWhen: isStepCount(4),
+      // Stop once a step has said something: the answer is complete. A model that keeps going after
+      // its answer tends to narrate its own plan ("we need to respond?"), which must never be spoken.
+      stopWhen: [isStepCount(4), ({ steps }) => (steps.at(-1)?.text.trim() ?? "") !== ""],
       maxRetries: 0,
       // The browser gave up on this turn (a new turn, barge-in, a closed tab): stop thinking, and
       // don't run a tool whose result no one will hear, so nothing is ever saved unannounced.

@@ -173,14 +173,64 @@
   font-weight: 600;
 }
 
-.me {
+.foot {
   margin-block-start: auto;
+}
+.me {
   display: flex;
   align-items: center;
   gap: 10px;
   padding-block: 12px 2px;
   padding-inline: 6px;
   border-block-start: 1px solid var(--line);
+}
+/* Your picture: one of Turki's paintings. Tap it to choose another. */
+.avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--sunken);
+  outline-offset: 2px;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatar i {
+  width: 100%;
+  height: 100%;
+}
+.picker {
+  display: flex;
+  gap: 8px;
+  padding: 10px 6px 4px;
+  animation: settle var(--t-base) var(--ease-rein) both;
+}
+.picker button {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+}
+.picker button[aria-checked="true"] {
+  border-color: var(--accent);
+}
+.picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .me i {
   width: 28px;

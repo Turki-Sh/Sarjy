@@ -101,25 +101,20 @@ function firstReply(user: string, system: string): Reply {
     return { text: ar ? "ما عندي هالمعلومة للحين. وش هي؟" : "I don't have that saved yet. What is it?" };
   }
 
-  // Onboarding: a bare answer to "what should I call you?" is a name (a greeting is not).
+  // Onboarding: a bare answer while the name is unknown is a name (a greeting is not);
+  // a greeting to someone new gets the introduction. The city is only asked for by the weather tool.
   const greeting = /^(hi|hello|hey|salam|marhaba|مرحبا|هلا|السلام عليكم|أهلا)\b/i.test(clean(user));
-  if (
-    system.includes("Current step: ask their name") &&
-    !greeting &&
-    /^[\p{L}' -]{2,30}$/u.test(clean(user))
-  ) {
+  const nameUnknown = system.includes("you don't know their name yet");
+  if (nameUnknown && !greeting && /^[\p{L}' -]{2,30}$/u.test(clean(user))) {
     const name = cap(clean(user));
     return { tool: { name: "remember", input: { key: "name", label: ar ? "الاسم" : "Name", value: name } } };
   }
-  if (system.includes("Current step: ask their name")) {
+  if (nameUnknown && greeting && system.includes("ask what to call them")) {
     return {
       text: ar
         ? "هلا والله! أنا سرجي، وأتذكر اللي تقوله لي. وش أناديك؟"
         : "Hi, I'm Sarjy. I remember what you tell me. What should I call you?",
     };
-  }
-  if (system.includes("Current step: ask which city")) {
-    return { text: ar ? "وين ساكن؟ بأي مدينة؟" : "Which city do you live in?" };
   }
 
   if (lower.includes("system prompt") || /pretend|ignore (all|your)|dan\b/i.test(lower)) {
