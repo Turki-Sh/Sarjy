@@ -32,8 +32,11 @@
   --rim-soft: calc(var(--lq) * 40%);
   --depth: calc(var(--lq) * 18%);
 }
+/* "Reduce transparency" or "Increase contrast" on the device starts Sarjy at Solid. Only a start:
+   once you move the Glass slider (html[data-glass="set"]), your choice wins. On Windows, turning
+   off "Transparency effects" is reported as reduce transparency, so this matters. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  :root {
+  html:not([data-glass="set"]) {
     --lq: 0;
   }
 }
@@ -169,17 +172,16 @@ html[data-theme="dark"] .ambient {
   }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .glass,
-  .glass-panel {
+  html:not([data-glass="set"]) :is(.glass, .glass-panel) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
-  .glass {
+  html:not([data-glass="set"]) .glass {
     background: var(--surface);
   }
-  .glass::before,
-  .glass::after,
-  .glass-panel::after {
+  html:not([data-glass="set"]) .glass::before,
+  html:not([data-glass="set"]) .glass::after,
+  html:not([data-glass="set"]) .glass-panel::after {
     display: none;
   }
 }

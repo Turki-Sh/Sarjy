@@ -51,7 +51,7 @@ test("your name, and your memories: edit, forget, forget everything", async ({ p
   await page.keyboard.press("Escape");
 
   await say(page, "My favorite color is green.");
-  await expect(page.getByRole("complementary").getByText("Green", { exact: true })).toBeVisible({
+  await expect(page.getByRole("button", { name: /^Saved: Favorite color, Green/ })).toBeVisible({
     timeout: 15_000,
   });
 
@@ -63,7 +63,6 @@ test("your name, and your memories: edit, forget, forget everything", async ({ p
   await memory.getByRole("textbox", { name: "Favorite color" }).fill("Blue");
   await memory.getByRole("button", { name: "Save" }).click();
   await expect(memory.getByText("Blue", { exact: true })).toBeVisible();
-  await expect(page.getByRole("complementary").getByText("Blue", { exact: true })).toBeVisible();
   // Forget it.
   await memory.getByRole("button", { name: "Forget Favorite color" }).click();
   await expect(memory.getByText("Blue", { exact: true })).toHaveCount(0);
@@ -72,18 +71,24 @@ test("your name, and your memories: edit, forget, forget everything", async ({ p
   await memory.getByRole("button", { name: "Forget everything" }).click();
   await memory.getByRole("button", { name: "Yes, forget everything" }).click();
   await page.waitForLoadState("load");
-  await expect(
-    page.getByRole("complementary").getByText("Nothing yet. Tell Sarjy something about you."),
-  ).toBeVisible();
+  await open(page, "Memory");
+  await expect(settings(page).getByText("Nothing yet. Tell Sarjy something about you.")).toBeVisible();
 });
 
-test("the memory list in the sidebar folds away", async ({ page }) => {
+test("memory lives in Settings: the sidebar has one row that opens it, and the saved card does too", async ({
+  page,
+}) => {
   await page.goto("/");
-  await say(page, "My favorite color is green.");
   const side = page.getByRole("complementary");
-  await expect(side.getByText("Green", { exact: true })).toBeVisible({ timeout: 15_000 });
+  await say(page, "My favorite color is green.");
+  const card = page.getByRole("button", { name: /^Saved: Favorite color, Green/ });
+  await expect(card).toBeVisible({ timeout: 15_000 });
+  // No list of facts in the sidebar, only the way in.
+  await expect(side.getByText("Green", { exact: true })).toHaveCount(0);
+  await card.click();
+  await expect(settings(page).getByRole("heading", { name: "Memory" })).toBeVisible();
+  await expect(settings(page).getByText("Green", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   await side.getByRole("button", { name: /Memory/ }).click();
-  await expect(side.getByText("Green", { exact: true })).toBeHidden();
-  await side.getByRole("button", { name: /Memory/ }).click();
-  await expect(side.getByText("Green", { exact: true })).toBeVisible();
+  await expect(settings(page).getByRole("heading", { name: "Memory" })).toBeVisible();
 });

@@ -50,6 +50,8 @@ With live providers, `pnpm preview` (a production build) also needs a `SESSION_S
 
 Restart `pnpm dev` after changing it. `http://localhost:3000/api/health` shows which keys were picked up (true or false, never the values).
 
+On Windows, stopping the server with Ctrl+C asks "Terminate batch job (Y/N)?" once: that is pnpm's own `.cmd` launcher. To skip it entirely, install pnpm with its standalone installer (it installs `pnpm.exe`, no batch file): `iwr https://get.pnpm.io/install.ps1 -useb | iex` in PowerShell.
+
 | Command | Does |
 |---|---|
 | `pnpm dev` | The app with live reload, at http://localhost:3000 |

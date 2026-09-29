@@ -9,10 +9,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "node scripts/vad/copy-assets.mjs && next dev",
-    "build": "node scripts/vad/copy-assets.mjs && node scripts/docs-reader/build.mjs && next build",
-    "start": "next start",
-    "preview": "pnpm build && next start",
+    "dev": "node scripts/vad/copy-assets.mjs && node node_modules/next/dist/bin/next dev",
+    "build": "node scripts/vad/copy-assets.mjs && node scripts/docs-reader/build.mjs && node node_modules/next/dist/bin/next build",
+    "start": "node node_modules/next/dist/bin/next start",
+    "preview": "pnpm build && node node_modules/next/dist/bin/next start",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",

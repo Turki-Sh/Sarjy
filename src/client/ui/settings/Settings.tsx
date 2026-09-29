@@ -15,6 +15,7 @@ import type { IconName } from "@/shared/brand/icons";
 import { Appearance } from "./Appearance";
 import { General } from "./General";
 import { MemoryList } from "./MemoryList";
+import { MENU_ESCAPE } from "./Picker";
 import { Profile } from "./Profile";
 import styles from "./Settings.module.css";
 
@@ -56,6 +57,17 @@ export function Settings(props: Props) {
   const s = t(lang).settings;
   const dialog = useRef<HTMLDialogElement>(null);
 
+  // Escape inside a menu closes the menu only. Browsers close a <dialog> on Escape through their
+  // own close request (which ignores preventDefault on the key), so the menu flags that Escape and
+  // the dialog's cancel is refused once.
+  const menuEscape = useRef(false);
+  useEffect(() => {
+    const d = dialog.current;
+    const mark = () => (menuEscape.current = true);
+    d?.addEventListener(MENU_ESCAPE, mark);
+    return () => d?.removeEventListener(MENU_ESCAPE, mark);
+  }, []);
+
   // Open and close the native dialog with the prop, so the browser handles focus and Escape.
   useEffect(() => {
     const d = dialog.current;
@@ -70,6 +82,10 @@ export function Settings(props: Props) {
       className={styles.dialog}
       aria-labelledby="settings-title"
       onClose={onClose}
+      onCancel={(e) => {
+        if (menuEscape.current) e.preventDefault();
+        menuEscape.current = false;
+      }}
       // A click that lands on the dialog itself (not the panel inside) is a click on the backdrop.
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >

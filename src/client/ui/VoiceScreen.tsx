@@ -12,6 +12,7 @@ import { useSarjy } from "../voice/useSarjy";
 import { Caption } from "./Caption";
 import { ControlBar } from "./ControlBar";
 import { Earlier } from "./Earlier";
+import { SavedCard } from "./SavedCard";
 import { Settings, type SettingsSection } from "./settings/Settings";
 import { Orb } from "./Orb";
 import { Sidebar } from "./Sidebar";
@@ -111,6 +112,7 @@ export function VoiceScreen({
   /** How much liquid glass: one CSS variable for the look, one filter attribute for the refraction. */
   const chooseGlass = (level: number) => {
     document.documentElement.style.setProperty("--liquid", String(level / 100));
+    document.documentElement.dataset.glass = "set"; // your choice now wins over the device setting
     document
       .querySelector("#sarjy-refract feDisplacementMap")
       ?.setAttribute("scale", String(refractScale(level)));
@@ -164,6 +166,7 @@ export function VoiceScreen({
                 : avatarUrl(sarjy.profile.avatar)
           }
           onOpenSettings={() => openSettings("general")}
+          onOpenMemory={() => openSettings("memory")}
           activeChatId={sarjy.activeChatId}
           onNewChat={newChat}
           onOpenChat={(id) => void openChat(id)}
@@ -194,6 +197,11 @@ export function VoiceScreen({
             <Orb state={sarjy.state} inputLevel={sarjy.inputLevel} outputLevel={sarjy.outputLevel} />
           </button>
           <ToolChip chip={showChip ? sarjy.chip : null} />
+          <SavedCard
+            lang={lang}
+            memory={sarjy.freshId ? (sarjy.memories.find((m) => m.id === sarjy.freshId) ?? null) : null}
+            onOpen={() => openSettings("memory")}
+          />
           <Earlier lines={sarjy.earlier} />
           <Caption caption={sarjy.caption} />
           <p className={styles.status}>{note}</p>

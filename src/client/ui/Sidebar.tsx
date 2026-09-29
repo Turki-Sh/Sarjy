@@ -1,8 +1,8 @@
 "use client";
 
-// The sidebar: search, new chat, the stitched memory list, recent chats, and you.
+// The sidebar: search, new chat, a way into memory, recent chats, and you.
 // Every memory is stitched (Dusk dashes): if it is stitched, it is remembered (visual identity, section 8).
-// Search filters both lists as you type. The sidebar can be closed; the top bar reopens it.
+// Search filters your chats as you type. The sidebar can be closed; the top bar reopens it.
 
 import { useState } from "react";
 import type { Lang } from "@/shared/i18n";
@@ -24,6 +24,7 @@ type Props = {
   /** Your picture: a painting's URL or your own image's data URL. */
   avatarSrc: string | null;
   onOpenSettings: () => void;
+  onOpenMemory: () => void;
   /** The chat on screen; null for a new one. */
   activeChatId: string | null;
   onNewChat: () => void;
@@ -44,6 +45,7 @@ export function Sidebar({
   userName,
   avatarSrc,
   onOpenSettings,
+  onOpenMemory,
   activeChatId,
   onNewChat,
   onOpenChat,
@@ -52,12 +54,9 @@ export function Sidebar({
 }: Props) {
   const s = t(lang);
   const [query, setQuery] = useState("");
-  /** Memory folds away: it's always one tap from view, but it doesn't have to fill the sidebar. */
-  const [memoryOpen, setMemoryOpen] = useState(true);
   /** The chat whose title is being edited, if any. */
   const [renaming, setRenaming] = useState<string | null>(null);
   const q = query.trim();
-  const shownMemories = q ? memories.filter((m) => matches(`${m.label} ${m.value}`, q)) : memories;
   const shownChats = recent.filter((c) => c.title && (!q || matches(c.title, q)));
 
   return (
@@ -96,37 +95,18 @@ export function Sidebar({
         {s.newChat}
       </button>
 
-      <h2 className={styles.group}>
-        <button
-          type="button"
-          className={styles.fold}
-          aria-expanded={memoryOpen || !!q}
-          onClick={() => setMemoryOpen((o) => !o)}
-        >
-          {s.memory}
-          {memories.length > 0 && <span className={styles.count}>{memories.length}</span>}
-          <Icon name="chev" className={styles.chev} />
-        </button>
-      </h2>
-      {(memoryOpen || q) && memories.length === 0 && <p className={styles.empty}>{s.emptyMemory}</p>}
-      {q && memories.length > 0 && shownMemories.length === 0 && (
-        <p className={styles.empty}>{s.noMatches}</p>
-      )}
-      <ul className={styles.list} hidden={!memoryOpen && !q}>
-        {shownMemories.map((m) => (
-          <li
-            key={m.id}
-            className={styles.memory}
-            data-fresh={m.id === freshId ? "true" : undefined}
-            lang={m.lang}
-            dir={m.lang === "ar" ? "rtl" : "ltr"}
-            title={m.source ?? undefined}
-          >
-            <span>{m.label}</span>
-            <b>{m.value}</b>
-          </li>
-        ))}
-      </ul>
+      {/* Memory lives in Settings; here, one row that opens it, with a count and a stitch pulse on
+          each save. The sidebar stays about your chats (Turki's direction, Day 2). */}
+      <button
+        type="button"
+        className={styles.item}
+        data-fresh={freshId ? "true" : undefined}
+        onClick={onOpenMemory}
+      >
+        <Icon name="stitch" />
+        {s.memory}
+        {memories.length > 0 && <span className={styles.count}>{memories.length}</span>}
+      </button>
 
       <h2 className={styles.group}>{s.recent}</h2>
       {q && shownChats.length === 0 && <p className={styles.empty}>{s.noMatches}</p>}

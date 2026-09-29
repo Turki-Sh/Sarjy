@@ -97,7 +97,7 @@ function RefractionFilter({ scale }: { scale: number }) {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { lang, theme, themeChoice, glass } = await readPreferences();
+  const { lang, theme, themeChoice, glass, glassSet } = await readPreferences();
   return (
     <html
       lang={lang}
@@ -107,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={fontVariables}
       // How much liquid glass (Settings, Appearance), rendered by the server so the first paint is right.
       style={{ ["--liquid" as string]: String(glass / 100) }}
+      data-glass={glassSet ? "set" : undefined}
       // The two scripts below adjust data-theme and data-refract before paint, on purpose.
       suppressHydrationWarning
     >

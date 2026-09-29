@@ -21,5 +21,7 @@ export async function readPreferences() {
   const langChoice = readLangChoice(jar.get(COOKIE.lang)?.value);
   const sidebarOpen = readSidebarOpen(jar.get(COOKIE.sidebar)?.value);
   const glass = readGlass(jar.get(COOKIE.glass)?.value);
-  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass };
+  /** You chose a glass level yourself: it wins over the device's "reduce transparency". */
+  const glassSet = jar.has(COOKIE.glass);
+  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass, glassSet };
 }

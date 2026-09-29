@@ -210,7 +210,12 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] A slow light field behind the interface, so the glass has something to bend; specular rims, inner glow and depth on every glass surface
 - [x] The sidebar lifts off the edge into a floating glass sheet; settings, the text box and the share button are glass
 - [x] Refraction through an SVG displacement filter where the browser can draw it (Chromium)
-- [x] "Reduce transparency" and "Increase contrast" force Solid
+- [x] "Reduce transparency" and "Increase contrast" start at Solid, but your own choice on the slider wins (Windows reports "Transparency effects: off" as reduce transparency, which had kept the glass off entirely); Settings says why when it happens
+
+### Fixed from Turki's fourth review (Day 2)
+- [x] Memory left the sidebar: one Memory row (with a count and a pulse on each save) opens Settings, Memory; when something is saved, a stitched card under the orb shows it and opens Memory when tapped
+- [x] The language menu is Sarjy's own dropdown (glass list, a check on the choice, arrows, Enter and Escape; Escape closes only the menu)
+- [x] Windows asked "Terminate batch job?" twice on Ctrl+C: the scripts now run Next.js through Node (one prompt fewer); the README explains the last one and how to drop it
 
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface

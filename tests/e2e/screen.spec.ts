@@ -34,7 +34,11 @@ test("System follows the device, before the first paint", async ({ page }) => {
 test("the Arabic interface mirrors and switches every string", async ({ page }) => {
   await page.goto("/");
   await openSettings(page, "General");
-  await page.getByRole("combobox", { name: "Language" }).selectOption("ar");
+  // The language menu is Sarjy's own dropdown: a button, then a list with a check on the choice.
+  await page.getByRole("button", { name: /^Language:/ }).click();
+  // Nothing chosen yet: Auto detect is the current choice.
+  await expect(page.getByRole("option", { name: "Auto detect" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("option", { name: "العربية" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
   await page.keyboard.press("Escape");
@@ -44,7 +48,8 @@ test("the Arabic interface mirrors and switches every string", async ({ page }) 
 
   // Auto detect goes back to the browser's language (English here).
   await page.getByRole("button", { name: "افتح الإعدادات" }).click();
-  await page.getByRole("combobox", { name: "اللغة" }).selectOption("auto");
+  await page.getByRole("button", { name: /^اللغة:/ }).click();
+  await page.getByRole("option", { name: "تلقائي" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
@@ -65,4 +70,31 @@ test("Glass goes from solid to clear, live, and is remembered", async ({ page })
   await expect(ambient).not.toHaveCSS("opacity", "0");
   await page.reload();
   expect(await liquid()).toBe("1");
+});
+
+test("the language menu works from the keyboard, and Escape closes only the menu", async ({ page }) => {
+  await page.goto("/");
+  await openSettings(page, "General");
+  await page.getByRole("button", { name: /^Language:/ }).focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("listbox", { name: "Language" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toBeVisible();
+});
+
+test("a device that asks for less transparency starts Solid, but your own choice wins", async ({ page }) => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+  });
+  await page.goto("/");
+  const ambient = page.locator(".ambient");
+  await expect(ambient).toHaveCSS("opacity", "0");
+  await openSettings(page, "Appearance");
+  await expect(page.getByText(/Your device asks for less transparency/)).toBeVisible();
+  await page.getByRole("dialog").getByText("Clear", { exact: true }).click();
+  await expect(ambient).not.toHaveCSS("opacity", "0");
+  await page.reload();
+  await expect(ambient).not.toHaveCSS("opacity", "0");
 });

@@ -33,6 +33,11 @@ function Mini({ scheme }: { scheme: "light" | "dark" }) {
 
 export function Appearance({ lang, choice, onChoice, glass, onGlass }: Props) {
   const s = t(lang).settings;
+  // The device asks for less transparency and you haven't chosen yet: say why Sarjy looks solid.
+  const deviceAsksSolid =
+    typeof window !== "undefined" &&
+    document.documentElement.dataset.glass !== "set" &&
+    matchMedia("(prefers-reduced-transparency: reduce), (prefers-contrast: more)").matches;
   const options: { id: ThemeChoice; label: string }[] = [
     { id: "system", label: s.system },
     { id: "light", label: s.light },
@@ -74,6 +79,7 @@ export function Appearance({ lang, choice, onChoice, glass, onGlass }: Props) {
             {s.glass}
           </label>
           <p className={styles.hint}>{s.glassHint}</p>
+          {deviceAsksSolid && <p className={`${styles.hint} ${styles.note}`}>{s.glassSystem}</p>}
         </div>
         {/* Changes the page live as you drag: what you see is the setting. */}
         <div className={styles.slider}>

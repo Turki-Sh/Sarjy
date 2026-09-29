@@ -2,6 +2,7 @@
 
 import { t, type Lang } from "@/shared/i18n";
 import type { LangChoice } from "@/shared/preferences";
+import { Picker } from "./Picker";
 import styles from "./Settings.module.css";
 
 type Props = { lang: Lang; choice: LangChoice; onChoice: (choice: LangChoice) => void };
@@ -12,25 +13,19 @@ export function General({ lang, choice, onChoice }: Props) {
     <div className={styles.card}>
       <div className={styles.row}>
         <div>
-          <label htmlFor="settings-language" className={styles.label}>
-            {s.language}
-          </label>
+          <span className={styles.label}>{s.language}</span>
           <p className={styles.hint}>{s.languageHint}</p>
         </div>
-        <select
-          id="settings-language"
-          className={styles.select}
+        <Picker
+          label={s.language}
           value={choice}
-          onChange={(e) => onChoice(e.target.value as LangChoice)}
-        >
-          <option value="auto">{s.auto}</option>
-          <option value="en" lang="en">
-            English
-          </option>
-          <option value="ar" lang="ar">
-            العربية
-          </option>
-        </select>
+          onChange={onChoice}
+          options={[
+            { value: "auto", label: s.auto },
+            { value: "en", label: "English", lang: "en" },
+            { value: "ar", label: "العربية", lang: "ar" },
+          ]}
+        />
       </div>
     </div>
   );

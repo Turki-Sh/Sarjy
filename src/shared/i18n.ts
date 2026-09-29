@@ -40,6 +40,7 @@ type Strings = {
   openSidebar: string;
   changePicture: string;
   rename: string;
+  savedCard: string;
   /** The settings popup. */
   settings: {
     title: string;
@@ -56,6 +57,7 @@ type Strings = {
     glass: string;
     glassHint: string;
     glassStops: [string, string, string, string];
+    glassSystem: string;
     system: string;
     light: string;
     dark: string;
@@ -123,6 +125,7 @@ export const STRINGS: Record<Lang, Strings> = {
     openSidebar: "Open sidebar",
     changePicture: "Change your picture",
     rename: "Rename",
+    savedCard: "Saved",
     settings: {
       title: "Settings",
       open: "Open settings",
@@ -138,6 +141,8 @@ export const STRINGS: Record<Lang, Strings> = {
       glass: "Glass",
       glassHint: "From solid to fully clear. In between, frosted glass that bends the light behind it.",
       glassStops: ["Solid", "Frosted", "Liquid", "Clear"],
+      glassSystem:
+        "Your device asks for less transparency (on Windows: Transparency effects is off), so Sarjy started Solid. Move the slider to choose for yourself.",
       system: "System",
       light: "Light",
       dark: "Dark",
@@ -204,6 +209,7 @@ export const STRINGS: Record<Lang, Strings> = {
     openSidebar: "افتح القائمة",
     changePicture: "غيّر صورتك",
     rename: "غيّر الاسم",
+    savedCard: "انحفظ",
     settings: {
       title: "الإعدادات",
       open: "افتح الإعدادات",
@@ -219,6 +225,8 @@ export const STRINGS: Record<Lang, Strings> = {
       glass: "الزجاج",
       glassHint: "من سادة إلى شفاف تمامًا. وبينهم زجاج مصنفر يكسر الضوء اللي وراه.",
       glassStops: ["سادة", "مصنفر", "سائل", "شفاف"],
+      glassSystem:
+        "جهازك طالب شفافية أقل (في ويندوز: تأثيرات الشفافية مقفلة)، عشان كذا بدأ سرجي سادة. حرّك المؤشر واختر بنفسك.",
       system: "حسب الجهاز",
       light: "فاتح",
       dark: "داكن",

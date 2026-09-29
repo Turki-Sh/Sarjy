@@ -1,0 +1,46 @@
+/* The saved card: stitched with Dusk dashes like every remembered thing, then it rests and fades. */
+
+.card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(420px, 90%);
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  font: 500 13px/1.3 var(--font-ui);
+  color: var(--text);
+  cursor: pointer;
+  outline: 1px dashed var(--memory);
+  outline-offset: -4px;
+  animation:
+    stitch-in var(--t-slow) var(--ease-rein) both,
+    rest-out 700ms var(--ease-rein) 6s forwards;
+}
+.card b {
+  font-weight: 600;
+}
+.card:focus-visible {
+  outline: 2px solid var(--focus);
+}
+.tag {
+  color: var(--memory);
+  font-weight: 600;
+}
+
+@keyframes stitch-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@keyframes rest-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: rest-out 1ms linear 6s forwards;
+  }
+}

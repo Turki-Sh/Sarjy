@@ -17,14 +17,19 @@ test("saves a fact, stitches it, and remembers it after a reload", async ({ page
 
   await expect(screen(page)).toHaveAttribute("data-state", /thinking|tool|speaking/);
   await expect(screen(page)).toHaveAttribute("data-state", "saving", { timeout: 10_000 });
-  const sidebar = page.getByRole("complementary");
-  await expect(sidebar.getByText("Favorite color", { exact: true })).toBeVisible();
-  await expect(sidebar.getByText("Green", { exact: true })).toBeVisible();
+  // The moment it is remembered: the stitched card under the orb, and the Memory count in the sidebar.
+  await expect(page.getByRole("button", { name: /^Saved: Favorite color, Green/ })).toBeVisible();
+  await expect(page.getByRole("complementary").getByRole("button", { name: /Memory\s*1/ })).toBeVisible();
   await expect(page.locator("p[lang] span[class*=keep]")).toHaveText(/favorite color is green/i);
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 5_000 });
 
   await page.reload();
-  await expect(page.getByRole("complementary").getByText("Green", { exact: true })).toBeVisible();
+  await page
+    .getByRole("complementary")
+    .getByRole("button", { name: /Memory/ })
+    .click();
+  await expect(page.getByRole("dialog").getByText("Green", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   await say(page, "What's my favorite color?");
   await expect(caption(page)).toHaveText("Green. You told me today.", { timeout: 10_000 });
 });

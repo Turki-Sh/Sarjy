@@ -31,6 +31,7 @@ export const ICONS = {
     '<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1 0 1.5-.7 1.5-1.4 0-.9-.7-1.2-.7-2 0-.9.7-1.5 1.6-1.5H16a4.5 4.5 0 0 0 4.5-4.5c0-4.3-3.8-7.6-8.5-7.6z"/><path d="M7.5 11.5h.01M9.5 7.5h.01M14.5 7.5h.01"/>',
   stitch: '<rect x="4" y="6" width="16" height="12" rx="2.5" stroke-dasharray="2.6 2.4"/>',
   upload: '<path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   sidebar: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/>',
 } as const;
 

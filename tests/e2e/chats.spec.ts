@@ -34,10 +34,10 @@ test("new chat, reopening a past chat, and search", async ({ page }) => {
   await expect(caption(page)).toHaveText(/kabsa/i);
   await expect(chat).toHaveAttribute("aria-current", "page");
 
-  // Search filters memories and chats as you type.
+  // Search filters chats as you type.
   const search = sidebar(page).getByRole("searchbox", { name: "Search" });
   await search.fill("kabsa");
-  await expect(sidebar(page).getByText("Kabsa", { exact: true })).toBeVisible();
+  await expect(chat).toBeVisible();
   await search.fill("pizza");
   await expect(sidebar(page).getByText("Nothing matches").first()).toBeVisible();
   await expect(chat).toHaveCount(0);

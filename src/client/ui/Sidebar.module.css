@@ -128,62 +128,12 @@
   padding: 0;
 }
 
-/* A stitched memory: Dusk dashes on all four sides. */
-.memory {
-  position: relative;
-  padding-block: 8px;
-  padding-inline: 10px;
-  margin-block: 4px;
-  border-radius: 8px;
-}
-.memory::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, var(--memory) 60%, transparent 60%) top / 8px 1px repeat-x,
-    linear-gradient(90deg, var(--memory) 60%, transparent 60%) bottom / 8px 1px repeat-x,
-    linear-gradient(0deg, var(--memory) 60%, transparent 60%) left / 1px 8px repeat-y,
-    linear-gradient(0deg, var(--memory) 60%, transparent 60%) right / 1px 8px repeat-y;
-  opacity: 0.75;
-}
-/* A memory saved this turn stitches itself in. */
-.memory[data-fresh="true"]::before {
-  animation: stitch-in var(--t-slow) var(--ease-rein) both;
-}
-.memory[data-fresh="true"] {
-  animation: settle var(--t-slow) var(--ease-rein) both;
-}
-@keyframes stitch-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-}
-@keyframes settle {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
 .empty {
   margin: 4px 8px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-2);
 }
-.memory span {
-  display: block;
-  font-size: 11px;
-  color: var(--text-2);
-}
-.memory b {
-  font-weight: 600;
-}
-
-/* You, at the bottom: one button that opens settings. */
 .me {
   margin-block-start: auto;
   display: flex;
@@ -232,36 +182,14 @@
   flex: none;
 }
 
-/* The Memory heading folds the list. */
-.fold {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
+.item .count {
+  margin-inline-start: auto;
 }
 .count {
   font-size: 11px;
   padding: 0 6px;
   border-radius: var(--r-pill);
   background: var(--sunken);
-}
-.chev {
-  width: 14px;
-  height: 14px;
-  margin-inline-start: auto;
-  transition: transform var(--t-base) var(--ease-rein);
-}
-.fold[aria-expanded="false"] .chev {
-  transform: rotate(-90deg);
-}
-:dir(rtl) .fold[aria-expanded="false"] .chev {
-  transform: rotate(90deg);
 }
 .me i {
   width: 100%;
@@ -332,4 +260,20 @@
   background: transparent;
   color: var(--text);
   font: inherit;
+}
+
+/* The Memory row: its stitch icon pulses once when something is saved. */
+.item[data-fresh="true"] svg {
+  color: var(--memory);
+  animation: pulse 900ms var(--ease-rein) 2;
+}
+@keyframes pulse {
+  50% {
+    transform: scale(1.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .item[data-fresh="true"] svg {
+    animation: none;
+  }
 }
