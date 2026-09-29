@@ -114,16 +114,16 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] Images: drop, paste or photograph; resized in the browser; thumbnail in the transcript
 - [ ] Below 900 px: sidebar becomes a sheet; reduced motion and reduced transparency
 
-### M6 · Multiplayer rooms (afternoon and evening)
+### M6 · Multiplayer: the Majlis (afternoon and evening)
 - [ ] Tables: `rooms`, `room_members`, `room_segments`; `messages.speaker_id`
 - [ ] `server/realtime/` (Ably REST publisher, token minting, in-memory fake)
-- [ ] Create, join and end a room; invite link and share sheet
+- [ ] Create, join and end a Majlis; "Invite to your Majlis" link and share sheet
 - [ ] The floor: atomic claim, 45 s expiry, release at `done`
 - [ ] Pipeline publishes every turn event to the room, audio by URL
 - [ ] `client/room/useRoom.ts`: presence, floor, remote events into the same hook and components
 - [ ] Room bar: who is here, who is speaking
 - [ ] Memory privacy: only the speaker's memories load; cards only on the owner's screen
-- [ ] Room invite metadata (preview card, `noindex`)
+- [ ] Majlis invite metadata ("Join Turki's Majlis on Sarjy", preview card, `noindex`)
 - [ ] E2E: two browser contexts in one room
 
 **Done when:** two browsers join one room, take turns, both see and hear every answer, and neither can get the other's memories out of Sarjy.
@@ -146,9 +146,14 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] `main` is the default branch and holds everything
 - [ ] Submit in Ashby: deployment URL and repository URL
 
-### Stretch · Companion avatar (only when every Must passes)
-- [ ] A1: faceless companion from the wave, chosen in settings
-- [ ] A2: full mascot skin with a face
+### Turki's touches (after every Must, in this order)
+- [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
+- [ ] T5: prayer times tool (Aladhan, Umm al-Qura)
+- [ ] H2: the Morning card
+
+### Stretch · Rafeeq, the companion
+- [ ] A1: Rafeeq, faceless, made from the wave, chosen in settings
+- [ ] A2: Rafeeq with a face
 
 ---
 
@@ -156,16 +161,18 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 
 If we fall behind, cut in this order, top first. Musts are never cut.
 
-1. Full mascot skin (A2)
-2. Faceless companion (A1)
-3. Prayer times tool (T5)
-4. Cost per turn and cost model (CM1)
-5. Hands-free mode (V7)
-6. Details panel (U9)
-7. Host can end a room (MP8)
-8. Barge-in (V6)
-9. Live word preview (V5)
-10. Recent chats (U8)
+1. Rafeeq with a face (A2)
+2. Rafeeq, faceless (A1)
+3. The Morning card (H2)
+4. Prayer times tool (T5)
+5. Hijri and greetings (H1)
+6. Cost per turn and cost model (CM1)
+7. Hands-free mode (V7)
+8. Details panel (U9)
+9. Host can end a Majlis (MP8)
+10. Barge-in (V6)
+11. Live word preview (V5)
+12. Recent chats (U8)
 
 ## Communication
 

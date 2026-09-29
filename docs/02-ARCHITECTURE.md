@@ -80,7 +80,7 @@ Sarjy/
 │   ├── app/                        Next.js routes: the page and the API endpoints
 │   │   ├── layout.tsx              Fonts, theme, <html lang dir>, site metadata
 │   │   ├── page.tsx                The voice screen
-│   │   ├── r/[code]/page.tsx       A room: the same screen, joined to others
+│   │   ├── majlis/[code]/page.tsx  A Majlis (room): the same screen, joined to others
 │   │   ├── opengraph-image.tsx     The link preview image, drawn at request time
 │   │   ├── manifest.ts, robots.ts, sitemap.ts, icon.svg, apple-icon.png
 │   │   └── api/
@@ -106,8 +106,8 @@ Sarjy/
 │   │   │   └── useSarjy.ts         The one hook the screen uses; wires everything together
 │   │   ├── room/
 │   │   │   └── useRoom.ts          Joins the room channel, presence, the floor, remote events
-│   │   └── ui/                     React components: Orb, Companion, Caption, ToolChip, ControlBar,
-│   │                               Sidebar, MemoryCard, RoomBar, SettingsSheet, TextComposer, Logo
+│   │   └── ui/                     React components: Orb, Caption, ToolChip, ControlBar,
+│   │                               Sidebar, MemoryCard, MajlisBar, MorningCard, Rafeeq, SettingsSheet, TextComposer, Logo
 │   │
 │   ├── server/                     Runs on the server only; the only place keys exist
 │   │   ├── env.ts                  Reads and validates environment variables
@@ -410,9 +410,9 @@ Three layers, each cheap, each tested.
 - **The orb**: DOM and SVG, following the visual identity's reference build: a blurred conic light (Saffron, Coral, Dusk), a glass sphere, and the wave path. Per frame, `useSarjy` writes three CSS variables (`--glow`, `--rot`, `--lvl`) and the wave's `d` attribute. No React re-render per frame.
 - **Glass vs solid**: floating things (control bar, orb, chips, toasts, header, sheets) are glass; things you read (captions, memory cards, settings) are solid. Never glass on glass.
 
-## 13. Multiplayer rooms
+## 13. Multiplayer: the Majlis
 
-A room lets several people talk to one Sarjy at the same time, from their own devices. Everyone sees the same orb, captions and tool chips live and hears the same voice; one person holds the mic at a time; each person's memory stays their own.
+In the interface a room is called a Majlis (مجلس). A room lets several people talk to one Sarjy at the same time, from their own devices. Everyone sees the same orb, captions and tool chips live and hears the same voice; one person holds the mic at a time; each person's memory stays their own.
 
 ### Why it is cheap to add
 
@@ -429,8 +429,8 @@ sequenceDiagram
   participant G as Guest browser
 
   H->>S: POST /api/rooms (from the current chat)
-  S-->>H: link /r/K7Q2M
-  G->>S: open /r/K7Q2M, POST /api/rooms/K7Q2M/join
+  S-->>H: link /majlis/K7Q2M
+  G->>S: open /majlis/K7Q2M, POST /api/rooms/K7Q2M/join
   G->>S: GET /api/realtime/token
   S-->>G: token for channel room:K7Q2M (subscribe and presence only)
   G->>A: subscribe, enter presence as "Sara"
@@ -475,7 +475,7 @@ Every link to Sarjy should look intentional when it is pasted into WhatsApp, Sla
 |---|---|
 | Title, description, canonical | Next.js Metadata API in `app/layout.tsx`, localized by interface language. `metadataBase` comes from the production URL. |
 | Preview image | `app/opengraph-image.tsx` draws a 1200 x 630 image at request time with `next/og`: the bilingual lockup, the tagline in both scripts, the orb's light. Also used for X (`summary_large_image`). |
-| Room invites | `app/r/[code]/page.tsx` has `generateMetadata`: "Join Turki's Sarjy room", its own preview image, and `noindex`. |
+| Room invites | `app/majlis/[code]/page.tsx` has `generateMetadata`: "Join Turki's Majlis on Sarjy", its own preview image, and `noindex`. |
 | Icons | `icon.svg` (the brand favicon), `favicon.ico` fallback, `apple-icon.png` at 180 px: white symbol on a Saddle Green tile, radius 22.4%, per the visual identity. |
 | Install | `manifest.ts`: name, short name, icons (192, 512, maskable), `theme_color`, `background_color`, `display: standalone`. |
 | Crawlers | `robots.ts` and `sitemap.ts`; rooms and APIs disallowed. |
@@ -483,13 +483,19 @@ Every link to Sarjy should look intentional when it is pasted into WhatsApp, Sla
 | Structured data | JSON-LD `SoftwareApplication` in the layout. |
 | Language | `<html lang dir>` from the interface language; `og:locale` `en_US` with `ar_SA` as alternate. |
 
-## 16. The companion avatar (stretch)
+## 16. Rafeeq, the companion (stretch)
 
 Built only after every Must passes.
 
-- **Faceless companion first.** `client/ui/Companion.tsx` is an alternative to the orb, chosen in settings. It is a small creature drawn from Sarjy's own wave: the same path, with a body and spring physics for squash and stretch. It reads exactly the same inputs as the orb (the state machine and the audio levels), so it needs no new server work. It breathes when idle, perks up when it hears its name in the live preview, leans in while you talk, droops when a tool fails, and bounces on a save.
-- **Full mascot next.** A skin with a face in the spirit of Meta's Muse companion, drawn as SVG and animated with the same state-to-motion map. This deliberately overrides the brand book's "no face, no mascot" rule, by Turki's decision.
+- **Faceless first.** Rafeeq (رفيق, a companion on the road) lives in `client/ui/Rafeeq.tsx`, is an alternative to the orb, chosen in settings. It is a small creature drawn from Sarjy's own wave: the same path, with a body and spring physics for squash and stretch. It reads exactly the same inputs as the orb (the state machine and the audio levels), so it needs no new server work. It breathes when idle, perks up when it hears its name in the live preview, leans in while you talk, droops when a tool fails, and bounces on a save.
+- **A face next.** A Rafeeq skin with a face in the spirit of Meta's Muse companion, drawn as SVG and animated with the same state-to-motion map. This deliberately overrides the brand book's "no face, no mascot" rule, by Turki's decision.
 - Both respect reduced motion: they hold a still pose.
+
+## 16a. Hijri, time of day and the Morning card
+
+- **Hijri date**: computed in `shared/hijri.ts` with the browser and server's built-in `Intl.DateTimeFormat` and the `islamic-umalqura` calendar, so no API is needed. The prompt's context line includes it, and the greeting follows the local time of day.
+- **Prayer times**: the `get_prayer_times` tool (Aladhan API, Umm al-Qura method for Saudi cities) moves from Could to Should.
+- **The Morning card**: `/api/morning` runs the weather and prayer tools for the home city and picks one memory, once per day per user. The card is solid (it is read), sits under the orb, and tapping it has Sarjy read it aloud through a normal turn.
 
 ## 17. Data model
 

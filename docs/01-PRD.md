@@ -123,7 +123,7 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | T2 | Uses your remembered home city and units when you do not say them | Must |
 | T3 | Tool chip shows which tool answered and how long it took | Must |
 | T4 | Owns failures plainly: "I couldn't reach the weather service. Want me to try again?" | Must |
-| T5 | Prayer times for Saudi cities (Umm al-Qura method), a second local tool | Could |
+| T5 | Prayer times for any city (Umm al-Qura method for Saudi cities), a second local tool | Should |
 
 ### Interface (the deep dive)
 
@@ -142,6 +142,13 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | U11 | Reduced motion and reduced transparency respected | Should |
 | U12 | Sarjy can see: drop, paste or photograph an image into the chat and ask about it by voice; it shows as a thumbnail in the transcript | Must |
 
+### Turki's touches (after all Musts)
+
+| ID | Feature | Priority |
+|---|---|---|
+| H1 | Hijri and time aware: Sarjy knows today's Hijri date (Umm al-Qura calendar) and the time of day where you are, greets accordingly (صباح الخير, مساء الخير), and can answer "what's the date in Hijri?" | Should |
+| H2 | The Morning card: on the first open of the day, a solid card under the orb with your city's weather, the next prayer and one thing you asked Sarjy to remember. Sarjy reads it aloud if you tap it. Built from the same tools and memory as a normal turn | Should |
+
 ### Guardrails and reliability
 
 | ID | Feature | Priority |
@@ -159,11 +166,13 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | L1 | A latency write-up: where the time goes, what we tried, what worked, what didn't, what we would do with another week | Must |
 | CM1 | Cost per turn in the details panel (model tokens, voice characters, times Groq's prices), and a monthly cost model for 1,000 daily users in the write-up | Should |
 
-### Multiplayer
+### Multiplayer: the Majlis
+
+A room is called a **Majlis** (مجلس), after the Saudi sitting room where everyone talks together. "Invite to your Majlis." This overrides the brand book's "no themed feature names" rule, by Turki's decision.
 
 | ID | Feature | Priority |
 |---|---|---|
-| MP1 | Invite: turn the current chat into a room and share its link; anyone who opens it joins with no setup | Must |
+| MP1 | Invite to your Majlis: turn the current chat into a room and share its link; anyone who opens it joins with no setup | Must |
 | MP2 | Everyone in the room sees the same orb state, captions, tool chips and transcript live, and hears Sarjy's voice | Must |
 | MP3 | Presence: who is in the room, and who is speaking, shown at the top | Must |
 | MP4 | The floor: one person holds the mic at a time; others see "Sara is speaking" and their mic waits | Must |
@@ -178,18 +187,20 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 |---|---|---|
 | P1 | Title, description and canonical URL on every page, in the interface language | Must |
 | P2 | Open Graph and X (Twitter) cards with a branded 1200 x 630 preview image, in English and Arabic | Must |
-| P3 | Room invites get their own preview: "Join Turki's Sarjy room" | Must |
+| P3 | Majlis invites get their own preview: "Join Turki's Majlis on Sarjy" | Must |
 | P4 | Icons: SVG favicon, ICO fallback, 180 px Apple touch icon, the app icon tile from the brand | Must |
 | P5 | Web app manifest with name, icons and theme colors, so Sarjy installs to a home screen | Must |
 | P6 | `theme-color` for light and dark, `robots.txt`, `sitemap.xml`, and structured data (SoftwareApplication) | Must |
 | P7 | `lang` and `dir` on the page match the interface language | Must |
 
-### Companion avatar (stretch, after all Musts)
+### Rafeeq, the companion (stretch, after all Musts)
+
+Rafeeq (رفيق) is Arabic for a companion on the road. Sarjy is the saddle; Rafeeq rides along with you. Named by Turki.
 
 | ID | Feature | Priority |
 |---|---|---|
-| A1 | A faceless companion: a pet-like creature made from Sarjy's own wave. It breathes when idle, perks up when you say its name, leans in while you talk, droops when it can't help, and bounces on a save. Personality through motion only | Could |
-| A2 | A full mascot in the spirit of Meta's Muse companion, with a face, as an optional skin in settings. This overrides the brand book's "no face, no mascot" rule by Turki's decision | Could, after A1 |
+| A1 | Rafeeq, faceless: a pet-like creature made from Sarjy's own wave. It breathes when idle, perks up when you say its name, leans in while you talk, droops when it can't help, and bounces on a save. Personality through motion only | Could |
+| A2 | Rafeeq with a face, in the spirit of Meta's Muse companion, as an optional skin in settings. This overrides the brand book's "no face, no mascot" rule by Turki's decision | Could, after A1 |
 
 ## 6. Out of scope
 

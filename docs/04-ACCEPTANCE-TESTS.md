@@ -109,17 +109,25 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 |---|---|---|---|---|---|---|
 | AT-100 | Production | We fetch `/` | The head has title, description, canonical, `og:title`, `og:description`, `og:image` (1200 x 630), `og:locale` with `ar_SA` alternate, `twitter:card=summary_large_image`, two `theme-color` tags, a manifest link and JSON-LD | P1, P2, P6 | Must | E2E (head inspected) |
 | AT-101 | Production | We fetch `/opengraph-image` | A 1200 x 630 PNG with the bilingual lockup and the tagline in both scripts, legible at small size | P2 | Must | E2E, Live |
-| AT-102 | A room link | We fetch `/r/{code}` | Title "Join Turki's Sarjy room", its own preview image, and `robots: noindex` | P3 | Must | E2E |
+| AT-102 | A Majlis link | We fetch `/majlis/{code}` | Title "Join Turki's Majlis on Sarjy", its own preview image, and `robots: noindex` | P3 | Must | E2E |
 | AT-103 | Production | We fetch the icons, `/manifest.webmanifest`, `/robots.txt`, `/sitemap.xml` | All return 200 with valid content; the app installs to a phone home screen with the green tile icon | P4, P5, P6 | Must | E2E, Live |
 | AT-104 | The production URL and a room link | Each is pasted into WhatsApp, X, Slack and LinkedIn | Each shows the right title, description and image | P2, P3 | Must | Live |
 | AT-105 | Interface in Arabic | We load the page | `<html lang="ar" dir="rtl">`; title and description in Arabic | P7 | Must | E2E |
 
-## Companion avatar (stretch)
+## Turki's touches
 
 | ID | Given | When | Then | Req | Priority | Verified by |
 |---|---|---|---|---|---|---|
-| AT-110 | Companion chosen in settings | A full turn runs | The companion's pose follows every state (breathing idle, leaning while listening, bouncing on save, drooping on a tool failure) with no face | A1 | Could | E2E (state attribute), Live |
-| AT-111 | Mascot skin chosen | A full turn runs | The mascot follows the same states; reduced motion holds a still pose | A2 | Could | Live |
+| AT-130 | It is 7 am in Riyadh | I open Sarjy and say hello | Sarjy greets with good morning in my language; asked "what's the Hijri date?", it answers from the Umm al-Qura calendar | H1 | Should | Unit (hijri.ts), Int, Live |
+| AT-131 | Home city Riyadh saved; first open today | The page loads | The Morning card shows Riyadh's weather, the next prayer and one memory; tapping it has Sarjy read it; it does not show again today | H2 | Should | Int, E2E |
+| AT-132 | Any | I ask "When is maghrib in Jeddah today?" | A prayer times chip appears; the time matches the Umm al-Qura calendar | T5 | Should | Int, Live |
+
+## Rafeeq, the companion (stretch)
+
+| ID | Given | When | Then | Req | Priority | Verified by |
+|---|---|---|---|---|---|---|
+| AT-110 | Rafeeq chosen in settings | A full turn runs | The companion's pose follows every state (breathing idle, leaning while listening, bouncing on save, drooping on a tool failure) with no face | A1 | Could | E2E (state attribute), Live |
+| AT-111 | Rafeeq's face skin chosen | A full turn runs | The mascot follows the same states; reduced motion holds a still pose | A2 | Could | Live |
 
 ## Guardrails
 
@@ -162,7 +170,7 @@ The three-minute path we rehearse, and the path we expect a reviewer to take. Ru
 6. "كيف الجو في جدة بكرة؟" *(Arabic reply, Saudi voice, right-to-left caption.)*
 7. Edit a card, then Forget one, then ask about it. *(You hold the reins.)*
 8. Switch to dark. Open the details panel on the last turn. *(Where the time went.)*
-9. Press Invite and open the link on a phone. Ask from the phone: "What's the weather in Dammam?" *(Both screens move together; the laptop shows who is speaking.)*
+9. Press "Invite to your Majlis" and open the link on a phone. Ask from the phone: "What's the weather in Dammam?" *(Both screens move together; the laptop shows who is speaking.)*
 10. From the phone: "What's Turki's favorite color?" *(Sarjy does not know: your memory is yours.)*
 
 ## How the fake mic works
