@@ -52,7 +52,12 @@ export async function POST(request: Request) {
 
   // In fake mode a test may script what the "speech to text" hears (recorded audio can't be matched).
   const scripted = env.providers === "fake" ? request.headers.get("x-sarjy-fake-transcript") : null;
-  const providers = getProviders({ scriptedTranscript: scripted ? decodeURIComponent(scripted) : null });
+  // ...and may slow the voice down, to reproduce a slow live voice.
+  const slow = env.providers === "fake" ? Number(request.headers.get("x-sarjy-fake-slow-voice") ?? 0) : 0;
+  const providers = getProviders({
+    scriptedTranscript: scripted ? decodeURIComponent(scripted) : null,
+    slowRestMs: Math.min(Math.max(slow, 0), 5000) || 0,
+  });
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {

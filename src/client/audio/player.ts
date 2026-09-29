@@ -17,6 +17,8 @@ export type PlayedSegment = {
   backup: boolean;
 };
 
+type Segment = { index: number; text: string; lang: "en" | "ar"; audio: string | null };
+
 const base64ToBytes = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 
 export class Player {
@@ -26,6 +28,12 @@ export class Player {
   private sources = new Set<AudioBufferSourceNode>();
   private queueEnd = 0;
   private speakingBackup = false;
+  /** Segments received but not yet scheduled (still decoding). While any are, the player is busy. */
+  private pending = 0;
+  /** Segments are decoded and scheduled one after another, in the order they arrived. */
+  private chain: Promise<unknown> = Promise.resolve();
+  /** Bumped by stop(): a segment still decoding when you stop must never start playing afterwards. */
+  private generation = 0;
 
   /** Must be called from a tap or key press: browsers only allow audio after a gesture. */
   unlock(): void {
@@ -67,21 +75,41 @@ export class Player {
     return Math.min(1, Math.sqrt(sum / this.buffer.length) * 4);
   }
 
-  /** Queues a segment and resolves with its schedule and word timings once decoded. */
-  async play(seg: {
-    index: number;
-    text: string;
-    lang: "en" | "ar";
-    audio: string | null;
-  }): Promise<PlayedSegment> {
+  /**
+   * Queues a segment and resolves with its schedule and word timings once decoded.
+   * Segments play strictly in the order play() was called, however long each takes to decode.
+   */
+  play(seg: Segment): Promise<PlayedSegment> {
     this.unlock();
+    this.pending++;
+    const generation = this.generation;
+    const run = this.chain.then(() => this.schedule(seg, generation)).finally(() => this.pending--);
+    this.chain = run.catch(() => {});
+    return run;
+  }
+
+  private async schedule(seg: Segment, generation: number): Promise<PlayedSegment> {
     const ctx = this.ctx!;
     const words = seg.text.split(/\s+/).filter(Boolean);
+    // Stopped while this segment waited its turn: report it, but never make a sound.
+    if (generation !== this.generation) {
+      return { index: seg.index, words, timings: evenly(words, 0, 0), startAt: 0, endAt: 0, backup: false };
+    }
 
     if (seg.audio) {
       try {
         const bytes = base64ToBytes(seg.audio);
         const audio = await ctx.decodeAudioData(bytes.buffer.slice(0) as ArrayBuffer);
+        if (generation !== this.generation) {
+          return {
+            index: seg.index,
+            words,
+            timings: evenly(words, 0, 0),
+            startAt: 0,
+            endAt: 0,
+            backup: false,
+          };
+        }
         const source = ctx.createBufferSource();
         source.buffer = audio;
         source.connect(this.analyser!);
@@ -96,7 +124,7 @@ export class Player {
         // Undecodable audio: fall through to the backup voice.
       }
     }
-    return this.speakWithBackup(seg, words, Math.max(ctx.currentTime + 0.03, this.queueEnd));
+    return this.speakWithBackup(seg, words, Math.max(ctx.currentTime + 0.03, this.queueEnd), generation);
   }
 
   /** The browser's own voice. Its word boundary events are real, so the caption still follows it. */
@@ -104,6 +132,7 @@ export class Player {
     seg: { index: number; text: string; lang: "en" | "ar" },
     words: string[],
     startAt: number,
+    generation: number,
   ): Promise<PlayedSegment> {
     const estimate = Math.max(0.8, seg.text.length * 0.065);
     const segment: PlayedSegment = {
@@ -119,6 +148,7 @@ export class Player {
 
     const delay = Math.max(0, (startAt - this.now()) * 1000);
     window.setTimeout(() => {
+      if (generation !== this.generation) return; // stopped before its turn came
       const u = new SpeechSynthesisUtterance(seg.text);
       u.lang = seg.lang === "ar" ? "ar-SA" : "en-US";
       u.rate = 1;
@@ -140,13 +170,14 @@ export class Player {
     return Promise.resolve(segment);
   }
 
-  /** True while anything is queued or playing. */
+  /** True while anything is decoding, queued or playing. */
   busy(): boolean {
-    return this.speakingBackup || this.sources.size > 0 || this.now() < this.queueEnd;
+    return this.pending > 0 || this.speakingBackup || this.sources.size > 0 || this.now() < this.queueEnd;
   }
 
   /** Stops everything at once (End, barge-in, a new turn). */
   stop(): void {
+    this.generation++;
     for (const s of this.sources) {
       try {
         s.stop();

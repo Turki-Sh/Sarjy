@@ -20,50 +20,56 @@ type Refs = {
   waveBox: RefObject<HTMLElement | null>;
 };
 
-type Frame = { target: WaveShape; glow: number; lvl: number; rot: number; ease: number };
+/**
+ * One frame's targets. The light (glow, lvl) and the spin are eased in the loop below, never set
+ * raw: Turki asked for a smoother, calmer light (Day 2), and raw per-frame loudness looked jittery.
+ */
+type Frame = { target: WaveShape; glow: number; lvl: number; spin: number; ease: number };
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-/** What the orb should look like `e` seconds into a state. Pure, so it is easy to reason about. */
+/**
+ * What the orb should look like `e` seconds into a state. Pure, so it is easy to reason about.
+ * `input` and `output` are already smoothed loudness levels (see `follow`), 0 to 1, or null.
+ * `spin` is degrees per second; the loop turns it into an angle that carries across states.
+ */
 export function frameFor(state: VoiceState, e: number, input: number | null, output: number | null): Frame {
-  const idle: Frame = { target: REST, glow: 0, lvl: 1, rot: (e * 10) % 360, ease: 0.14 };
+  const idle: Frame = { target: REST, glow: 0, lvl: 1, spin: 6, ease: 0.12 };
 
   switch (state) {
     case "listening": {
-      // Height follows the mic level, 0.5 to 1.1 of rest. Without a mic, the reference's synthetic rhythm.
-      const n =
-        input !== null
-          ? 0.5 + 0.6 * clamp01(input)
-          : 0.5 + 0.3 * Math.abs(Math.sin(e * 5.3)) + 0.3 * Math.abs(Math.sin(e * 8.7 + 1));
+      // Height follows your voice, 0.5 to 1.1 of rest. Without a mic, a slow synthetic breath.
+      const n = input !== null ? 0.5 + 0.6 * clamp01(input) : 0.62 + 0.18 * Math.sin(e * 2.2);
       const a2 =
         input !== null
-          ? 0.5 + 0.55 * clamp01(input * (0.85 + 0.15 * Math.sin(e * 6.1)))
-          : 0.5 + 0.55 * Math.abs(Math.sin(e * 6.1 + 0.6));
+          ? 0.5 + 0.55 * clamp01(input * (0.9 + 0.1 * Math.sin(e * 2.4)))
+          : 0.62 + 0.18 * Math.sin(e * 2.2 + 0.9);
       return {
         target: { a1: n, a2, s: 1 },
-        glow: 0.35 + (n - 0.5) * 0.75,
-        lvl: 0.9 + (n - 0.5) * 0.35,
-        rot: (e * 15) % 360,
-        ease: 0.14,
+        glow: 0.35 + (n - 0.5) * 0.6,
+        lvl: 0.94 + (n - 0.5) * 0.2,
+        spin: 9,
+        ease: 0.1,
       };
     }
     case "thinking":
-      return { target: { a1: 0.35, a2: 0.35, s: 0.6 }, glow: 0.22, lvl: 1, rot: (e * 10) % 360, ease: 0.14 };
+      return { target: { a1: 0.35, a2: 0.35, s: 0.6 }, glow: 0.22, lvl: 1, spin: 8, ease: 0.1 };
     case "tool":
-      return { target: { a1: 0.25, a2: 0.25, s: 0.4 }, glow: 0.16, lvl: 1, rot: (e * 10) % 360, ease: 0.14 };
+      return { target: { a1: 0.25, a2: 0.25, s: 0.4 }, glow: 0.16, lvl: 1, spin: 8, ease: 0.1 };
     case "speaking": {
-      // Height follows Sarjy's audio; the two peaks move independently so it never looks like a meter.
-      const level = output !== null ? clamp01(output) : 0.6 + 0.4 * Math.abs(Math.sin(e * 3.1));
+      // Height follows Sarjy's voice; the two peaks drift independently and slowly, so it never
+      // looks like a meter.
+      const level = output !== null ? clamp01(output) : 0.6 + 0.2 * Math.sin(e * 2.1);
       return {
         target: {
-          a1: 0.55 + 0.55 * level + 0.12 * Math.sin(e * 9.4),
-          a2: 0.6 + 0.5 * level + 0.12 * Math.sin(e * 7.1 + 1.3),
-          s: 1 + 0.9 * Math.sin(e * 4.6) * level,
+          a1: 0.55 + 0.5 * level + 0.06 * Math.sin(e * 3.7),
+          a2: 0.6 + 0.45 * level + 0.06 * Math.sin(e * 3.1 + 1.3),
+          s: 1 + 0.5 * Math.sin(e * 1.9) * level,
         },
-        glow: 0.8,
-        lvl: 0.96 + 0.07 * level,
-        rot: (e * 40) % 360,
-        ease: 0.14,
+        glow: 0.72 + 0.1 * level,
+        lvl: 0.97 + 0.05 * level,
+        spin: 14,
+        ease: 0.1,
       };
     }
     case "saving":
@@ -73,6 +79,18 @@ export function frameFor(state: VoiceState, e: number, input: number | null, out
       return idle;
   }
 }
+
+/**
+ * A loudness follower: rises quickly (so a word is felt), falls slowly (so the light breathes
+ * instead of flickering between syllables).
+ */
+export function follow(previous: number, next: number): number {
+  const rate = next > previous ? 0.22 : 0.06;
+  return previous + (next - previous) * rate;
+}
+
+/** How fast the light's brightness and size catch up with their targets, per frame. */
+const LIGHT_EASE = 0.07;
 
 export function useOrbMotion(
   refs: Refs,
@@ -97,6 +115,14 @@ export function useOrbMotion(
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     let shape: WaveShape = { ...REST };
     let raf = 0;
+    // The light's state, eased every frame: smoothed levels, glow, size, and an angle that keeps
+    // turning across states (it used to restart at 0 on every change, which read as a jump).
+    let input = 0;
+    let output = 0;
+    let glow = 0;
+    let lvl = 1;
+    let angle = 0;
+    let last = 0;
 
     const tick = (now: number) => {
       const root = refs.root.current;
@@ -114,17 +140,26 @@ export function useOrbMotion(
           root.style.setProperty("--glow", live ? "0.5" : "0");
           root.style.setProperty("--lvl", "1");
         } else {
-          const f = frameFor(current, e, levelsRef.current.input(), levelsRef.current.output());
+          const rawIn = levelsRef.current.input();
+          const rawOut = levelsRef.current.output();
+          input = follow(input, rawIn ?? 0);
+          output = follow(output, rawOut ?? 0);
+          const f = frameFor(current, e, rawIn === null ? null : input, rawOut === null ? null : output);
           shape = easeToward(shape, f.target, f.ease);
-          root.style.setProperty("--glow", f.glow.toFixed(3));
-          root.style.setProperty("--lvl", f.lvl.toFixed(3));
-          root.style.setProperty("--rot", `${f.rot.toFixed(1)}deg`);
+          glow += (f.glow - glow) * LIGHT_EASE;
+          lvl += (f.lvl - lvl) * LIGHT_EASE;
+          const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+          angle = (angle + f.spin * dt) % 360;
+          root.style.setProperty("--glow", glow.toFixed(3));
+          root.style.setProperty("--lvl", lvl.toFixed(3));
+          root.style.setProperty("--rot", `${angle.toFixed(2)}deg`);
           if (current === "thinking") {
             // A Dusk segment travels the line, 1.2 s per loop.
             trace.setAttribute("stroke-dashoffset", String(100 - ((e / 1.2) % 1) * 114));
           }
         }
 
+        last = now;
         const d = wavePath(shape);
         moving.setAttribute("d", d);
         trace.setAttribute("d", d);

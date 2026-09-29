@@ -29,6 +29,20 @@ export const DEFAULT_VOICES: Record<Lang, string> = { en: "troy", ar: "abdullah"
 // English is still detected as English.
 const STT_PROMPT = "Sarjy, سرجي. هلا، وش لوني المفضل؟ كيف الجو بكرة بالرياض؟ What's the weather tomorrow?";
 
+/**
+ * The language you spoke, from the letters Whisper wrote down. Whisper also names a language, but
+ * that label can say "arabic" for English spoken with a Saudi accent, and then Sarjy would answer
+ * English in Arabic. The transcript's own script is the better witness; the label only breaks a tie.
+ */
+export function spokenLang(text: string, label: string | undefined, hint: Lang): Lang {
+  const arabic = text.match(/[\u0600-\u06ff]/g)?.length ?? 0;
+  const latin = text.match(/[a-z]/gi)?.length ?? 0;
+  if (arabic > latin) return "ar";
+  if (latin > arabic) return "en";
+  if (label) return label.toLowerCase().startsWith("ar") ? "ar" : "en";
+  return hint;
+}
+
 function groqStt(apiKey: string): SpeechToText {
   return {
     async transcribe(audio, hint) {
@@ -47,10 +61,7 @@ function groqStt(apiKey: string): SpeechToText {
       if (!res.ok) throw new Error(`Groq speech to text failed: ${res.status}`);
       const data = (await res.json()) as { text: string; language?: string };
       const text = data.text.trim();
-      // Whisper names the language ("arabic", "english"). Arabic script in the text settles it either way.
-      const lang: Lang =
-        /[؀-ۿ]/.test(text) || data.language?.toLowerCase().startsWith("ar") ? "ar" : text ? "en" : hint;
-      return { text, lang };
+      return { text, lang: spokenLang(text, data.language, hint) };
     },
   };
 }

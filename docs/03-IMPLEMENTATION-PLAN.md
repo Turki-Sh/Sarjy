@@ -198,6 +198,13 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Rename a chat: the pencil on hover (or double-click); Enter saves, Escape cancels
 - [x] The last few lines of the chat show small above the caption, so a chat switch is visible and the question stays in view
 
+### Fixed from Turki's third review (Day 2)
+- [x] An answer cut off after its first sentence ("Sure thing." then silence). The rest arrived after the first sentence had finished and was still decoding, so the screen took the silence for the end, and hands-free reopened the mic over it. Now the player plays pieces strictly in arrival order, counts decoding pieces as busy, never plays a piece after a stop, and a turn ends only when every piece received has played (`client/voice/turnEnd.ts`, unit tested; an E2E test slows the voice and the decoder to reproduce it, and fails on the old code)
+- [x] Hands-free never reopens the mic while anything is still playing
+- [x] The spoken language comes from the transcript's letters, not Whisper's label (which can call English with a Saudi accent "arabic")
+- [x] Sarjy states exactly what it can do (remember, forget, weather, talk) and never claims more (it had offered news)
+- [x] A calmer light: loudness is smoothed (quick up, slow down), the glow and size ease, the spin is slower and no longer jumps when the state changes
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

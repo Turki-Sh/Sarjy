@@ -9,14 +9,16 @@ import { createFakeStt, createFakeTts } from "./fake/speech";
 import { createGroqProviders } from "./groq";
 import type { Providers } from "./types";
 
-export function getProviders(options: { scriptedTranscript?: string | null } = {}): Providers {
+export function getProviders(
+  options: { scriptedTranscript?: string | null; slowRestMs?: number } = {},
+): Providers {
   if (env.providers === "live") {
     if (!env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is not set.");
     return createGroqProviders(env.GROQ_API_KEY);
   }
   return {
     stt: createFakeStt(options.scriptedTranscript ?? null),
-    tts: createFakeTts(),
+    tts: createFakeTts(options.slowRestMs),
     models: [
       { id: "fake-main", model: createFakeModel("fake-main") },
       { id: "fake-fallback", model: createFakeModel("fake-fallback") },

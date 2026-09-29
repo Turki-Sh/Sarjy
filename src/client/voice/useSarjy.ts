@@ -22,6 +22,7 @@ import type { MicLook } from "../ui/ControlBar";
 import type { ToolChipModel } from "../ui/ToolChip";
 import { findKeep } from "./keep";
 import { transition } from "./machine";
+import { answerFinished } from "./turnEnd";
 import { previewWords } from "./preview";
 import { sendTurn } from "./turnStream";
 
@@ -43,6 +44,8 @@ export type Profile = {
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
 type Turn = {
   segments: PlayedSegment[];
+  /** Pieces of audio received from the server (segments, and a spoken error). */
+  received: number;
   words: string[];
   lang: Lang;
   streamDone: boolean;
@@ -228,12 +231,14 @@ export function useSarjy(lang: Lang) {
           setMemories((list) => list.filter((m) => m.id !== event.id));
           return;
         case "segment":
+          t.received++;
           void getPlayer()
             .play(event)
             .then((seg) => addSegment(seg, t));
           return;
         case "error":
           // Errors are spoken like any answer (with the browser's voice), then Sarjy rests.
+          t.received++;
           void getPlayer()
             .play({ index: t.segments.length, text: event.say, lang: t.lang, audio: null })
             .then((seg) => addSegment(seg, t));
@@ -260,6 +265,7 @@ export function useSarjy(lang: Lang) {
       getPlayer().unlock();
       const t: Turn = {
         segments: [],
+        received: 0,
         words: [],
         lang,
         streamDone: false,
@@ -417,7 +423,15 @@ export function useSarjy(lang: Lang) {
           setCaption((c) => (c && c.speaker === "sarjy" ? { ...c, shown } : c));
         }
         const last = t.segments[t.segments.length - 1]!;
-        if (t.streamDone && now >= last.endAt + 0.05 && !p.busy() && stateRef.current === "speaking") {
+        const finished = answerFinished({
+          streamDone: t.streamDone,
+          received: t.received,
+          scheduled: t.segments.length,
+          lastEndAt: last.endAt,
+          now,
+          playerBusy: p.busy(),
+        });
+        if (finished && stateRef.current === "speaking") {
           turn.current = null;
           const keep = t.saved ? findKeep(t.words, t.saved) : undefined;
           setCaption((c) => (c ? { ...c, shown: c.words.length, keep } : c));
@@ -425,14 +439,15 @@ export function useSarjy(lang: Lang) {
           // The stitch: the saved fact is underlined and its card lands, with one dry tick.
           if (t.changedMemory) p.cue("saved");
           if (t.changedMemory) window.setTimeout(() => dispatch({ type: "SETTLED" }), SETTLE_MS);
-          // Hands-free: your turn again. Only after Sarjy has finished, so it never hears itself.
+          // Hands-free: your turn again. Only after Sarjy has finished, so it never hears itself,
+          // and never while anything is still playing (it waits, rather than cut a sound short).
           if (conversing.current) {
-            window.setTimeout(
-              () => {
-                if (conversing.current && !ear.current && !turn.current) void listenRef.current();
-              },
-              t.changedMemory ? SETTLE_MS : RELISTEN_MS,
-            );
+            const relisten = () => {
+              if (!conversing.current || ear.current || turn.current) return;
+              if (p.busy()) return void window.setTimeout(relisten, 150);
+              void listenRef.current();
+            };
+            window.setTimeout(relisten, t.changedMemory ? SETTLE_MS : RELISTEN_MS);
           }
         }
       }
