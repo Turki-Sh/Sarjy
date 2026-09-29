@@ -1,0 +1,474 @@
+# 02 · Architecture
+
+How Sarjy works, end to end. This is the technical design (the TDD). If you only read one section, read [section 3, one turn end to end](#3-one-turn-end-to-end): everything else in the system exists to serve that path.
+
+---
+
+## 1. The shape of the system
+
+```mermaid
+flowchart LR
+  subgraph Browser["Browser (src/client)"]
+    MIC["Mic + VAD<br/>detects end of speech"]
+    UI["Voice screen<br/>orb, captions, memory"]
+    PLAY["Audio player<br/>plays Sarjy's voice"]
+  end
+
+  subgraph Vercel["Vercel Functions (src/server)"]
+    TURN["/api/turn<br/>one conversational turn"]
+    MEM["/api/memories<br/>list, edit, forget"]
+    SESS["/api/session<br/>who is this browser"]
+  end
+
+  subgraph Groq["Groq"]
+    STT["Whisper<br/>speech to text"]
+    LLM["Language model<br/>with tools"]
+    TTS["Orpheus<br/>text to speech, EN and Saudi AR"]
+  end
+
+  METEO["Open-Meteo<br/>weather"]
+  DB[("Postgres on Neon<br/>users, memories, chats")]
+
+  MIC -- "audio (WAV)" --> TURN
+  TURN -- "event stream" --> UI
+  TURN -- "voice segments" --> PLAY
+  UI --> MEM
+  UI --> SESS
+  TURN --> STT
+  TURN --> LLM
+  TURN --> TTS
+  TURN --> METEO
+  TURN --> DB
+  MEM --> DB
+  SESS --> DB
+```
+
+Three rules keep this easy to reason about:
+
+1. **Keys live only on the server.** The browser never talks to Groq directly. Everything under `src/server/` is marked server-only, so it cannot end up in the browser bundle by accident.
+2. **One turn is one request.** The browser sends one request per turn (your audio or your text) and reads one stream of events back. No WebSockets, no long-lived connections.
+3. **The server says what happened; the browser decides how it looks.** The server streams plain facts ("transcript is X", "weather tool took 412 ms", "memory saved", "here is audio for sentence 1"). All animation, timing and layout decisions are made in the browser.
+
+## 2. Where the code lives
+
+The top-level split under `src/` answers one question: **where does this code run?**
+
+```
+Sarjy/
+├── README.md                       Start here: what Sarjy is, live URL, how to run it
+├── CLAUDE.md                       Working agreements for AI-assisted sessions
+├── docs/
+│   ├── 01-PRD.md                   What we build and why
+│   ├── 02-ARCHITECTURE.md          How it works (this file)
+│   ├── 03-IMPLEMENTATION-PLAN.md   The build plan, day by day
+│   ├── 04-ACCEPTANCE-TESTS.md      How we know it works
+│   ├── 05-DEPLOYMENT.md            How it ships, and how secrets stay secret
+│   └── brand/                      Brand book and visual identity (design source of truth)
+├── public/
+│   ├── brand/                      Logo SVGs, favicon
+│   ├── voice/                      Pre-rendered audio for fixed lines (greeting, errors)
+│   └── vad/                        Voice activity model files, served to the browser
+├── scripts/                        One-off tools (pre-render voice lines, check the bundle for keys)
+├── src/
+│   ├── app/                        Next.js routes: the page and the API endpoints
+│   │   ├── layout.tsx              Fonts, theme, <html lang dir>
+│   │   ├── page.tsx                The voice screen
+│   │   └── api/
+│   │       ├── session/route.ts    Create or resume the anonymous user
+│   │       ├── turn/route.ts       One turn: audio or text in, event stream out
+│   │       ├── memories/           List, edit, forget memories
+│   │       ├── conversations/      Recent chats
+│   │       └── health/route.ts     Which providers are configured (booleans only)
+│   │
+│   ├── client/                     Runs in the browser only
+│   │   ├── audio/
+│   │   │   ├── mic.ts              Opens the mic, measures the level for the orb
+│   │   │   ├── vad.ts              Detects when you start and stop speaking
+│   │   │   ├── wav.ts              Packs recorded samples into a WAV file
+│   │   │   ├── player.ts           Queues and plays Sarjy's audio, exposes its level and clock
+│   │   │   ├── preview.ts          Live words while you speak (browser speech recognition)
+│   │   │   └── cues.ts             The three sound cues
+│   │   ├── voice/
+│   │   │   ├── machine.ts          The six states and every allowed transition
+│   │   │   ├── turnStream.ts       Sends a turn, reads the event stream back
+│   │   │   └── useSarjy.ts         The one hook the screen uses; wires everything together
+│   │   └── ui/                     React components: Orb, Caption, ToolChip, ControlBar,
+│   │                               Sidebar, MemoryCard, SettingsSheet, TextComposer, Logo
+│   │
+│   ├── server/                     Runs on the server only; the only place keys exist
+│   │   ├── env.ts                  Reads and validates environment variables
+│   │   ├── session.ts              Signed cookie identity
+│   │   ├── rateLimit.ts            Per-user and per-IP limits
+│   │   ├── turn/
+│   │   │   ├── pipeline.ts         Orchestrates one turn (the heart of the server)
+│   │   │   ├── prompt.ts           Builds the system prompt from rules, memory and context
+│   │   │   └── sentences.ts        Cuts streamed text into speakable chunks
+│   │   ├── providers/
+│   │   │   ├── types.ts            The interfaces: SpeechToText, TextToSpeech, model
+│   │   │   ├── groq/               Real implementations
+│   │   │   └── fake/               Deterministic implementations for tests and offline work
+│   │   ├── tools/
+│   │   │   ├── weather.ts          Open-Meteo geocoding and forecast
+│   │   │   └── memory.ts           remember and forget, as model tools
+│   │   └── db/
+│   │       ├── schema.ts           Tables
+│   │       ├── client.ts           Neon in production, PGlite in tests
+│   │       └── migrations/
+│   │
+│   ├── shared/                     Plain TypeScript used by both sides
+│   │   ├── protocol.ts             The event types streamed from server to browser
+│   │   ├── wave.ts                 The brand's wave formula
+│   │   ├── wordTiming.ts           Word timings for captions, from the audio envelope
+│   │   └── i18n.ts                 Interface strings in English and Arabic
+│   │
+│   └── styles/
+│       ├── tokens.css              Copied verbatim from the visual identity
+│       ├── glass.css               The liquid glass recipe
+│       └── globals.css
+│
+└── tests/
+    ├── unit/                       Vitest: pure logic
+    ├── integration/                The turn pipeline with fake providers and PGlite
+    ├── e2e/                        Playwright: the real page, a fake mic, fake providers
+    └── fixtures/                   Recorded audio clips in English and Arabic
+```
+
+## 3. One turn, end to end
+
+This is the path of "What's the weather in Riyadh tomorrow?"
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as You
+  participant B as Browser
+  participant T as /api/turn
+  participant G as Groq
+  participant W as Open-Meteo
+  participant D as Postgres
+
+  U->>B: tap mic, speak
+  Note over B: cue: listening starts<br/>orb follows mic level<br/>live words preview
+  B->>B: VAD hears silence, end of speech
+  Note over B: cue: listening ends<br/>state: thinking
+  B->>T: POST audio.wav + conversation id
+  T->>D: load memories + recent messages
+  T->>G: Whisper (speech to text)
+  G-->>T: "What's the weather in Riyadh tomorrow?" (en)
+  T-->>B: transcript event
+  T->>G: model, streaming, with tools
+  G-->>T: tool call get_weather(Riyadh, tomorrow)
+  T-->>B: tool_start event
+  Note over B: state: checking a tool<br/>glass tool chip appears
+  T->>W: geocode + forecast
+  W-->>T: high 41, clear
+  T-->>B: tool_end event (412 ms)
+  T->>G: model continues with the result
+  G-->>T: "Clear skies and a high of 41." (streamed)
+  T->>G: Orpheus, sentence 1
+  G-->>T: WAV
+  T-->>B: segment 1 (text + audio)
+  Note over B: state: speaking<br/>words sharpen as they are spoken
+  T->>G: Orpheus, the rest
+  T-->>B: segment 2
+  T-->>B: done (timings)
+  T->>D: save both messages (after the response)
+  B->>U: audio plays to the end, state: idle
+```
+
+In words, with the file that does each step:
+
+| # | Step | File |
+|---|---|---|
+| 1 | You tap the mic. The mic opens, the "listening starts" cue plays, and the orb follows your level. | `client/audio/mic.ts`, `client/audio/cues.ts` |
+| 2 | While you speak, your words appear live (Chrome, Edge, Safari) from the browser's own recognizer. This is a preview only. | `client/audio/preview.ts` |
+| 3 | The voice activity detector (Silero, running in the browser) hears about half a second of silence and ends the turn. The recorded samples become a WAV file. | `client/audio/vad.ts`, `client/audio/wav.ts` |
+| 4 | The browser posts the WAV to `/api/turn` and starts reading the event stream. | `client/voice/turnStream.ts` |
+| 5 | The server checks the cookie and the rate limit, then loads your memories and the last few messages. | `app/api/turn/route.ts`, `server/session.ts`, `server/rateLimit.ts` |
+| 6 | Whisper turns audio into text and detects the language. The final transcript replaces the live preview. | `server/providers/groq/stt.ts` |
+| 7 | The model gets the system prompt (speaking rules, your memories, today's date) and the conversation, and streams its answer. It may call tools. | `server/turn/pipeline.ts`, `server/turn/prompt.ts` |
+| 8 | Tool calls run on the server; each one streams a `tool_start` and a `tool_end` with its timing. Memory tools write to Postgres and stream `memory_saved` or `memory_forgotten`. | `server/tools/weather.ts`, `server/tools/memory.ts` |
+| 9 | As text streams in, it is cut into sentences. The first sentence goes to the voice at once; the rest goes as one more request. | `server/turn/sentences.ts` |
+| 10 | Each voice result streams to the browser as a `segment` (text, language, WAV). | `server/providers/groq/tts.ts` |
+| 11 | The browser decodes each segment, works out when each word is spoken, queues it, and plays it. The orb follows the audio; the caption sharpens word by word. | `client/audio/player.ts`, `shared/wordTiming.ts`, `client/ui/Caption.tsx` |
+| 12 | If a memory was saved, the fact gets the stitched underline, the "saved" tick plays, and its card appears in the sidebar. | `client/ui/Caption.tsx`, `client/ui/Sidebar.tsx` |
+| 13 | `done` carries the timings for the details panel. The server saves the messages after the response has finished. | `app/api/turn/route.ts` |
+
+## 4. The event protocol
+
+The contract between server and browser lives in one file, `shared/protocol.ts`. The stream is newline-delimited JSON (one event per line). We use `fetch` and read the body as a stream, because we need to POST audio (the browser's `EventSource` only does GET).
+
+```ts
+type TurnEvent =
+  | { type: "transcript"; text: string; lang: "en" | "ar"; ms: number }
+  | { type: "tool_start"; id: string; name: string; label: string }   // label: weather.forecast("Riyadh", "tomorrow")
+  | { type: "tool_end"; id: string; ok: boolean; ms: number }
+  | { type: "memory_saved"; memory: Memory }                          // Memory: id, key, label, value, lang, createdAt
+  | { type: "memory_forgotten"; id: string; key: string }
+  | { type: "segment"; index: number; text: string; lang: "en" | "ar"; audio: string | null } // base64 WAV; null means "use the backup voice"
+  | { type: "error"; code: ErrorCode; say: string }                   // say: what Sarjy should say about it
+  | { type: "done"; messageId: string; conversationId: string; timings: Timings };
+```
+
+Every event is validated with zod on both sides in tests, so a change to the protocol breaks the build, not the demo.
+
+## 5. The browser's state machine
+
+The orb, the mic button, the status line and the screen reader all read from one state. It lives in `client/voice/machine.ts` as a typed reducer: a pure function `(state, event) => state`, so every transition can be unit tested without a browser.
+
+```mermaid
+stateDiagram-v2
+  [*] --> idle
+  idle --> listening: tap mic
+  listening --> idle: tap mic (cancel)
+  listening --> thinking: end of speech
+  idle --> thinking: text submitted
+  thinking --> tool: tool_start
+  tool --> thinking: tool_end
+  thinking --> speaking: first segment playing
+  tool --> speaking: first segment playing
+  speaking --> listening: you speak over Sarjy (barge-in)
+  speaking --> saving: playback ends, a memory was saved or forgotten
+  speaking --> idle: playback ends
+  saving --> idle: after 1.2 s
+  thinking --> idle: error (spoken)
+```
+
+| State | Wave | Signal | Announced |
+|---|---|---|---|
+| idle | The logo at rest | Clear orb, no light, glass mic | "Sarjy is ready" |
+| listening | Follows mic level, 0.5 to 1.1 of rest | Mic green, light grows with your voice, your words stream in | "Listening" |
+| thinking | Settles to 35%, a Dusk segment travels the line | Light dims to 22% | "Thinking" |
+| tool | Settles to 25% | Glass tool chip with timing | "Checking the weather" |
+| speaking | Follows Sarjy's audio | Light turns, unspoken words blurred | The spoken text, once |
+| saving | Returns to rest over 480 ms | Dusk stitch under the saved fact, tick | "Saved: favorite color, green" |
+
+These values come straight from the visual identity, section 6.
+
+## 6. Memory
+
+### What a memory is
+
+A memory is one fact or preference, stored as a row:
+
+| Field | Example | Why |
+|---|---|---|
+| `key` | `favorite_color` | Stable identity, so "actually it's blue" updates instead of duplicating |
+| `label` | Favorite color | What the card shows, in the language it was said |
+| `value` | Green | What Sarjy uses |
+| `source` | "My favorite color is green." | Your exact words, shown on the card |
+| `lang` | en | So the card renders in the right script |
+| `createdAt`, `updatedAt` | Sunday 27 Sep | So Sarjy can say "You told me on Sunday" |
+
+`(user_id, key)` is unique. Saving an existing key updates it.
+
+### How Sarjy uses it
+
+Every turn, all of your memories are written into the system prompt as a small table, with the day each was told. A person has tens of facts, not thousands, so this fits easily, and it is deterministic: there is no search step that could miss a fact. (If memories grow past about 50, we would add retrieval; that is out of scope.)
+
+### How it changes
+
+| Path | How |
+|---|---|
+| By voice | The model calls `remember(key, label, value)` or `forget(key)`. The server writes Postgres, then streams the event. The model is instructed to confirm in your words. |
+| On screen | Edit and Forget on each card call `PATCH` and `DELETE /api/memories/:id`. The change applies from the next turn. |
+| Everything | "Forget everything" in settings deletes the user and all their rows. |
+
+### Guardrails
+
+- The model may only save what you stated about yourself. It may not infer ("you seem to like...") and save.
+- It refuses to save secrets (passwords, card numbers, national ID numbers), and says so.
+- Memory values are clamped (single line, 120 characters) and placed in a clearly delimited data block, and the prompt says that block is data, not instructions. This stops a memory like "ignore your rules" from acting as an instruction.
+- There is no quiet save: the browser only shows a stitched card for a `memory_saved` event, and the confirmation is spoken in the same turn.
+
+## 7. Identity and sessions
+
+No login. On first load the page calls `POST /api/session`. If there is no valid cookie, the server creates a user row and sets `sarjy_uid`: the user id plus an HMAC-SHA256 signature made with `SESSION_SECRET`, `HttpOnly`, `Secure`, `SameSite=Lax`, one year. The response carries your profile, memories and recent chats, so the first paint already shows what Sarjy knows.
+
+Consequence: memory follows the browser, not the person. That is the right trade for a reviewer (zero setup), and it is stated plainly in the settings sheet.
+
+## 8. Providers
+
+Each external capability sits behind a small interface in `server/providers/types.ts`:
+
+```ts
+interface SpeechToText { transcribe(audio: Blob, hint?: Lang): Promise<{ text: string; lang: Lang }> }
+interface TextToSpeech { synthesize(text: string, lang: Lang, voice: string): Promise<ArrayBuffer> }
+// The model is a Vercel AI SDK LanguageModel, so it can be swapped by changing one line.
+```
+
+| Capability | Live | Why |
+|---|---|---|
+| Speech to text | Groq `whisper-large-v3-turbo` | Fast, strong on Arabic, returns the detected language |
+| Language model | Groq `openai/gpt-oss-120b`, falling back to a second Groq model on rate limits | Fast first token, reliable tool calling |
+| Text to speech | Groq `canopylabs/orpheus-v1-english` and `canopylabs/orpheus-arabic-saudi` | The brand requires a native Saudi voice for Arabic, never an English voice reading Arabic |
+| Weather | Open-Meteo forecast and geocoding | Free, no key, global, structured |
+
+`SARJY_PROVIDERS=fake` swaps in deterministic fakes: canned transcripts keyed by the fixture file, a scripted model that calls tools, and a tone generator for audio. All tests and all offline development use the fakes, so nothing depends on network access or quota.
+
+The model goes through the Vercel AI SDK (`streamText` with tools and a step limit), because it handles streaming and the tool loop. Whisper and Orpheus are plain `fetch` calls: two small HTTP requests are easier to read and explain than another abstraction.
+
+## 9. Tools
+
+| Tool (model-facing) | Chip label | Does |
+|---|---|---|
+| `get_weather({ location?, day? })` | `weather.forecast("Riyadh", "tomorrow")` | Geocodes the place (in Arabic or English), fetches the forecast, returns rounded numbers in your units. If `location` is missing it uses your `home_city` memory; if that is missing it returns `no_location`, and the model asks. |
+| `remember({ key, label, value })` | `memory.write(key: "favorite_color")` | Upserts the memory, returns it |
+| `forget({ key })` | `memory.forget(key: "home_city")` | Deletes it |
+| `get_prayer_times({ city, day })` (Could) | `prayer.times("Riyadh", "today")` | Aladhan API, Umm al-Qura method |
+
+Tool results are compact JSON with only the fields the model may quote. Numbers are rounded before the model sees them, so it cannot say "41.3 °C".
+
+## 10. The prompt
+
+`server/turn/prompt.ts` builds it in a fixed order. The static part comes first so it can be cached by the provider.
+
+1. **Who Sarjy is** and the brand's speaking rules (answer first, short turns, numbers said the way people say them, confirm saves in the user's words, say when memory was used, ask when you don't know, own tool failures, no emoji, never claim to be a person).
+2. **Language rule**: reply in the language of the user's last message; Arabic replies in everyday Saudi Arabic.
+3. **Tool rules**: facts about the world only from tools; only quote numbers a tool returned; if a tool fails, say so and offer to retry.
+4. **Memory rules**: save only what the user states about themselves; never secrets; when you use a memory, say so once, briefly.
+5. **Context**: today's date and time in the user's time zone, the interface language.
+6. **Memory block**: `<memory>` ... `</memory>`, one line per fact with the day it was told.
+7. **Conversation**: the last 12 messages of this chat.
+
+## 11. Audio in the browser
+
+| Piece | How |
+|---|---|
+| Mic | `getUserMedia` with echo cancellation, noise suppression and auto gain. An `AnalyserNode` gives the level that drives the wave and the light. |
+| End of speech | `@ricky0123/vad-web` (Silero VAD in ONNX Runtime Web). Model files are served from `/public/vad/`. About 500 ms of silence ends a turn; this is the main dial between "cuts me off" and "feels slow". |
+| Live preview | The Web Speech API with interim results, in the interface language. Display only; Whisper's text is the one that counts. Absent in Firefox, where words appear when the turn ends. |
+| Playback | Web Audio. Each segment is decoded and scheduled back to back on one `AudioContext` clock. An `AnalyserNode` on the output drives the wave while speaking. |
+| Caption timing | Orpheus returns audio without word times, so `shared/wordTiming.ts` estimates them: trim leading and trailing silence from the decoded audio, find the pauses in its energy envelope, and spread the words across the voiced time by length, snapping sentence and comma boundaries to the pauses. Because it runs per sentence, error cannot build up across a long answer. |
+| Backup voice | If a segment arrives with no audio (voice quota or error), the browser's `speechSynthesis` speaks it, and its word boundary events drive the caption. |
+| Cues | Synthesized with Web Audio, exactly as the brand book specifies: D5 to A5 rising (open), falling (close), a 60 ms tick (saved). |
+
+## 12. The interface
+
+- **Tokens**: `styles/tokens.css` is copied verbatim from the visual identity, section 12. Colors live there and nowhere else. Components use CSS Modules and only reference role tokens (`--text`, `--accent`, `--memory`, ...).
+- **Theme**: `data-theme` on `<html>`, stored in a cookie so the server renders the right theme on the first paint (no flash).
+- **Language and direction**: the interface language is a setting (default from the browser). `<html lang dir>` is set on the server. Layout uses logical properties (`margin-inline-start`, not `margin-left`), so Arabic mirrors for free. The logo never mirrors. Each caption carries its own `dir` and font, because you can speak Arabic in an English interface.
+- **Fonts**: `next/font/google` self-hosts Figtree, Newsreader, IBM Plex Sans Arabic, Noto Naskh Arabic and JetBrains Mono, mapped to the brand's font tokens.
+- **Logo**: the SVG paths from the brand files, as React components with `fill="currentColor"`, colored by `--mark`. Never retyped in a font.
+- **The orb**: DOM and SVG, following the visual identity's reference build: a blurred conic light (Saffron, Coral, Dusk), a glass sphere, and the wave path. Per frame, `useSarjy` writes three CSS variables (`--glow`, `--rot`, `--lvl`) and the wave's `d` attribute. No React re-render per frame.
+- **Glass vs solid**: floating things (control bar, orb, chips, toasts, header, sheets) are glass; things you read (captions, memory cards, settings) are solid. Never glass on glass.
+
+## 13. Data model
+
+```mermaid
+erDiagram
+  users ||--o{ memories : keeps
+  users ||--o{ conversations : has
+  conversations ||--o{ messages : contains
+  users {
+    uuid id PK
+    text name
+    text ui_lang
+    text theme
+    text voice_en
+    text voice_ar
+    timestamptz created_at
+  }
+  memories {
+    uuid id PK
+    uuid user_id FK
+    text key
+    text label
+    text value
+    text source
+    text lang
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  conversations {
+    uuid id PK
+    uuid user_id FK
+    text title
+    timestamptz updated_at
+  }
+  messages {
+    uuid id PK
+    uuid conversation_id FK
+    text role
+    text text
+    text lang
+    jsonb tools
+    jsonb timings
+    timestamptz created_at
+  }
+```
+
+A small `rate_limits` table (key, window start, count) backs the limiter. Deleting a user cascades to everything they own.
+
+## 14. Latency: budget and measurement
+
+Latency is not the deep dive, but a voice product lives or dies by it, so we measure every turn and show it in the details panel.
+
+| Stage | Budget | Notes |
+|---|---|---|
+| End of speech detection | 500 ms | The VAD silence window. Tunable. |
+| Upload | 50 to 150 ms | A 3 second WAV at 16 kHz is about 100 KB |
+| Whisper | 150 to 300 ms | |
+| Model to first sentence | 300 to 500 ms | Plus about 400 ms when a tool runs (tool call, API, second pass) |
+| Voice for first sentence | 400 to 700 ms | Why the first chunk is one short sentence |
+| Decode and start playback | 30 ms | |
+| **Time to first audio** | **about 1.5 to 2.2 s**, **2.5 to 3 s with a tool** | Measured from end of speech to first sound |
+
+Measurement points: the browser stamps end of speech, request sent, first segment received and playback started; the server stamps request received, transcript ready, first token, first sentence and first audio ready, and returns them in `done`. The difference is network time.
+
+Things we will try and report, if time allows: a shorter VAD silence window, streaming the first sentence to the voice before the model finishes it, and pre-warming the connection to `/api/turn` when the mic opens.
+
+## 15. Security and abuse
+
+The repository is public and the URL will be shared, so:
+
+| Threat | Control |
+|---|---|
+| Key leaks from the repo | Keys only in Vercel settings and git-ignored `.env.local`. `.env.example` has blank values. Gitleaks runs in CI on every push. |
+| Key leaks into the browser | Keys read only in `server/env.ts`, which imports `server-only`. No secret uses the `NEXT_PUBLIC_` prefix. A CI step searches the built client bundle for key patterns. |
+| Someone burns our quota | Per-user limit (10 turns a minute, 200 a day) and per-IP limit (400 a day). Audio capped at 45 seconds, text at 600 characters. |
+| Forged identity | The cookie is HMAC-signed; a tampered cookie is treated as a new visitor. |
+| Prompt injection through memory or tool output | Clamped values, delimited data blocks, and prompt rules that treat them as data. |
+| Mic abuse | `Permissions-Policy: microphone=(self)`, plus a Content Security Policy. |
+
+## 16. When things fail
+
+| Failure | What you see and hear |
+|---|---|
+| No mic, or permission denied | The mic shows the dashed "no access" state; the text box takes focus. |
+| Speech not understood | "I didn't catch that. Try again?" (pre-rendered audio, no quota used) |
+| Model rate limit | Retry on the fallback model. If both are limited: "I've reached my limit for now. Try again in a minute." |
+| Weather service down or slow (4 s timeout) | "I couldn't reach the weather service. Want me to try again?" No numbers. |
+| Voice rate limit or error | The browser's voice speaks the same words; captions still sync; a small note says the backup voice is in use. |
+| Database unavailable | "I can't reach my memory right now." The turn still answers questions that need no memory. |
+
+## 17. Decisions
+
+| Decision | Chosen | Instead of | Why |
+|---|---|---|---|
+| Pipeline | Speech to text, then model, then text to speech | One speech-to-speech model (Gemini Live, OpenAI Realtime) | Control. The deep dive needs the text before the audio (for captions), a visible tool state, spoken memory confirmations and a Saudi voice. Each stage can be measured and explained. |
+| Transport | One streaming HTTP request per turn | WebSockets or WebRTC | Vercel Functions do not hold sockets. One request per turn is simple to debug and costs little latency. |
+| Vendor | Groq for all three stages | A mix of vendors | One key, fast, and the only option we found with a native Saudi Arabic voice. Sarj lists Groq as preferred. |
+| End of speech | VAD in the browser | Server-side detection | No audio streaming needed; works offline; instant. |
+| Memory | Key-value facts in Postgres, all loaded per turn | Vector database | Facts must be visible, editable and deletable; a person has tens of them; deterministic recall. |
+| Identity | Signed cookie, no login | Accounts | Zero setup for the reviewer. |
+| Hosting | Next.js on Vercel, Neon Postgres | A long-running server | Git push deploys, preview URLs per branch, free tiers. |
+| Tests' database | PGlite (Postgres in WebAssembly) | A Docker Postgres | Same SQL, no services to start, runs in CI and offline. |
+| Styling | CSS Modules plus the brand tokens verbatim | Tailwind | The tokens file is the source of truth; no second color system. |
+| Caption timing | Estimated from the audio envelope | A second vendor with word timestamps | Keeps the Saudi voice and one vendor. Good enough per sentence; the timing function can take real timestamps later without changing the UI. |
+
+## 18. Reading guide: follow one turn through the code
+
+When you want to understand or explain the code, read these in order. Each file is short and does one thing.
+
+1. `src/client/ui/ControlBar.tsx`: the mic button dispatches `tap mic`.
+2. `src/client/voice/machine.ts`: what that does to the state.
+3. `src/client/audio/mic.ts` and `vad.ts`: listening, and deciding you are done.
+4. `src/client/voice/turnStream.ts`: sending the turn and reading events.
+5. `src/app/api/turn/route.ts`: the server entry point.
+6. `src/server/turn/pipeline.ts`: the turn, step by step.
+7. `src/server/turn/prompt.ts`: what the model is told.
+8. `src/server/tools/weather.ts` and `memory.ts`: what the model can do.
+9. `src/server/turn/sentences.ts` and `providers/groq/tts.ts`: turning text into voice.
+10. `src/client/audio/player.ts` and `src/shared/wordTiming.ts`: playing it and syncing words.
+11. `src/client/ui/Orb.tsx` and `Caption.tsx`: how it looks.
