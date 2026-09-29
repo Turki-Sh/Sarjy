@@ -21,10 +21,10 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 |---|---|---|---|---|---|---|
 | AT-01 | Mic permission granted, Sarjy idle | I tap the mic and say "Hello" | The open cue plays, the mic turns green, the state is `listening`; after I stop, the close cue plays and Sarjy answers by voice with a caption | R1, V1, V2 | Must | E2E, Live |
 | AT-02 | I am speaking | I stop talking | The turn ends on its own within 800 ms of silence, without a second tap | V1 | Must | E2E, Live |
-| AT-03 | Sarjy is listening | I tap the mic again | The turn is cancelled, nothing is sent, state returns to `idle` | V1 | Must | Unit, E2E |
+| AT-03 | Sarjy is listening | I tap the mic again | Before I have said anything: the mic closes, nothing is sent, state returns to `idle`. Mid-sentence: the tap means "I'm done", and what I said is sent. The End button always cancels | V1 | Must | Unit, E2E |
 | AT-04 | No mic, or permission denied | I open the page | The mic shows the dashed "no access" state, the text box has focus, and a typed question gets a spoken answer | V4, R4 | Must | E2E |
 | AT-05 | Chrome, Edge or Safari | I speak | My words appear while I am still speaking, then are replaced by the final transcript | V5 | Should | Live |
-| AT-06 | Sarjy is speaking | I start talking | Playback stops within 300 ms and Sarjy listens to me | V6 | Should | Live |
+| AT-06 | Sarjy is speaking | I tap the mic (or, in hands-free mode, start talking) | Playback stops within 300 ms and Sarjy listens to me | V6 | Should | Live |
 
 ## Memory
 
@@ -189,7 +189,7 @@ Chromium can replace the microphone with a WAV file:
 ```
 --use-fake-ui-for-media-stream
 --use-fake-device-for-media-stream
---use-file-for-fake-audio-capture=tests/fixtures/favorite-color-en.wav
+--use-file-for-fake-audio-capture=tests/fixtures/hello-sarjy.wav
 ```
 
-The file plays into the real mic, level meter and VAD, so E2E tests exercise the real browser audio path. With `SARJY_PROVIDERS=fake`, the fake speech-to-text returns the transcript the test scripted for that turn (the recorded samples never match the file byte for byte, so it cannot look them up), and the scripted model answers deterministically. The only things not exercised in CI are Groq and Open-Meteo themselves, which the Live checks cover.
+The file plays into the real mic, level meter and VAD, so E2E tests exercise the real browser audio path. With `SARJY_PROVIDERS=fake`, the fake speech-to-text returns "Hello" for any recording (the recorded samples never match the file byte for byte, so it cannot look them up), and the scripted model answers deterministically. The fixture is a sentence spoken by Sarjy's own English voice, then two seconds of silence so the detector hears the end. Tests: `tests/e2e/mic.spec.ts` and `tests/e2e/mic-blocked.spec.ts`. The only things not exercised in CI are Groq and Open-Meteo themselves, which the Live checks cover.

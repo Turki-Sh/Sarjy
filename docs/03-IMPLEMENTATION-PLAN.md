@@ -100,14 +100,16 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 
 ### M4 · The voice loop in the browser
 - [x] `client/voice/machine.ts` with unit tests for every transition
-- [ ] Mic with level meter; VAD with model files in `/public/vad`; WAV encoder
+- [x] Mic with level meter; VAD with model files in `/public/vad`; WAV encoder
 - [x] Turn stream reader; audio player queue on one `AudioContext` clock
-- [ ] Sound cues (open, close, saved)
-- [ ] No-mic path: dashed mic, text box focused
-- [ ] Live word preview while speaking (Web Speech API, where available)
-- [ ] Barge-in: speaking over Sarjy stops playback and starts a new turn
+- [x] Sound cues (open, close, saved)
+- [x] No-mic path: dashed mic, text box focused
+- [x] Live word preview while speaking (Web Speech API, where available)
+- [x] Barge-in by tap: tapping the mic over Sarjy stops playback and listens
+- [ ] Barge-in by voice, with hands-free mode (needs headphones to be safe; see architecture, section 11)
+- [x] E2E with Chromium's fake microphone and a recorded sentence; the no-mic path
 
-**Done when:** you tap the mic, say "My favorite color is green", hear the confirmation, reload, ask, and hear "Green. You told me today." On laptop and phone.
+**Done when:** you tap the mic, say "My favorite color is green", hear the confirmation, reload, ask, and hear "Green. You told me today." On laptop and phone. (Automated in the browser with a fake mic; the laptop and phone check needs a deployed URL.)
 
 ---
 

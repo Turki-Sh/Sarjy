@@ -57,14 +57,24 @@ export async function POST(request: Request) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const encoder = new TextEncoder();
-      const emit = (event: TurnEvent) => controller.enqueue(encoder.encode(encodeEvent(event)));
+      // Once the browser has gone, events have nowhere to go: drop them instead of throwing.
+      let open = true;
+      const emit = (event: TurnEvent) => {
+        if (!open || request.signal.aborted) return;
+        try {
+          controller.enqueue(encoder.encode(encodeEvent(event)));
+        } catch {
+          open = false; // the stream was cancelled between two events
+        }
+      };
       try {
         await runTurn(
           { user, audio: audio instanceof Blob ? audio : null, text, conversationId, uiLang, timeZone },
-          { db, providers },
+          { db, providers, signal: request.signal },
           emit,
         );
       } catch (error) {
+        if (request.signal.aborted) return;
         console.error("turn failed", error);
         emit({
           type: "error",
@@ -73,7 +83,7 @@ export async function POST(request: Request) {
             uiLang === "ar" ? "صار خلل عندي. تجرب مرة ثانية؟" : "Something went wrong on my side. Try again?",
         });
       } finally {
-        controller.close();
+        if (open && !request.signal.aborted) controller.close();
       }
     },
   });

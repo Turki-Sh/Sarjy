@@ -205,11 +205,11 @@ In words, with the file that does each step:
 | # | Step | File |
 |---|---|---|
 | 1 | You tap the mic. The mic opens, the "listening starts" cue plays, and the orb follows your level. | `client/audio/mic.ts`, `client/audio/cues.ts` |
-| 2 | While you speak, your words appear live (Chrome, Edge, Safari) from the browser's own recognizer. This is a preview only. | `client/audio/preview.ts` |
-| 3 | The voice activity detector (Silero, running in the browser) hears about half a second of silence and ends the turn. The recorded samples become a WAV file. | `client/audio/vad.ts`, `client/audio/wav.ts` |
+| 2 | While you speak, your words appear live (Chrome, Edge, Safari) from the browser's own recognizer. This is a preview only. | `client/voice/preview.ts` |
+| 3 | The voice activity detector (Silero, running in the browser) hears about 600 ms of silence and ends the turn. The recorded samples become a 16 kHz WAV file. | `client/audio/vad.ts`, `shared/wav.ts` |
 | 4 | The browser posts the WAV to `/api/turn` and starts reading the event stream. | `client/voice/turnStream.ts` |
 | 5 | The server checks the cookie and the rate limit, then loads your memories and the last few messages. | `app/api/turn/route.ts`, `server/session.ts`, `server/rateLimit.ts` |
-| 6 | Whisper turns audio into text and detects the language. The final transcript replaces the live preview. | `server/providers/groq/stt.ts` |
+| 6 | Whisper turns audio into text and detects the language. The final transcript replaces the live preview. | `server/providers/groq/index.ts` |
 | 7 | The model gets the system prompt (speaking rules, your memories, today's date) and the conversation, and streams its answer. It may call tools. | `server/turn/pipeline.ts`, `server/turn/prompt.ts` |
 | 8 | Tool calls run on the server; each one streams a `tool_start` and a `tool_end` with its timing. Memory tools write to Postgres and stream `memory_saved` or `memory_forgotten`. | `server/tools/weather.ts`, `server/tools/memory.ts` |
 | 9 | As text streams in, it is cut into sentences. The first sentence goes to the voice at once; the rest goes as one more request. | `server/turn/sentences.ts` |
@@ -258,7 +258,7 @@ stateDiagram-v2
   tool --> thinking: tool_end
   thinking --> speaking: first segment playing
   tool --> speaking: first segment playing
-  speaking --> listening: you speak over Sarjy (barge-in)
+  speaking --> listening: you tap the mic over Sarjy (barge-in)
   speaking --> saving: playback ends, a memory was saved or forgotten
   speaking --> idle: playback ends
   saving --> idle: after 1.2 s
@@ -393,7 +393,9 @@ Three layers, each cheap, each tested.
 | Piece | How |
 |---|---|
 | Mic | `getUserMedia` with echo cancellation, noise suppression and auto gain. An `AnalyserNode` gives the level that drives the wave and the light. |
-| End of speech | `@ricky0123/vad-web` (Silero VAD in ONNX Runtime Web). Model files are served from `/public/vad/`. About 500 ms of silence ends a turn; this is the main dial between "cuts me off" and "feels slow". |
+| End of speech | `@ricky0123/vad-web` (Silero VAD v5 in ONNX Runtime Web). Its files are copied from `node_modules` into `public/vad/` by `scripts/vad/copy-assets.mjs` before every build (git-ignored), and fetched while the page is idle so the first tap is quick. About 600 ms of silence ends a turn; this is the main dial between "cuts me off" and "feels slow". Tapping the mic mid-sentence also ends the turn; saying nothing for 8 s closes the mic; a turn longer than 30 s is sent as it is. |
+| Barge-in | A tap on the mic while Sarjy thinks or speaks stops it and listens. Speaking over Sarjy is left for hands-free mode: on laptop speakers the detector hears Sarjy's own voice, and browser echo cancellation does not reliably cover Web Audio playback, so Sarjy would interrupt itself. With headphones the risk goes away. |
+| Sound cues | `client/audio/cues.ts` synthesizes the brand's three cues on the player's AudioContext: open when the detector is ready, close when the mic shuts, one tick at the stitch. Mic, voice and cues share one context, so one tap unlocks them all. |
 | Live preview | The Web Speech API with interim results, in the interface language. Display only; Whisper's text is the one that counts. Absent in Firefox, where words appear when the turn ends. |
 | Playback | Web Audio. Each segment is decoded and scheduled back to back on one `AudioContext` clock. An `AnalyserNode` on the output drives the wave while speaking. |
 | Caption timing | Orpheus returns audio without word times, so `shared/wordTiming.ts` estimates them: trim leading and trailing silence from the decoded audio, find the pauses in its energy envelope, and spread the words across the voiced time by length, snapping sentence and comma boundaries to the pauses. Because it runs per sentence, error cannot build up across a long answer. |

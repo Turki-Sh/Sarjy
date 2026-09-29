@@ -18,7 +18,15 @@ const nextConfig: NextConfig = {
     return [{ source: "/notes", destination: "/notes/index.html" }];
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // The speech detector's files (about 16 MB before compression) change only with a dependency
+      // update: browsers keep them for a day and refresh them quietly after that.
+      {
+        source: "/vad/:file*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+    ];
   },
 };
 

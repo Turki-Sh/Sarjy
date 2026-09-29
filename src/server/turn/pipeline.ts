@@ -62,10 +62,10 @@ const modelOptions = (modelId: string) => ({
 
 export async function runTurn(
   input: TurnInput,
-  deps: { db: Db; providers: Providers },
+  deps: { db: Db; providers: Providers; signal?: AbortSignal },
   emit: (event: TurnEvent) => void,
 ): Promise<void> {
-  const { db, providers } = deps;
+  const { db, providers, signal } = deps;
   const started = performance.now();
   const since = () => Math.round(performance.now() - started);
   const timings: Record<string, number | string> = {};
@@ -182,6 +182,9 @@ export async function runTurn(
       tools,
       stopWhen: isStepCount(4),
       maxRetries: 0,
+      // The browser gave up on this turn (a new turn, barge-in, a closed tab): stop thinking, and
+      // don't run a tool whose result no one will hear, so nothing is ever saved unannounced.
+      abortSignal: signal,
       providerOptions: modelOptions(modelId),
     });
     let text = "";
@@ -211,9 +214,10 @@ export async function runTurn(
       timings.model = id;
       break;
     } catch {
-      if (segmentIndex > 0) break;
+      if (segmentIndex > 0 || signal?.aborted) break;
     }
   }
+  if (signal?.aborted) return;
   if (answer === null) {
     emit({ type: "error", code: "model_unavailable", say: SAY.model_unavailable[lang] });
     return;

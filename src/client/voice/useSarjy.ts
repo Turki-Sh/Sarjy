@@ -3,6 +3,7 @@
 // The one hook the voice screen uses (architecture, section 2). It owns:
 //   - who you are, your memories and chats (loaded from /api/session on first paint)
 //   - the voice state (through the pure state machine in machine.ts)
+//   - the mic: listening, deciding you are done, and sending what you said
 //   - one turn at a time: send it, react to each streamed event, play the audio, sync the caption
 // Components only render what this hook returns.
 
@@ -10,12 +11,17 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { Lang } from "@/shared/i18n";
 import type { Memory, Timings, TurnEvent } from "@/shared/protocol";
 import type { VoiceState } from "@/shared/states";
+import { encodeWav } from "@/shared/wav";
 import { wordsSpoken } from "@/shared/wordTiming";
+import { Mic, MicError } from "../audio/mic";
 import { Player, type PlayedSegment } from "../audio/player";
+import { listen as detectSpeech, type Listening } from "../audio/vad";
 import type { CaptionModel } from "../ui/Caption";
+import type { MicLook } from "../ui/ControlBar";
 import type { ToolChipModel } from "../ui/ToolChip";
 import { findKeep } from "./keep";
 import { transition } from "./machine";
+import { previewWords } from "./preview";
 import { sendTurn } from "./turnStream";
 
 export type ChatSummary = { id: string; title: string; updatedAt: string };
@@ -33,6 +39,28 @@ type Turn = {
 };
 
 const SETTLE_MS = 1200;
+/** Listening gives up if you say nothing for this long, and ends a turn that runs this long. */
+const SILENT_MS = 8000;
+const LONGEST_MS = 30_000;
+
+/** The open mic, while listening. */
+type Ear = { mic: Mic; vad: Listening | null; stopPreview: () => void; timers: number[]; sent: boolean };
+
+/**
+ * Warms the browser cache with the speech detector while the page is idle, so the first tap of
+ * the mic starts listening in a moment instead of waiting for a download.
+ */
+function prefetchSpeechDetector() {
+  if (!navigator.mediaDevices?.getUserMedia) return;
+  const warm = () => {
+    void import("@ricky0123/vad-web").catch(() => {});
+    for (const file of ["silero_vad_v5.onnx", "ort-wasm-simd-threaded.wasm", "ort-wasm-simd-threaded.mjs"]) {
+      void fetch(`/vad/${file}`, { priority: "low" } as RequestInit).catch(() => {});
+    }
+  };
+  if ("requestIdleCallback" in window) window.requestIdleCallback(warm, { timeout: 4000 });
+  else setTimeout(warm, 2000); // Safari has no idle callback
+}
 
 type SessionData = { user: Profile; memories: Memory[]; chats: ChatSummary[] };
 
@@ -53,11 +81,13 @@ export function useSarjy(lang: Lang) {
   const [timings, setTimings] = useState<Timings | null>(null);
   /** Sarjy's last answer, so it can be shared. */
   const [lastMessageId, setLastMessageId] = useState<string | null>(null);
+  const [micLook, setMicLook] = useState<MicLook>("ready");
 
   const player = useRef<Player | null>(null);
   const turn = useRef<Turn | null>(null);
   const abort = useRef<AbortController | null>(null);
   const conversationId = useRef<string | null>(null);
+  const ear = useRef<Ear | null>(null);
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -83,13 +113,33 @@ export function useSarjy(lang: Lang) {
 
   const refreshSession = useCallback(async () => applySession(await loadSession(lang)), [lang, applySession]);
 
-  /** Stops whatever is in flight: the request, the audio. */
+  useEffect(prefetchSpeechDetector, []);
+
+  /** Closes the mic. With `submit`, speech in progress is ended and sent (the VAD calls back). */
+  const closeEar = useCallback(async (submit: boolean) => {
+    const e = ear.current;
+    if (!e) return;
+    ear.current = null;
+    e.timers.forEach((id) => window.clearTimeout(id));
+    e.stopPreview();
+    await e.vad?.stop(submit);
+    e.mic.close();
+  }, []);
+
+  /** Stops whatever is in flight: listening, the request, the audio. */
   const stop = useCallback(() => {
+    if (ear.current) {
+      void closeEar(false);
+      player.current?.cue("close");
+    }
     abort.current?.abort();
     player.current?.stop();
     turn.current = null;
     dispatch({ type: "CANCEL" });
-  }, []);
+  }, [closeEar]);
+
+  // Leaving the page releases the mic.
+  useEffect(() => () => void closeEar(false), [closeEar]);
 
   /** A segment is scheduled: Sarjy's caption grows by its words, and speaking begins with the first. */
   const addSegment = useCallback((seg: PlayedSegment, t: Turn) => {
@@ -202,6 +252,91 @@ export function useSarjy(lang: Lang) {
     [handle, lang, refreshSession],
   );
 
+  /**
+   * Opens the mic and listens until you stop speaking, then sends what you said.
+   * Tapping the mic while Sarjy thinks or speaks interrupts it (barge-in).
+   * Returns false when there is no mic to use.
+   */
+  const listen = useCallback(async (): Promise<boolean> => {
+    if (ear.current) return true;
+    abort.current?.abort();
+    getPlayer().stop();
+    turn.current = null;
+    const ctx = getPlayer().context();
+
+    let mic: Mic;
+    try {
+      mic = await Mic.open(ctx);
+    } catch (error) {
+      setMicLook(error instanceof MicError ? "blocked" : "ready");
+      dispatch({ type: "CANCEL" });
+      return false;
+    }
+    setMicLook("live");
+    const e: Ear = { mic, vad: null, stopPreview: () => {}, timers: [], sent: false };
+    ear.current = e;
+
+    // Called by the VAD when you stop speaking, or when listening is closed mid-sentence with submit.
+    const finish = async (audio: Float32Array) => {
+      if (e.sent) return;
+      e.sent = true;
+      if (ear.current === e) await closeEar(false);
+      setMicLook("ready");
+      getPlayer().cue("close");
+      void send({ audio: new Blob([encodeWav(audio, 16_000)], { type: "audio/wav" }) });
+    };
+
+    try {
+      e.vad = await detectSpeech(mic, {
+        onSpeechStart: () => {
+          // Heard something: the "nothing said" timer is replaced by the "too long" one.
+          e.timers.forEach((id) => window.clearTimeout(id));
+          e.timers = [window.setTimeout(() => void closeEar(true), LONGEST_MS)];
+        },
+        onSpeechEnd: (audio) => void finish(audio),
+      });
+    } catch {
+      // The speech detector failed to load: without it we can't tell when you're done.
+      await closeEar(false);
+      setMicLook("blocked");
+      dispatch({ type: "CANCEL" });
+      return false;
+    }
+    if (ear.current !== e) return true; // stopped while loading
+
+    // Listening for real now: the cue says so, and your words start to appear.
+    getPlayer().cue("open");
+    dispatch({ type: "LISTEN" });
+    setChip(null);
+    setCaption(null);
+    e.stopPreview = previewWords(lang, (text) =>
+      setCaption({ speaker: "user", lang, words: text.split(/\s+/), shown: Infinity, style: "dim" }),
+    );
+    e.timers.push(
+      window.setTimeout(() => {
+        if (ear.current !== e) return;
+        void closeEar(false);
+        setMicLook("ready");
+        getPlayer().cue("close");
+        dispatch({ type: "CANCEL" });
+      }, SILENT_MS),
+    );
+    return true;
+  }, [closeEar, lang, send]);
+
+  /** Tap while listening: "I'm done". Sends what was said so far, or closes quietly if nothing was. */
+  const finishListening = useCallback(async () => {
+    const e = ear.current;
+    if (!e) return;
+    // If speech is in progress the VAD hands it to `finish` above; otherwise nothing comes back.
+    await closeEar(true);
+    setMicLook("ready");
+    if (!e.sent) {
+      getPlayer().cue("close");
+      dispatch({ type: "CANCEL" });
+    }
+  }, [closeEar]);
+
   // Once per frame while Sarjy talks: which word is being said, and is the turn over?
   useEffect(() => {
     let raf = 0;
@@ -224,6 +359,8 @@ export function useSarjy(lang: Lang) {
           const keep = t.saved ? findKeep(t.words, t.saved) : undefined;
           setCaption((c) => (c ? { ...c, shown: c.words.length, keep } : c));
           dispatch({ type: "PLAYED", saved: t.changedMemory });
+          // The stitch: the saved fact is underlined and its card lands, with one dry tick.
+          if (t.changedMemory) p.cue("saved");
           if (t.changedMemory) window.setTimeout(() => dispatch({ type: "SETTLED" }), SETTLE_MS);
         }
       }
@@ -256,6 +393,7 @@ export function useSarjy(lang: Lang) {
   }, [stop]);
 
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
+  const inputLevel = useCallback(() => ear.current?.mic.level() ?? null, []);
 
   /** Shares the last exchange as a link. Returns the full URL, or null if it could not be made. */
   const shareLast = useCallback(async (): Promise<string | null> => {
@@ -284,6 +422,10 @@ export function useSarjy(lang: Lang) {
     editMemory,
     forgetMemory,
     outputLevel,
+    inputLevel,
+    micLook,
+    listen,
+    finishListening,
     canShare: lastMessageId !== null,
     shareLast,
   };

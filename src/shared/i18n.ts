@@ -31,6 +31,8 @@ type Strings = {
   emptyMemory: string;
   share: string;
   linkCopied: string;
+  /** Shown when the mic can't be used; the text box takes over. */
+  micBlocked: string;
   sharedMoment: string;
   sharedNote: string;
   about: string;
@@ -73,6 +75,7 @@ export const STRINGS: Record<Lang, Strings> = {
     emptyMemory: "Nothing yet. Tell Sarjy something about you.",
     share: "Share this moment",
     linkCopied: "Link copied",
+    micBlocked: "No mic access. You can type instead.",
     sharedMoment: "A moment with Sarjy",
     sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
     about: "About Sarjy",
@@ -114,6 +117,7 @@ export const STRINGS: Record<Lang, Strings> = {
     emptyMemory: "ما فيه شي للحين. قل لسرجي شي عنك.",
     share: "شارك هاللحظة",
     linkCopied: "تم نسخ الرابط",
+    micBlocked: "ما فيه وصول للمايك. تقدر تكتب بدلها.",
     sharedMoment: "لحظة مع سرجي",
     sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",
     about: "عن سرجي",

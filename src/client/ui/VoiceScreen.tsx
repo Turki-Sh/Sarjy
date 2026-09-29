@@ -62,10 +62,14 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
     setLang(next);
   };
 
-  // Until the microphone lands (milestone M4), the mic sends you to the text box.
-  const onMic = () => (sarjy.state === "speaking" ? sarjy.stop() : composer.current?.focus());
-
-  const live = sarjy.state === "listening" || sarjy.state === "speaking";
+  // The mic: tap to talk, tap again when you're done (or just stop talking). Tapping while Sarjy
+  // thinks or speaks interrupts it and listens. With no mic, the text box takes over.
+  const onMic = async () => {
+    if (sarjy.state === "listening") return void sarjy.finishListening();
+    if (await sarjy.listen()) return;
+    composer.current?.focus();
+    flash(s.micBlocked);
+  };
   const showChip = sarjy.state === "tool" || sarjy.state === "speaking" || sarjy.state === "thinking";
 
   return (
@@ -89,7 +93,7 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
         />
 
         <section className={styles.stage} aria-label={s.talk}>
-          <Orb state={sarjy.state} outputLevel={sarjy.outputLevel} />
+          <Orb state={sarjy.state} inputLevel={sarjy.inputLevel} outputLevel={sarjy.outputLevel} />
           <ToolChip chip={showChip ? sarjy.chip : null} />
           <Caption caption={sarjy.caption} />
           <p className={styles.status}>{s.status[sarjy.state]}</p>
@@ -103,9 +107,9 @@ export function VoiceScreen({ initialLang, initialTheme }: { initialLang: Lang; 
             onSend={(text) => void sarjy.send({ text })}
           />
           <ControlBar
-            mic={live ? "live" : "ready"}
+            mic={sarjy.micLook}
             labels={{ talk: s.talk, stop: s.stop, end: s.end, settings: s.voiceSettings }}
-            onMic={onMic}
+            onMic={() => void onMic()}
             onEnd={sarjy.stop}
             onSettings={() => {}}
           />

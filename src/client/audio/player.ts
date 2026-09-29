@@ -4,6 +4,7 @@
 // the loudness that drives the orb while Sarjy speaks.
 // A segment without audio (voice quota or error) is spoken by the browser's own voice instead.
 
+import { playCue, type Cue } from "./cues";
 import { estimateWordTimings, evenly, type WordTiming } from "@/shared/wordTiming";
 
 export type PlayedSegment = {
@@ -35,6 +36,20 @@ export class Player {
       this.analyser.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") void this.ctx.resume();
+  }
+
+  /**
+   * The one AudioContext the page uses: voice, cues and mic all share it, so they share one clock
+   * and one unlock (phones allow very few contexts, and each needs a tap to start).
+   */
+  context(): AudioContext {
+    this.unlock();
+    return this.ctx!;
+  }
+
+  /** Plays one of the three sound cues. */
+  cue(cue: Cue): void {
+    playCue(this.context(), cue);
   }
 
   /** The player's clock, in seconds. */
