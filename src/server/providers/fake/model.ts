@@ -98,7 +98,7 @@ function firstReply(user: string, system: string): Reply {
           : `${cap(found.value)}. You told me ${found.when}.`,
       };
     }
-    return { text: ar ? "ما عندي هذي المعلومة محفوظة. وش هي؟" : "I don't have that saved yet. What is it?" };
+    return { text: ar ? "ما عندي هالمعلومة للحين. وش هي؟" : "I don't have that saved yet. What is it?" };
   }
 
   // Onboarding: a bare answer to "what should I call you?" is a name (a greeting is not).
@@ -114,15 +114,15 @@ function firstReply(user: string, system: string): Reply {
   if (system.includes("Current step: ask for their name")) {
     return {
       text: ar
-        ? "هلا، أنا سرجي. أتذكر اللي تقوله لي. وش أناديك؟"
+        ? "هلا والله! أنا سرجي، وأتذكر اللي تقوله لي. وش أناديك؟"
         : "Hi, I'm Sarjy. I remember what you tell me. What should I call you?",
     };
   }
   if (system.includes("Current step: ask which city")) {
-    return { text: ar ? "وش المدينة اللي ساكن فيها؟" : "Which city do you live in?" };
+    return { text: ar ? "وين ساكن؟ بأي مدينة؟" : "Which city do you live in?" };
   }
   if (system.includes("Current step: ask whether they prefer Celsius")) {
-    return { text: ar ? "تفضل الحرارة بالمئوي ولا الفهرنهايت؟" : "Do you prefer Celsius or Fahrenheit?" };
+    return { text: ar ? "تبي الحرارة بالمئوي ولا الفهرنهايت؟" : "Do you prefer Celsius or Fahrenheit?" };
   }
 
   if (lower.includes("system prompt") || /pretend|ignore (all|your)|dan\b/i.test(lower)) {
@@ -130,7 +130,7 @@ function firstReply(user: string, system: string): Reply {
   }
   return {
     text: ar
-      ? "أنا سرجي، مساعد صوتي. أتذكر اللي تقوله لي وأشوف لك الطقس. وش تبي؟"
+      ? "هلا! أنا سرجي، أتذكر اللي تقوله لي وأشوف لك الطقس. وش أقدر أسوي لك؟"
       : "I'm Sarjy, a voice assistant. I remember what you tell me and check the weather. What can I do?",
   };
 }
@@ -146,11 +146,11 @@ function afterTool(name: string, output: Record<string, unknown>, ar: boolean): 
     if (err === "no_location") return ar ? "أي مدينة أشوف لك؟" : "Which city should I check?";
     if (err === "place_not_found")
       return ar
-        ? "ما لقيت هذا المكان. تقدر تقوله بطريقة ثانية؟"
+        ? "ما لقيت هالمكان. تقدر تقوله بطريقة ثانية؟"
         : "I couldn't find that place. Can you say it another way?";
     if (err)
       return ar
-        ? "ما قدرت أوصل لخدمة الطقس. أحاول مرة ثانية؟"
+        ? "ما قدرت أوصل لخدمة الطقس. أجرب مرة ثانية؟"
         : "I couldn't reach the weather service. Want me to try again?";
     const { condition, high, day, place } = output as {
       condition: string;
@@ -159,28 +159,30 @@ function afterTool(name: string, output: Record<string, unknown>, ar: boolean): 
       place: string;
     };
     return ar
-      ? `${condition}، والعظمى ${toArabicDigits(String(high))} ${day} في ${place}.`
+      ? `${day} ${condition}، والعظمى ${toArabicDigits(String(high))} في ${place}.`
       : `${cap(condition)} and a high of ${high} ${day} in ${place}.`;
   }
   if (name === "remember") {
     if (!output.saved)
       return ar
-        ? "ما أحفظ كلمات السر والأرقام الخاصة. أقدر أتذكر لك أي شي ثاني."
+        ? "كلمات السر والأرقام الخاصة ما أحفظها. غيرها أبشر، أتذكر لك أي شي."
         : "I don't keep passwords or numbers like that. I can remember anything else for you.";
     const label = String(output.label);
     // Names and places keep their capitals; other values are said as ordinary words.
     const proper = ["name", "home_city"].includes(String(output.key));
     const value = proper ? String(output.value) : String(output.value).toLowerCase();
-    return ar ? `حفظت. ${label}: ${output.value}.` : `Saved. Your ${label.toLowerCase()} is ${value}.`;
+    return ar
+      ? `أبشر، حفظتها. ${label}: ${output.value}.`
+      : `Saved. Your ${label.toLowerCase()} is ${value}.`;
   }
   if (name === "forget") {
     const key = String(output.key ?? "that").replace(/_/g, " ");
     return output.forgotten
       ? ar
-        ? "تم، نسيتها."
+        ? "خلاص، نسيتها."
         : `Forgotten. I no longer know your ${key}.`
       : ar
-        ? "ما كانت محفوظة عندي أصلًا."
+        ? "ما كانت عندي أصلًا."
         : "I didn't have that saved.";
   }
   return ar ? "تم." : "Done.";

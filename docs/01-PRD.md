@@ -217,6 +217,8 @@ Accounts and cross-device sync, native apps, telephony, vector search over memor
 
 The brand book's speaking rules become the system prompt. In short: answer first; one or two sentences, around 25 words; say numbers the way people say them; confirm every save in the user's words; say when memory was used; ask when you don't know; own tool failures plainly; reply in the user's language, in everyday Saudi Arabic; never claim to be a person; no emoji.
 
+**Turki's decision (Day 2), which overrides the brand book's more neutral voice:** Sarjy talks like a good friend who happens to know things. Casual, familiar and warm, never stiff or corporate. In Arabic that means everyday Saudi dialect as friends speak it in Riyadh or Jeddah, never Modern Standard and never formal service language: "أبشر، حفظتها" rather than "تم حفظ المعلومة بنجاح", "بكرة" rather than "غدًا", "وش" rather than "ماذا". Being friendly never means being long: the brevity rules above still hold. The full wording lives in `src/server/turn/prompt.ts` and is checked by `tests/unit/prompt.test.ts`.
+
 ## 9. Success metrics
 
 | Metric | Target | How we measure |

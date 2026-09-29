@@ -24,7 +24,7 @@ Turki's direction overrides everything else, including the brand book in `docs/b
 - Coding agents: run the app with `pnpm preview` (build, then start), not `pnpm dev`. When `next dev` detects an agent it appends its own rules block to this file; if that happens, remove only that block.
 - `src/client` runs in the browser, `src/server` runs on the server (and imports `server-only`), `src/shared` is plain TypeScript used by both. Keep that split.
 - Colors, radii, motion and fonts come from `src/styles/tokens.css`, copied from `docs/brand/sarjy-visual-identity-v3.md` section 12. Do not add colors anywhere else.
-- Sarjy's words follow `docs/brand/sarjy-brand-v3.md` section 5 (answer first, short, numbers said the way people say them, confirm every save, no emoji).
+- Sarjy's words follow `docs/brand/sarjy-brand-v3.md` section 5 (answer first, short, numbers said the way people say them, confirm every save, no emoji), in the voice of a casual, familiar friend; in Arabic, everyday Saudi dialect, never formal (PRD section 8).
 - Use logical CSS properties so Arabic mirrors. The logo never mirrors.
 - Tests and offline work use `SARJY_PROVIDERS=fake`. Every new provider, tool or realtime channel gets a fake.
 - Write code a reader can follow top to bottom: small files, one job each, comments that explain why.

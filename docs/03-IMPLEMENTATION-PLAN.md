@@ -152,6 +152,12 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Build notes served at `/notes`
 - [x] Brand art added (`docs/brand/art/`)
 - [x] CI test summary on every run, Playwright report kept, README badge
+- [x] Sarjy's voice: a casual Saudi friend, not a formal assistant (prompt, fake replies, PRD section 8)
+
+### After the main work (Turki's requests)
+- [ ] A 404 page in the brand, bilingual, with a way back to Sarjy
+- [ ] Maybe: a home page that introduces Sarjy before the voice screen (decide after M6)
+- [ ] Maybe: onboarding screens, a short first-run walkthrough (decide after M5's onboarding in the interface)
 
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
