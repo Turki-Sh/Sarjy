@@ -39,6 +39,7 @@ type Strings = {
   noMatches: string;
   openSidebar: string;
   changePicture: string;
+  rename: string;
   closeSidebar: string;
   sharedMoment: string;
   sharedNote: string;
@@ -49,7 +50,7 @@ type Strings = {
 export const STRINGS: Record<Lang, Strings> = {
   en: {
     status: {
-      idle: "Tap the mic to talk",
+      idle: "Tap Sarjy to talk",
       listening: "Listening…",
       thinking: "Thinking…",
       tool: "Checking the weather…",
@@ -88,6 +89,7 @@ export const STRINGS: Record<Lang, Strings> = {
     noMatches: "Nothing matches",
     openSidebar: "Open sidebar",
     changePicture: "Change your picture",
+    rename: "Rename",
     closeSidebar: "Close sidebar",
     sharedMoment: "A moment with Sarjy",
     sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
@@ -97,7 +99,7 @@ export const STRINGS: Record<Lang, Strings> = {
   },
   ar: {
     status: {
-      idle: "اضغط المايك وتكلّم",
+      idle: "اضغط على سرجي وتكلّم",
       listening: "أسمعك…",
       thinking: "أفكّر…",
       tool: "أشوف الطقس…",
@@ -136,6 +138,7 @@ export const STRINGS: Record<Lang, Strings> = {
     noMatches: "ما فيه نتائج",
     openSidebar: "افتح القائمة",
     changePicture: "غيّر صورتك",
+    rename: "غيّر الاسم",
     closeSidebar: "اقفل القائمة",
     sharedMoment: "لحظة مع سرجي",
     sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",

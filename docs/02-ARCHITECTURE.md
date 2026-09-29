@@ -204,7 +204,7 @@ In words, with the file that does each step:
 
 | # | Step | File |
 |---|---|---|
-| 1 | You tap the mic. The mic opens, the "listening starts" cue plays, and the orb follows your level. | `client/audio/mic.ts`, `client/audio/cues.ts` |
+| 1 | You tap the orb (it is the mic button). The mic opens, the "listening starts" cue plays, and the orb follows your level. | `client/audio/mic.ts`, `client/audio/cues.ts` |
 | 2 | While you speak, your words appear live (Chrome, Edge, Safari) from the browser's own recognizer. This is a preview only. | `client/voice/preview.ts` |
 | 3 | The voice activity detector (Silero, running in the browser) hears about 600 ms of silence and ends the turn. The recorded samples become a 16 kHz WAV file. | `client/audio/vad.ts`, `shared/wav.ts` |
 | 4 | The browser posts the WAV to `/api/turn` and starts reading the event stream. | `client/voice/turnStream.ts` |
@@ -358,7 +358,7 @@ Tool results are compact JSON with only the fields the model may quote. Numbers 
 
 The brief's multimodal example: Sarjy can see an image while you talk about it.
 
-1. You drop, paste or photograph an image (the text box and the control bar both accept it). The browser shrinks it to at most 1,280 px on the long side and JPEG-encodes it, so uploads stay under about 300 KB.
+1. You drop, paste or photograph an image (the text box and the orb both accept it). The browser shrinks it to at most 1,280 px on the long side and JPEG-encodes it, so uploads stay under about 300 KB.
 2. It rides along with your next turn, as a second part of the same `/api/turn` request.
 3. A turn with an image goes to `qwen/qwen3.8-27b` (thinking off), because `gpt-oss-120b` reads text only. Tools and memory work the same.
 4. The transcript shows a thumbnail on your message. The image lives only in that conversation's messages (as a small data URL), and Forget everything removes it.

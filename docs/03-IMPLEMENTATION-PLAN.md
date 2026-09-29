@@ -130,7 +130,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] Onboarding in the interface (pre-rendered greeting, Skip)
 - [x] Recent chats and New chat: New chat clears the stage and says so; a past chat reopens with its last answer; the one on screen is highlighted; search filters chats and memories
 - [x] Collapsible sidebar, remembered across visits
-- [ ] A transcript of the open chat (earlier turns, not only the last answer)
+- [ ] A full transcript view of the open chat (the stage shows the last three lines)
 - [ ] Details panel: latency waterfall and cost per turn
 - [ ] Images: drop, paste or photograph; resized in the browser; thumbnail in the transcript
 - [ ] Below 900 px: sidebar becomes a sheet; reduced motion and reduced transparency
@@ -193,6 +193,9 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Hands-free (V7, now a Must): after a spoken answer the mic reopens by itself; 8 s of quiet, End or typing ends it. A loudness backstop ends a turn if the speech detector hangs on in a noisy room
 - [x] The light orb has grain like the dark one (a black grain tile; tokens.css notes the override)
 - [x] Profile pictures from Turki's three paintings: one at random per person, changeable from the sidebar
+- [x] The orb is the mic: tap it to talk, tap again when done, tap over Sarjy to interrupt; the control bar keeps only End (and settings, in M5)
+- [x] Rename a chat: the pencil on hover (or double-click); Enter saves, Escape cancels
+- [x] The last few lines of the chat show small above the caption, so a chat switch is visible and the question stays in view
 
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface

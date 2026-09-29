@@ -17,7 +17,7 @@ test("new chat, reopening a past chat, and search", async ({ page }) => {
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
 
   // The chat now shows in Recent, marked as the one on screen; New chat is not.
-  const chat = sidebar(page).getByRole("button", { name: "My favorite food is kabsa." });
+  const chat = sidebar(page).getByRole("button", { name: "My favorite food is kabsa.", exact: true });
   await expect(chat).toHaveAttribute("aria-current", "page");
   await expect(sidebar(page).getByRole("button", { name: "New chat" })).not.toHaveAttribute("aria-current");
 
@@ -75,4 +75,35 @@ test("your picture is one of the three paintings, and you can choose another", a
   await expect(me.locator("img")).toHaveAttribute("src", "/avatars/falconer.webp");
   await page.reload();
   await expect(me.locator("img")).toHaveAttribute("src", "/avatars/falconer.webp");
+});
+
+test("rename a chat: Enter saves, Escape leaves it as it was", async ({ page }) => {
+  await page.goto("/");
+  await say(page, "My favorite color is green.");
+  await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
+
+  await sidebar(page).getByRole("button", { name: "Rename: My favorite color is green." }).click();
+  const field = sidebar(page).getByRole("textbox", { name: "Rename" });
+  await field.fill("Colors");
+  await field.press("Enter");
+  await expect(sidebar(page).getByRole("button", { name: "Colors", exact: true })).toBeVisible();
+
+  await sidebar(page).getByRole("button", { name: "Rename: Colors" }).click();
+  await sidebar(page).getByRole("textbox", { name: "Rename" }).fill("Never mind");
+  await sidebar(page).getByRole("textbox", { name: "Rename" }).press("Escape");
+  await page.reload();
+  await expect(sidebar(page).getByRole("button", { name: "Colors", exact: true })).toBeVisible();
+});
+
+test("earlier lines of the chat show small above the caption, and change with the chat", async ({ page }) => {
+  await page.goto("/");
+  await say(page, "My favorite color is green.");
+  await expect(screen(page)).toHaveAttribute("data-state", /saving|idle/, { timeout: 15_000 });
+  await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 5_000 });
+  const earlier = page.locator("main section ol li");
+  // The question stays in view above Sarjy's answer.
+  await expect(earlier.last()).toHaveText("My favorite color is green.");
+
+  await sidebar(page).getByRole("button", { name: "New chat" }).click();
+  await expect(earlier).toHaveCount(0);
 });

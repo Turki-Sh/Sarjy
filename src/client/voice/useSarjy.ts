@@ -26,6 +26,11 @@ import { previewWords } from "./preview";
 import { sendTurn } from "./turnStream";
 
 export type ChatSummary = { id: string; title: string; updatedAt: string };
+/** One line of the chat on screen, for the small transcript above the caption. */
+export type ChatLine = { role: "user" | "assistant"; text: string; lang: Lang };
+
+/** How many earlier lines show above the caption. */
+const EARLIER = 3;
 export type Profile = { id: string; name: string | null; onboardingStep: string; avatar: AvatarId };
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
@@ -80,6 +85,17 @@ async function loadSession(lang: Lang): Promise<SessionData | null> {
   return res.ok ? ((await res.json()) as SessionData) : null;
 }
 
+/**
+ * The lines to show small above the caption: the last few, minus the one the caption is showing.
+ * The caption shows the newest line when it is the same speaker (your words, or Sarjy's answer
+ * once it is saved); while Sarjy is still answering, your question stays in the small lines.
+ */
+function earlierLines(lines: ChatLine[], caption: CaptionModel | null): ChatLine[] {
+  const last = lines.at(-1);
+  const captionIsLast = !!last && !!caption && (caption.speaker === "sarjy") === (last.role === "assistant");
+  return captionIsLast ? lines.slice(-EARLIER - 1, -1) : lines.slice(-EARLIER);
+}
+
 export function useSarjy(lang: Lang) {
   const [state, dispatch] = useReducer(transition, "idle" as VoiceState);
   const [caption, setCaption] = useState<CaptionModel | null>(null);
@@ -95,6 +111,8 @@ export function useSarjy(lang: Lang) {
   /** The chat on screen (null: a new one, not yet started), and what the stage says about it. */
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chatNote, setChatNote] = useState<"fresh" | "continuing" | null>(null);
+  /** Every line of the chat on screen, oldest first. */
+  const [lines, setLines] = useState<ChatLine[]>([]);
 
   const player = useRef<Player | null>(null);
   const turn = useRef<Turn | null>(null);
@@ -175,6 +193,7 @@ export function useSarjy(lang: Lang) {
       switch (event.type) {
         case "transcript":
           t.lang = event.lang;
+          setLines((l) => [...l, { role: "user", text: event.text, lang: event.lang }]);
           setCaption({
             speaker: "user",
             lang: event.lang,
@@ -216,6 +235,7 @@ export function useSarjy(lang: Lang) {
         case "done":
           conversationId.current = event.conversationId;
           setActiveChatId(event.conversationId);
+          if (event.text) setLines((l) => [...l, { role: "assistant", text: event.text, lang: t.lang }]);
           setTimings(event.timings);
           setLastMessageId(event.messageId);
           t.streamDone = true;
@@ -437,6 +457,7 @@ export function useSarjy(lang: Lang) {
     setLastMessageId(null);
     setCaption(null);
     setChip(null);
+    setLines([]);
     setChatNote("fresh");
   }, [stop]);
 
@@ -447,8 +468,9 @@ export function useSarjy(lang: Lang) {
       const res = await fetch(`/api/chats/${id}`);
       if (!res.ok) return;
       const { chat } = (await res.json()) as {
-        chat: { id: string; messages: { role: string; text: string; lang: Lang }[] };
+        chat: { id: string; messages: ChatLine[] };
       };
+      setLines(chat.messages);
       conversationId.current = chat.id;
       setActiveChatId(chat.id);
       setLastMessageId(null);
@@ -469,6 +491,14 @@ export function useSarjy(lang: Lang) {
     },
     [stop],
   );
+
+  /** Renames a chat: shown at once, then saved. */
+  const renameChat = useCallback(async (id: string, title: string) => {
+    const clean = title.replace(/\s+/g, " ").trim().slice(0, 60);
+    if (!clean) return;
+    setChats((list) => list.map((c) => (c.id === id ? { ...c, title: clean } : c)));
+    await fetch(`/api/chats/${id}`, { method: "PATCH", body: JSON.stringify({ title: clean }) });
+  }, []);
 
   /** Your profile picture: shown at once, then saved. */
   const setAvatar = useCallback(async (avatar: AvatarId) => {
@@ -505,6 +535,7 @@ export function useSarjy(lang: Lang) {
     newChat,
     openChat,
     setAvatar,
+    renameChat,
     activeChatId,
     chatNote,
     editMemory,
@@ -512,6 +543,7 @@ export function useSarjy(lang: Lang) {
     outputLevel,
     inputLevel,
     micLook,
+    earlier: earlierLines(lines, caption),
     listen,
     finishListening,
     canShare: lastMessageId !== null,

@@ -28,6 +28,7 @@ type Props = {
   activeChatId: string | null;
   onNewChat: () => void;
   onOpenChat: (id: string) => void;
+  onRenameChat: (id: string, title: string) => void;
   onClose: () => void;
 };
 
@@ -46,11 +47,14 @@ export function Sidebar({
   activeChatId,
   onNewChat,
   onOpenChat,
+  onRenameChat,
   onClose,
 }: Props) {
   const s = t(lang);
   const [query, setQuery] = useState("");
   const [picking, setPicking] = useState(false);
+  /** The chat whose title is being edited, if any. */
+  const [renaming, setRenaming] = useState<string | null>(null);
   const q = query.trim();
   const shownMemories = q ? memories.filter((m) => matches(`${m.label} ${m.value}`, q)) : memories;
   const shownChats = recent.filter((c) => c.title && (!q || matches(c.title, q)));
@@ -115,19 +119,62 @@ export function Sidebar({
       <h2 className={styles.group}>{s.recent}</h2>
       {q && shownChats.length === 0 && <p className={styles.empty}>{s.noMatches}</p>}
       <ul className={styles.list}>
-        {shownChats.map((c) => (
-          <li key={c.id}>
-            <button
-              type="button"
-              className={`${styles.item} ${c.id === activeChatId ? styles.on : ""}`}
-              aria-current={c.id === activeChatId ? "page" : undefined}
-              onClick={() => onOpenChat(c.id)}
-            >
-              <Icon name="chat" />
-              <span className={styles.ellipsis}>{c.title}</span>
-            </button>
-          </li>
-        ))}
+        {shownChats.map((c) =>
+          renaming === c.id ? (
+            <li key={c.id} className={`${styles.item} ${styles.on}`}>
+              <Icon name="pencil" />
+              <input
+                className={styles.rename}
+                defaultValue={c.title}
+                aria-label={s.rename}
+                maxLength={60}
+                autoFocus
+                onFocus={(e) => e.currentTarget.select()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.currentTarget.blur();
+                  if (e.key === "Escape") {
+                    // Put the old title back, so leaving the field changes nothing.
+                    e.currentTarget.value = c.title;
+                    e.currentTarget.blur();
+                  }
+                }}
+                onBlur={(e) => {
+                  // Leaving the field saves, unless Escape already closed it or nothing changed.
+                  if (
+                    renaming === c.id &&
+                    e.currentTarget.value.trim() &&
+                    e.currentTarget.value !== c.title
+                  ) {
+                    onRenameChat(c.id, e.currentTarget.value);
+                  }
+                  setRenaming(null);
+                }}
+              />
+            </li>
+          ) : (
+            <li key={c.id} className={styles.chat}>
+              <button
+                type="button"
+                className={`${styles.item} ${c.id === activeChatId ? styles.on : ""}`}
+                aria-current={c.id === activeChatId ? "page" : undefined}
+                onClick={() => onOpenChat(c.id)}
+                onDoubleClick={() => setRenaming(c.id)}
+              >
+                <Icon name="chat" />
+                <span className={styles.ellipsis}>{c.title}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.edit}
+                aria-label={`${s.rename}: ${c.title}`}
+                title={s.rename}
+                onClick={() => setRenaming(c.id)}
+              >
+                <Icon name="pencil" />
+              </button>
+            </li>
+          ),
+        )}
       </ul>
 
       {/* You, at the bottom: your picture (tap to choose another) and your name. */}

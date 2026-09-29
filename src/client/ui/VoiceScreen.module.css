@@ -50,6 +50,35 @@
   padding-block: 16px;
 }
 
+/* The orb as a button: no chrome of its own, a gentle lift on hover, a press on tap. */
+.orbButton {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--t-base) var(--ease-rein);
+}
+.orbButton:hover {
+  transform: scale(1.015);
+}
+.orbButton:active {
+  transform: scale(0.985);
+}
+.orbButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -6%;
+}
+/* No mic access: the dashed ring, the same "no access" look the mic button had. */
+.orbButton[data-look="blocked"] {
+  outline: 1.5px dashed var(--text-2);
+  outline-offset: -5%;
+}
+
 .status {
   font-size: 13px;
   line-height: 20px;

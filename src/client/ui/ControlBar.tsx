@@ -1,44 +1,30 @@
-// The glass control bar: end, mic, voice settings (visual identity, section 9).
-// The mic has three looks: glass when ready, green when live, dashed when there is no mic access.
-// End only appears when there is something to end; settings only once there are settings (M5).
+// The glass control bar under the text box (visual identity, section 9).
+// The orb itself is the mic (Turki's direction, Day 2), so the bar only holds what a turn needs:
+// End, while there is something to end, and voice settings once they exist (M5).
+// With nothing to show, the bar is not drawn at all.
 
 import { Icon } from "./Icon";
 import styles from "./ControlBar.module.css";
 
+/** How the mic looks, now drawn on the orb: ready, live, or dashed when there is no mic access. */
 export type MicLook = "ready" | "live" | "blocked";
 
 type Props = {
-  mic: MicLook;
-  labels: { talk: string; stop: string; end: string; settings: string };
-  onMic: () => void;
+  labels: { end: string; settings: string };
   /** Present while Sarjy is listening, thinking or speaking. */
   onEnd?: () => void;
   onSettings?: () => void;
 };
 
-export function ControlBar({ mic, labels, onMic, onEnd, onSettings }: Props) {
+export function ControlBar({ labels, onEnd, onSettings }: Props) {
+  if (!onEnd && !onSettings) return null;
   return (
-    <div className={`${styles.bar} glass`}>
+    <div className={`${styles.bar} glass ${styles.appear}`}>
       {onEnd && (
-        <button
-          type="button"
-          className={`${styles.ctl} ${styles.appear}`}
-          aria-label={labels.end}
-          onClick={onEnd}
-        >
+        <button type="button" className={styles.ctl} aria-label={labels.end} onClick={onEnd}>
           <Icon name="x" />
         </button>
       )}
-      <button
-        type="button"
-        className={`${styles.ctl} ${styles.mic}`}
-        data-look={mic}
-        aria-label={mic === "live" ? labels.stop : labels.talk}
-        aria-pressed={mic === "live"}
-        onClick={onMic}
-      >
-        <Icon name="mic" />
-      </button>
       {onSettings && (
         <button type="button" className={styles.ctl} aria-label={labels.settings} onClick={onSettings}>
           <Icon name="sliders" />

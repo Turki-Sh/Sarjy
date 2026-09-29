@@ -33,27 +33,7 @@
   transform: scale(0.94);
 }
 
-.mic {
-  width: 52px;
-  height: 52px;
-  background: color-mix(in srgb, var(--text) 7%, transparent);
-}
-.mic svg {
-  width: 22px;
-  height: 22px;
-}
-.mic[data-look="live"] {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.mic[data-look="blocked"] {
-  background: transparent;
-  outline: 1.5px dashed var(--text-2);
-  outline-offset: -4px;
-  color: var(--text-2);
-}
-
-/* End slides in beside the mic when a turn begins. */
+/* The bar fades in when a turn begins. */
 .appear {
   animation: appear var(--t-base) var(--ease-rein) both;
 }

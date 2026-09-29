@@ -113,3 +113,18 @@ export async function getConversation(
     })),
   };
 }
+
+/** Renames one of the user's chats. Returns false if it is not theirs. */
+export async function renameConversation(
+  db: Db,
+  userId: string,
+  id: string,
+  title: string,
+): Promise<boolean> {
+  const rows = await db
+    .update(conversations)
+    .set({ title })
+    .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
+    .returning({ id: conversations.id });
+  return rows.length > 0;
+}

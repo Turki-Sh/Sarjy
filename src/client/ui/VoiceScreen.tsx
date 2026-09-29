@@ -10,6 +10,7 @@ import { COOKIE, type Theme } from "@/shared/preferences";
 import { useSarjy } from "../voice/useSarjy";
 import { Caption } from "./Caption";
 import { ControlBar } from "./ControlBar";
+import { Earlier } from "./Earlier";
 import { Orb } from "./Orb";
 import { Sidebar } from "./Sidebar";
 import { TextComposer } from "./TextComposer";
@@ -113,6 +114,7 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
           activeChatId={sarjy.activeChatId}
           onNewChat={newChat}
           onOpenChat={(id) => void openChat(id)}
+          onRenameChat={(id, title) => void sarjy.renameChat(id, title)}
           onClose={() => setSidebar(false)}
         />
       )}
@@ -130,8 +132,19 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
 
         {/* Switching chats replays the stage's fade, so the change is felt. */}
         <section key={switches} className={styles.stage} aria-label={s.talk}>
-          <Orb state={sarjy.state} inputLevel={sarjy.inputLevel} outputLevel={sarjy.outputLevel} />
+          {/* The orb is the mic: tap it to talk, tap it again when you're done, or over Sarjy to interrupt. */}
+          <button
+            type="button"
+            className={styles.orbButton}
+            data-look={sarjy.micLook}
+            aria-label={sarjy.state === "listening" ? s.stop : s.talk}
+            aria-pressed={sarjy.state === "listening"}
+            onClick={() => void onMic()}
+          >
+            <Orb state={sarjy.state} inputLevel={sarjy.inputLevel} outputLevel={sarjy.outputLevel} />
+          </button>
           <ToolChip chip={showChip ? sarjy.chip : null} />
+          <Earlier lines={sarjy.earlier} />
           <Caption caption={sarjy.caption} />
           <p className={styles.status}>{note}</p>
         </section>
@@ -144,9 +157,7 @@ export function VoiceScreen({ initialLang, initialTheme, initialSidebarOpen }: P
             onSend={(text) => void sarjy.send({ text })}
           />
           <ControlBar
-            mic={sarjy.micLook}
-            labels={{ talk: s.talk, stop: s.stop, end: s.end, settings: s.voiceSettings }}
-            onMic={() => void onMic()}
+            labels={{ end: s.end, settings: s.voiceSettings }}
             onEnd={busy ? sarjy.stop : undefined}
           />
         </div>
