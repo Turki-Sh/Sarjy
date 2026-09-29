@@ -16,5 +16,8 @@ describe("onboarding", () => {
   it("says nothing once done", () => {
     expect(onboardingInstruction("done")).toBe("");
     expect(onboardingInstruction("name")).toContain("introduce yourself");
+    // Each step names the next one, so the model asks it right after saving.
+    expect(onboardingInstruction("name")).toContain("the next step is to ask which city");
+    expect(onboardingInstruction("units")).toContain("onboarding is complete");
   });
 });

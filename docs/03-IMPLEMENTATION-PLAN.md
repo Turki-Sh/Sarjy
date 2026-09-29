@@ -72,19 +72,31 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ## Day 2 · Wednesday: real voice, real memory
 
 ### M3 · Live providers
-- [ ] Groq Whisper (`whisper-large-v3-turbo`), language detection, interface language as hint
-- [ ] Groq `openai/gpt-oss-120b` through the AI SDK: tool loop, step limit, low reasoning effort; `qwen/qwen3.8-27b` fallback
+- [x] Groq Whisper (`whisper-large-v3-turbo`), language detection, interface language as hint, bilingual vocabulary prompt
+- [x] Groq `openai/gpt-oss-120b` through the AI SDK: tool loop, step limit, low reasoning effort; `qwen/qwen3.8-27b` then `openai/gpt-oss-20b` as fallbacks
 - [ ] Model bake-off (`scripts/bakeoff.ts`): 20 prompts, English and Arabic; results in the README
-- [ ] Groq Orpheus: English and Saudi Arabic voices; first sentence alone, the rest as one request
-- [ ] Live Open-Meteo (geocoding in Arabic and English, forecast, 4 s timeout)
+- [x] Groq Orpheus: English and Saudi Arabic voices; first sentence alone, the rest as one request; WAV header repaired
+- [x] Live Open-Meteo (geocoding in Arabic and English, forecast, 4 s timeout)
 - [ ] Guardrails: topic policy, `gpt-oss-safeguard-20b` check in parallel with the main model, persona lock in the prompt
 - [ ] Red-team suite (`scripts/redteam.ts`), 25 prompts, wired into CI with fakes
 - [ ] Image turns route to `qwen/qwen3.8-27b`
 - [ ] Cost per turn (`server/turn/cost.ts`) in the `done` event
-- [ ] Rate limits (per user, per IP) and input caps
+- [x] Rate limits (per user, per IP) and input caps
 - [ ] Structured timing logs per turn
 
-**Done when:** a typed question gets a spoken answer from the real providers, and a typed fact survives a reload.
+**Done when:** a typed question gets a spoken answer from the real providers, and a typed fact survives a reload. (Met on Day 2, in English and Arabic, typed and spoken.)
+
+**What the first live runs taught us (Day 2)**
+
+| Found | Fix |
+|---|---|
+| Orpheus streams its WAV, so the header claims about 24 hours of audio | `fixWavHeader` rewrites both lengths; unit tested |
+| English questions got Arabic answers: the Saudi examples pulled the model over | Only the current language's voice block goes in the prompt, and the reply language is the prompt's last line |
+| "Saved" said for "Riyadh" with no save made | Rule: a short answer to your own question is the fact; never claim a save you did not make. The onboarding line now names the next step too |
+| Sentences glued ("kabsa.Got it"), a long dash, "You told me on today" | `tidy()` fixes what Sarjy is about to say; the prompt forbids tails like "Anything else?" |
+| Short Saudi phrases misheard by Whisper ("وشلوني المفبر") | A bilingual vocabulary prompt; the same clip now reads "وش لوني المفضل؟" and English still detects as English |
+| Free Groq tier: 8,000 model tokens a minute, about four turns | Three-model chain. For the review and the Majlis demo, the key should be on Groq's Dev tier (pay as you go) |
+| First sound: 1.0 to 2.5 s for a plain answer, 4.5 to 6 s with the weather tool | Weather is the slow path (about 1.4 s in Open-Meteo plus a second model call); to work on in M7 |
 
 ### M4 · The voice loop in the browser
 - [x] `client/voice/machine.ts` with unit tests for every transition

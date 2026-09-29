@@ -23,8 +23,15 @@ export function onboardingInstruction(step: OnboardingStep): string {
     step === "name"
       ? "This is the user's first visit. If this is the very first message, introduce yourself in one short sentence first. "
       : "";
+  // The model is told what comes after this step, so a saved answer flows straight into the next question.
+  const following = STEPS[STEPS.indexOf(step) + 1]!;
+  const then =
+    following === "done"
+      ? "Once it is saved, onboarding is complete: confirm it and say they're all set, in a few words. "
+      : `Once it is saved, the next step is to ${ASK[following]}; ask that in the same reply. `;
   return (
-    `Onboarding is in progress. ${first}Current step: ${ASK[step]}. ` +
+    `Onboarding is in progress. ${first}Current step: ${ASK[step]}. ${then}` +
+    "If their message answers this step, even in one word, save it with remember first, then confirm and ask the next thing. " +
     "If the user asks something else, answer it briefly, then ask for this step again. Ask one thing at a time."
   );
 }

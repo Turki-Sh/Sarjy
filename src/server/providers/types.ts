@@ -17,14 +17,14 @@ export interface TextToSpeech {
   synthesize(text: string, lang: Lang): Promise<ArrayBuffer | null>;
 }
 
-export type Models = {
-  /** The main model: fast, reliable tool calling. */
-  main: LanguageModel;
-  /** Used when the main model is rate limited or fails, and for turns with an image. */
-  fallback: LanguageModel;
-  mainId: string;
-  fallbackId: string;
-};
+export type ModelChoice = { id: string; model: LanguageModel };
+
+/**
+ * The models a turn may use, best first. The first is the main model (fast, reliable tool
+ * calling); each next one takes the turn when the one before is rate limited or fails. On Groq
+ * every model has its own per-minute quota, so a chain of three survives a burst that one would not.
+ */
+export type Models = ModelChoice[];
 
 /** The HTTP client tools use. Swapped for recorded responses in tests. */
 export type Fetch = (url: string, init?: RequestInit) => Promise<Response>;

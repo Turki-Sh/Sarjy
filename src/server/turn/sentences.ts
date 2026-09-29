@@ -6,6 +6,20 @@
 // A period between digits ("4.5") is not an ending.
 const ENDING = /([.!?؟…]+)(?=\s|$)/g;
 
+// Models sometimes glue two sentences together ("kabsa.Got it"). A sentence mark between a letter
+// and the start of a new word gets its space back, so the split below (and the caption) see two.
+const GLUED = /([a-z\u0600-\u06ff][.!?؟])(?=[A-Z\u0600-\u06ff])/g;
+export const unglue = (text: string) => text.replace(GLUED, "$1 ");
+
+/**
+ * Last fixes to what Sarjy is about to say, for slips a prompt can't fully prevent:
+ * glued sentences, long dashes (a comma reads and sounds the same), and "on today".
+ */
+export const tidy = (text: string) =>
+  unglue(text)
+    .replace(/\s*[\u2014\u2013]\s*/g, ", ")
+    .replace(/\bon (today|yesterday)\b/gi, "$1");
+
 /** Splits text into complete sentences and the unfinished rest. */
 export function splitSentences(text: string): { sentences: string[]; rest: string } {
   const sentences: string[] = [];
@@ -32,7 +46,7 @@ export class SpeechChunker {
 
   /** Returns the first sentence the moment it completes, otherwise nothing. */
   push(delta: string): string | null {
-    this.buffer += delta;
+    this.buffer = unglue(this.buffer + delta);
     if (this.firstSent) return null;
     const { sentences, rest } = splitSentences(this.buffer);
     const [first, ...more] = sentences;

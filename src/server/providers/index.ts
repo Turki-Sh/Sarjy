@@ -17,12 +17,10 @@ export function getProviders(options: { scriptedTranscript?: string | null } = {
   return {
     stt: createFakeStt(options.scriptedTranscript ?? null),
     tts: createFakeTts(),
-    models: {
-      main: createFakeModel("fake-main"),
-      fallback: createFakeModel("fake-fallback"),
-      mainId: "fake-main",
-      fallbackId: "fake-fallback",
-    },
+    models: [
+      { id: "fake-main", model: createFakeModel("fake-main") },
+      { id: "fake-fallback", model: createFakeModel("fake-fallback") },
+    ],
     fetch: fakeFetch,
   };
 }

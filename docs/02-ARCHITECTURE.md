@@ -331,7 +331,7 @@ interface TextToSpeech { synthesize(text: string, lang: Lang, voice: string): Pr
 | Capability | Live | Why |
 |---|---|---|
 | Speech to text | Groq `whisper-large-v3-turbo` | Fast, strong on Arabic, returns the detected language |
-| Language model | Groq `openai/gpt-oss-120b` with low reasoning effort; `qwen/qwen3.8-27b` (thinking off) on rate limits or errors | About 500 tokens a second, the most reliable tool calling on Groq, cheapest per token. Qwen is the fallback because its limits are separate and its multilingual training is strong |
+| Language model | Groq `openai/gpt-oss-120b` with low reasoning effort; then `qwen/qwen3.8-27b` (thinking off), then `openai/gpt-oss-20b`, on rate limits or errors | About 500 tokens a second, the most reliable tool calling on Groq, cheapest per token. Each model on Groq has its own per-minute token quota, so a chain of three rides out a burst that one model would not (measured on Day 2: the free tier allows 8,000 tokens a minute on the main model, about four turns) |
 | Text to speech | Groq `canopylabs/orpheus-v1-english` and `canopylabs/orpheus-arabic-saudi` | The brand requires a native Saudi voice for Arabic, never an English voice reading Arabic |
 | Weather | Open-Meteo forecast and geocoding | Free, no key, global, structured |
 | Seeing images | Groq `qwen/qwen3.8-27b` | Accepts images; the main model does not |
@@ -616,7 +616,7 @@ The repository is public and the URL will be shared, so:
 |---|---|
 | No mic, or permission denied | The mic shows the dashed "no access" state; the text box takes focus. |
 | Speech not understood | "I didn't catch that. Try again?" (pre-rendered audio, no quota used) |
-| Model rate limit | Retry on the fallback model. If both are limited: "I've reached my limit for now. Try again in a minute." |
+| Model rate limit | The next model in the chain takes the turn, as long as nothing has been said yet. If all three are limited: "I'm a bit swamped right now. Give me a few seconds and try again." |
 | Weather service down or slow (4 s timeout) | "I couldn't reach the weather service. Want me to try again?" No numbers. |
 | Voice rate limit or error | The browser's voice speaks the same words; captions still sync; a small note says the backup voice is in use. |
 | Database unavailable | "I can't reach my memory right now." The turn still answers questions that need no memory. |

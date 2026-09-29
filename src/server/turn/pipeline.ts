@@ -20,7 +20,7 @@ import { memoryTools } from "../tools/memory";
 import { weatherTool, type Units } from "../tools/weather";
 import { isStep, nextStep } from "./onboarding";
 import { buildSystemPrompt } from "./prompt";
-import { SpeechChunker } from "./sentences";
+import { SpeechChunker, tidy } from "./sentences";
 
 export type TurnInput = {
   user: User;
@@ -34,14 +34,21 @@ export type TurnInput = {
 const SAY: Record<"not_understood" | "model_unavailable" | "internal", Record<Lang, string>> = {
   not_understood: { en: "I didn't catch that. Try again?", ar: "ما سمعتك زين. تعيد؟" },
   model_unavailable: {
-    en: "I can't think straight right now. Try again in a moment.",
-    ar: "عندي مشكلة الحين. جرّب بعد شوي.",
+    en: "I'm a bit swamped right now. Give me a few seconds and try again.",
+    ar: "عندي زحمة شوي الحين. جرب بعد ثواني.",
   },
   internal: { en: "Something went wrong on my side. Try again?", ar: "صار خلل عندي. تجرب مرة ثانية؟" },
 };
 
 const detectLang = (text: string, fallback: Lang): Lang =>
   /[؀-ۿ]/.test(text) ? "ar" : /[a-z]/i.test(text) ? "en" : fallback;
+
+/** The language a sentence is written in, by majority of letters: it picks the voice that reads it. */
+const writtenIn = (text: string, fallback: Lang): Lang => {
+  const arabic = text.match(/[؀-ۿ]/g)?.length ?? 0;
+  const latin = text.match(/[a-z]/gi)?.length ?? 0;
+  return arabic > latin ? "ar" : latin > arabic ? "en" : fallback;
+};
 
 const toBase64 = (buf: ArrayBuffer) => Buffer.from(buf).toString("base64");
 
@@ -96,6 +103,7 @@ export async function runTurn(
     userName: input.user.name,
     memories,
     onboarding,
+    replyLang: lang,
   });
   const messages: ModelMessage[] = [
     ...history.map((m) => ({ role: m.role, content: m.text }) as ModelMessage),
@@ -153,17 +161,20 @@ export async function runTurn(
   const chunker = new SpeechChunker();
   let segmentIndex = 0;
   let sending = Promise.resolve();
-  const speak = (text: string) => {
+  const speak = (raw: string) => {
+    const text = tidy(raw);
     const index = segmentIndex++;
-    const audio = providers.tts.synthesize(text, lang);
+    // Normally the user's language; if the model slipped into the other one, the matching voice reads it.
+    const voice = writtenIn(text, lang);
+    const audio = providers.tts.synthesize(text, voice);
     sending = sending.then(async () => {
       const wav = await audio;
       if (index === 0) timings.firstAudioMs = since();
-      emit({ type: "segment", index, text, lang, audio: wav ? toBase64(wav) : null });
+      emit({ type: "segment", index, text, lang: voice, audio: wav ? toBase64(wav) : null });
     });
   };
 
-  const attempt = async (model: Providers["models"]["main"], modelId: string) => {
+  const attempt = async (model: Providers["models"][number]["model"], modelId: string) => {
     const result = streamText({
       model,
       system,
@@ -190,21 +201,24 @@ export async function runTurn(
     return text;
   };
 
-  let answer = "";
-  try {
+  // Down the chain: a model that is rate limited or fails before saying anything hands the turn
+  // to the next. Once Sarjy has started speaking, switching voices mid-answer would be worse than
+  // stopping, so a failure after the first sentence ends the turn.
+  let answer: string | null = null;
+  for (const { id, model } of providers.models) {
     try {
-      answer = await attempt(providers.models.main, providers.models.mainId);
-      timings.model = providers.models.mainId;
-    } catch (error) {
-      // Rate limited or failed before saying anything: the fallback model takes the turn.
-      if (segmentIndex > 0) throw error;
-      answer = await attempt(providers.models.fallback, providers.models.fallbackId);
-      timings.model = providers.models.fallbackId;
+      answer = await attempt(model, id);
+      timings.model = id;
+      break;
+    } catch {
+      if (segmentIndex > 0) break;
     }
-  } catch {
+  }
+  if (answer === null) {
     emit({ type: "error", code: "model_unavailable", say: SAY.model_unavailable[lang] });
     return;
   }
+  answer = tidy(answer);
   const rest = chunker.flush();
   if (rest) speak(rest);
   await sending;

@@ -46,6 +46,8 @@ GROQ_API_KEY=your-groq-key
 ABLY_API_KEY=your-ably-key
 ```
 
+With live providers, `pnpm preview` (a production build) also needs a `SESSION_SECRET` line: any random string of 32 or more characters, for example the output of `openssl rand -hex 32`. `pnpm dev` uses a fixed one for you.
+
 Restart `pnpm dev` after changing it. `http://localhost:3000/api/health` shows which keys were picked up (true or false, never the values).
 
 | Command | Does |
