@@ -11,7 +11,24 @@ export type ThemeChoice = Theme | "system";
 /** What you chose for the interface language: one, or "auto" to follow the browser. */
 export type LangChoice = Lang | "auto";
 
-export const COOKIE = { theme: "sarjy_theme", lang: "sarjy_lang", sidebar: "sarjy_sidebar" } as const;
+export const COOKIE = {
+  theme: "sarjy_theme",
+  lang: "sarjy_lang",
+  sidebar: "sarjy_sidebar",
+  glass: "sarjy_glass",
+} as const;
+
+/** How much liquid glass, 0 (solid) to 100 (clear). The default shows it off without going all the way. */
+export const DEFAULT_GLASS = 60;
+export const readGlass = (value: string | undefined): number => {
+  const n = Number(value);
+  return value !== undefined && Number.isFinite(n)
+    ? Math.min(100, Math.max(0, Math.round(n)))
+    : DEFAULT_GLASS;
+};
+
+/** The refraction strength for a glass level: how far the background bends, in pixels. */
+export const refractScale = (glass: number) => Math.round((glass / 100) * 44);
 
 export const isTheme = (value: unknown): value is Theme => value === "light" || value === "dark";
 

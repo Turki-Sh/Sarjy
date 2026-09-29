@@ -47,3 +47,22 @@ test("the Arabic interface mirrors and switches every string", async ({ page }) 
   await page.getByRole("combobox", { name: "اللغة" }).selectOption("auto");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
+
+test("Glass goes from solid to clear, live, and is remembered", async ({ page }) => {
+  await page.goto("/");
+  const liquid = () =>
+    page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--liquid").trim());
+  expect(await liquid()).toBe("0.6"); // the default
+  await openSettings(page, "Appearance");
+  const slider = page.getByRole("slider", { name: "Glass" });
+  await slider.fill("0");
+  expect(await liquid()).toBe("0");
+  // Solid: the sidebar is its original solid self, and the light field behind is invisible.
+  const ambient = page.locator(".ambient");
+  await expect(ambient).toHaveCSS("opacity", "0");
+  await page.getByRole("dialog").getByText("Clear", { exact: true }).click();
+  expect(await liquid()).toBe("1");
+  await expect(ambient).not.toHaveCSS("opacity", "0");
+  await page.reload();
+  expect(await liquid()).toBe("1");
+});

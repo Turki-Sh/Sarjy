@@ -5,7 +5,7 @@
   width: min(440px, 100%);
   padding: 4px;
   padding-inline-start: 16px;
-  background: var(--sunken);
+  background: color-mix(in srgb, var(--sunken) var(--panel-keep), transparent);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
 }

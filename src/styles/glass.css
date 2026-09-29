@@ -1,22 +1,66 @@
 /*
- * Liquid glass: the floating layer only (control bar, orb, chips, toasts, header, sheets).
- * Recipe from docs/brand/sarjy-visual-identity-v3.md, section 4. Never glass on glass, never behind body text.
+ * Liquid glass (Turki's direction, Day 2: Apple's Liquid Glass is the main inspiration, with more
+ * control). One number drives everything: --liquid, from 0 (solid: the original look, frosted
+ * floating pieces over a plain page) to 1 (clear: see-through glass with bright edges, bending
+ * the light behind it). It is set on <html> from Settings, Appearance, Glass.
+ *
+ * Three kinds of surface:
+ *   .glass        floating pieces (control bar, chips, toasts, buttons): glass at every level
+ *   .glass-panel  surfaces you read (sidebar, settings, text box): solid at 0, glass as it rises
+ *   .ambient      a slow light field behind everything, so the glass has something to bend
+ *
+ * Refraction (the background warping at the edges) uses an SVG filter inside backdrop-filter,
+ * which only Chromium draws; html[data-refract="on"] is set for it in layout.tsx. Elsewhere the
+ * same glass renders without the warp. "Reduce transparency" forces 0.
  */
+
+:root {
+  --liquid: 0.6;
+  /* The working copy; the accessibility settings below can force it to 0. */
+  --lq: var(--liquid);
+
+  /* Frosting: 18 px at 0 (as before), a little more in the middle, thin at the clear end. */
+  --glass-blur: calc(18px + sin(var(--lq) * 180deg) * 6px - var(--lq) * 14px);
+  --glass-sat: calc(180% + var(--lq) * 40%);
+  /* How much of the tint stays: all of it at 0, 15% at 1. */
+  --glass-keep: calc((1 - var(--lq) * 0.85) * 100%);
+  /* The panels' own frosting: none at 0, strongest in the middle, light at the clear end. */
+  --panel-blur: calc(sin(var(--lq) * 180deg) * 26px + var(--lq) * 6px);
+  --panel-keep: calc((1 - var(--lq) * 0.82) * 100%);
+  /* The edge light: the specular rim and inner glow that make glass read as glass. */
+  --rim: calc(var(--lq) * 90%);
+  --rim-soft: calc(var(--lq) * 40%);
+  --depth: calc(var(--lq) * 18%);
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root {
+    --lq: 0;
+  }
+}
+
+/* Floating glass. */
 .glass {
   position: relative;
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid var(--glass-edge);
+  isolation: isolate;
+  background: color-mix(in srgb, var(--glass) var(--glass-keep), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border: 1px solid color-mix(in srgb, var(--glass-edge) calc(100% - var(--lq) * 60%), transparent);
   box-shadow:
     0 0 0 0.5px var(--glass-rim),
     inset 0 1px 0 var(--glass-sheen),
+    inset 1px 1px 1px color-mix(in srgb, var(--white) var(--rim-soft), transparent),
+    inset -1px -1px 1px color-mix(in srgb, var(--white) calc(var(--rim-soft) / 2), transparent),
+    inset 0 0 18px color-mix(in srgb, var(--white) calc(var(--lq) * 14%), transparent),
+    0 10px 30px color-mix(in srgb, var(--ink) var(--depth), transparent),
     var(--glass-shadow);
 }
+/* The sheen across the face. */
 .glass::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: -1;
   border-radius: inherit;
   pointer-events: none;
   background: linear-gradient(
@@ -27,20 +71,115 @@
     color-mix(in srgb, var(--glass-sheen) 45%, transparent)
   );
 }
+/* The rim: a thin ring of light, brightest top-start and bottom-end, like light caught by a lens edge. */
+.glass::after,
+.glass-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--white) var(--rim), transparent),
+    transparent 32%,
+    transparent 64%,
+    color-mix(in srgb, var(--white) calc(var(--rim) * 0.6), transparent)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
 .glass > * {
   position: relative;
 }
+/* Glass with words on it keeps more tint, so the words stay easy to read at any level. */
 .glass.text {
-  background: var(--glass-text);
+  background: color-mix(in srgb, var(--glass-text) calc((1 - var(--lq) * 0.45) * 100%), transparent);
   color: var(--text);
 }
+
+/* Surfaces you read: solid at 0, turning to glass as --liquid rises. */
+.glass-panel {
+  position: relative;
+  -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(calc(100% + var(--lq) * 60%));
+  backdrop-filter: blur(var(--panel-blur)) saturate(calc(100% + var(--lq) * 60%));
+  box-shadow:
+    inset 1px 1px 1px color-mix(in srgb, var(--white) var(--rim-soft), transparent),
+    inset 0 0 24px color-mix(in srgb, var(--white) calc(var(--lq) * 8%), transparent),
+    0 18px 50px color-mix(in srgb, var(--ink) calc(var(--lq) * 14%), transparent);
+}
+
+/* Refraction, where the browser can draw it: the backdrop bends through the filter in layout.tsx. */
+html[data-refract="on"] .glass {
+  -webkit-backdrop-filter: url(#sarjy-refract) blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: url(#sarjy-refract) blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+/* The light field behind everything: Saffron, Coral and Dusk, drifting very slowly. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: calc(var(--lq) * 0.75);
+}
+html[data-theme="dark"] .ambient {
+  opacity: calc(var(--lq) * 0.5);
+}
+.ambient i {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: drift 48s var(--ease-rein) infinite alternate;
+}
+.ambient i:nth-child(1) {
+  background: var(--light-a);
+  inset-block-start: -12vmax;
+  inset-inline-start: 8vw;
+}
+.ambient i:nth-child(2) {
+  background: var(--light-b);
+  inset-block-end: -18vmax;
+  inset-inline-end: 4vw;
+  animation-duration: 62s;
+  animation-direction: alternate-reverse;
+}
+.ambient i:nth-child(3) {
+  background: var(--light-c);
+  inset-block-start: 30vh;
+  inset-inline-start: -14vmax;
+  animation-duration: 74s;
+}
+@keyframes drift {
+  to {
+    transform: translate(9vw, 7vh) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient i {
+    animation: none;
+  }
+}
 @media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-panel {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
   .glass {
     background: var(--surface);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
-  .glass::before {
+  .glass::before,
+  .glass::after,
+  .glass-panel::after {
     display: none;
   }
 }

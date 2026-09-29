@@ -205,6 +205,13 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Sarjy states exactly what it can do (remember, forget, weather, talk) and never claims more (it had offered news)
 - [x] A calmer light: loudness is smoothed (quick up, slow down), the glow and size ease, the spin is slower and no longer jumps when the state changes
 
+### Liquid glass (Turki's request, Day 2)
+- [x] One Glass dial in Settings, Appearance: Solid (the original look) to Clear, with Frosted and Liquid in between; live while dragging, remembered, rendered by the server so the first paint is right
+- [x] A slow light field behind the interface, so the glass has something to bend; specular rims, inner glow and depth on every glass surface
+- [x] The sidebar lifts off the edge into a floating glass sheet; settings, the text box and the share button are glass
+- [x] Refraction through an SVG displacement filter where the browser can draw it (Chromium)
+- [x] "Reduce transparency" and "Increase contrast" force Solid
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

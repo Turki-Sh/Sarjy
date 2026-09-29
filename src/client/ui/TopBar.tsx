@@ -47,7 +47,7 @@ export function TopBar({ lang, onShare, onOpenSidebar, onNewChat }: Props) {
         {onShare && (
           <button
             type="button"
-            className={styles.icon}
+            className={`${styles.icon} glass`}
             onClick={onShare}
             aria-label={s.share}
             title={s.share}

@@ -61,7 +61,7 @@ export function Sidebar({
   const shownChats = recent.filter((c) => c.title && (!q || matches(c.title, q)));
 
   return (
-    <aside className={styles.side} aria-label={s.memory}>
+    <aside className={`${styles.side} glass-panel`} aria-label={s.memory}>
       <div className={styles.brand}>
         <Logo lang={lang} className={styles.logo} />
         <button

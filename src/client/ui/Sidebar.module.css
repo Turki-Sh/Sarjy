@@ -1,8 +1,18 @@
 /* The sidebar, from the reference build of the voice screen. Solid surface: it is read, not floated. */
 
+/* Solid at Glass 0 (the original look). As glass rises, the sidebar lifts off the edge into a
+   floating glass panel, like iPadOS: an inset, rounded, see-through sheet. */
 .side {
-  background: var(--side);
-  border-inline-end: 1px solid var(--line);
+  --float: min(1, var(--lq) * 8);
+  background: color-mix(in srgb, var(--side) var(--panel-keep), transparent);
+  border: 1px solid color-mix(in srgb, var(--line) calc(var(--float) * 100%), transparent);
+  border-inline-end-color: var(--line);
+  margin: calc(var(--float) * 10px);
+  margin-inline-end: 0;
+  border-radius: calc(var(--float) * var(--r-l));
+  height: calc(100dvh - var(--float) * 20px);
+  position: sticky;
+  inset-block-start: calc(var(--float) * 10px);
   padding: 18px 14px;
   display: flex;
   flex-direction: column;

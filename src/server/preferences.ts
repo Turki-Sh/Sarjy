@@ -5,6 +5,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import {
   COOKIE,
+  readGlass,
   readLang,
   readLangChoice,
   readSidebarOpen,
@@ -19,5 +20,6 @@ export async function readPreferences() {
   const themeChoice = readThemeChoice(jar.get(COOKIE.theme)?.value);
   const langChoice = readLangChoice(jar.get(COOKIE.lang)?.value);
   const sidebarOpen = readSidebarOpen(jar.get(COOKIE.sidebar)?.value);
-  return { lang, theme, themeChoice, langChoice, sidebarOpen };
+  const glass = readGlass(jar.get(COOKIE.glass)?.value);
+  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass };
 }

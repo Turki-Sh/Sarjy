@@ -53,6 +53,9 @@ type Strings = {
     languageHint: string;
     auto: string;
     mode: string;
+    glass: string;
+    glassHint: string;
+    glassStops: [string, string, string, string];
     system: string;
     light: string;
     dark: string;
@@ -132,6 +135,9 @@ export const STRINGS: Record<Lang, Strings> = {
       languageHint: "The language of the app. Sarjy always answers in the language you speak.",
       auto: "Auto detect",
       mode: "Mode",
+      glass: "Glass",
+      glassHint: "From solid to fully clear. In between, frosted glass that bends the light behind it.",
+      glassStops: ["Solid", "Frosted", "Liquid", "Clear"],
       system: "System",
       light: "Light",
       dark: "Dark",
@@ -210,6 +216,9 @@ export const STRINGS: Record<Lang, Strings> = {
       languageHint: "لغة التطبيق. سرجي دايم يرد باللغة اللي تتكلم فيها.",
       auto: "تلقائي",
       mode: "الوضع",
+      glass: "الزجاج",
+      glassHint: "من سادة إلى شفاف تمامًا. وبينهم زجاج مصنفر يكسر الضوء اللي وراه.",
+      glassStops: ["سادة", "مصنفر", "سائل", "شفاف"],
       system: "حسب الجهاز",
       light: "فاتح",
       dark: "داكن",

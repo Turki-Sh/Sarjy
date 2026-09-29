@@ -33,6 +33,8 @@ type Props = {
   lang: Lang;
   langChoice: LangChoice;
   themeChoice: ThemeChoice;
+  glass: number;
+  onGlass: (glass: number) => void;
   name: string | null;
   avatar: AvatarChoice | null;
   avatarImage: string | null;
@@ -71,7 +73,7 @@ export function Settings(props: Props) {
       // A click that lands on the dialog itself (not the panel inside) is a click on the backdrop.
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className={styles.panel}>
+      <div className={`${styles.panel} glass-panel`}>
         <nav className={styles.nav} aria-label={s.title}>
           <h2 id="settings-title" className={styles.navTitle}>
             {s.title}
@@ -107,7 +109,13 @@ export function Settings(props: Props) {
             <General lang={lang} choice={props.langChoice} onChoice={props.onLangChoice} />
           )}
           {open && section === "appearance" && (
-            <Appearance lang={lang} choice={props.themeChoice} onChoice={props.onThemeChoice} />
+            <Appearance
+              lang={lang}
+              choice={props.themeChoice}
+              onChoice={props.onThemeChoice}
+              glass={props.glass}
+              onGlass={props.onGlass}
+            />
           )}
           {open && section === "profile" && (
             <Profile

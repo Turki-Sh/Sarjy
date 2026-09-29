@@ -12,7 +12,7 @@
   overflow: visible;
 }
 .dialog::backdrop {
-  background: var(--scrim);
+  background: color-mix(in srgb, var(--scrim) calc((1 - var(--lq) * 0.55) * 100%), transparent);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -30,7 +30,7 @@
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
   height: 100%;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) var(--panel-keep), transparent);
   border: 1px solid var(--line);
   border-radius: var(--r-l);
   box-shadow: var(--frame-shadow);
@@ -43,7 +43,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 18px 12px;
-  background: var(--side);
+  background: color-mix(in srgb, var(--side) var(--panel-keep), transparent);
   border-inline-end: 1px solid var(--line);
 }
 .navTitle {
@@ -305,6 +305,65 @@
 }
 :dir(rtl) .split > .mini:last-child {
   clip-path: inset(0 50% 0 0);
+}
+
+/* Glass: a full-width slider under its label, with named stops. */
+.stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.slider {
+  display: grid;
+  gap: 8px;
+}
+.slider input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent) var(--fill), var(--sunken) var(--fill));
+  cursor: pointer;
+}
+:dir(rtl) .slider input {
+  background: linear-gradient(270deg, var(--accent) var(--fill), var(--sunken) var(--fill));
+}
+.slider input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
+}
+.slider input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
+}
+.slider input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.stops {
+  display: flex;
+  justify-content: space-between;
+}
+.stops button {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: 500 12px/1.2 var(--font-ui);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.stops button:hover {
+  color: var(--text);
 }
 
 /* Profile pictures. */

@@ -1,4 +1,5 @@
-// Type instead of talking: for a quiet room or no mic. Solid, not glass: it is a form (brand, section 4).
+// Type instead of talking: for a quiet room or no mic. Solid at Glass 0 (the brand book keeps forms
+// solid); a glass pill as the Glass setting rises (Turki's direction, Day 2).
 
 import { useRef, useState } from "react";
 import { Icon } from "./Icon";
@@ -28,7 +29,7 @@ export function TextComposer({
   };
 
   return (
-    <form className={styles.form} onSubmit={submit}>
+    <form className={`${styles.form} glass-panel`} onSubmit={submit}>
       <input
         ref={ref}
         className={styles.input}

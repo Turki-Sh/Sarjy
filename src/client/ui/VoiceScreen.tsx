@@ -7,7 +7,7 @@
 import { useRef, useState } from "react";
 import { avatarUrl } from "@/shared/avatars";
 import { dir, t, type Lang } from "@/shared/i18n";
-import { COOKIE, type LangChoice, type ThemeChoice } from "@/shared/preferences";
+import { COOKIE, refractScale, type LangChoice, type ThemeChoice } from "@/shared/preferences";
 import { useSarjy } from "../voice/useSarjy";
 import { Caption } from "./Caption";
 import { ControlBar } from "./ControlBar";
@@ -30,6 +30,7 @@ type Props = {
   initialLangChoice: LangChoice;
   initialThemeChoice: ThemeChoice;
   initialSidebarOpen: boolean;
+  initialGlass: number;
 };
 
 /** The language "Auto detect" resolves to: the browser's own. */
@@ -40,7 +41,9 @@ export function VoiceScreen({
   initialLangChoice,
   initialThemeChoice,
   initialSidebarOpen,
+  initialGlass,
 }: Props) {
+  const [glass, setGlass] = useState(initialGlass);
   const [lang, setLang] = useState(initialLang);
   const [langChoice, setLangChoice] = useState(initialLangChoice);
   const [themeChoice, setThemeChoice] = useState(initialThemeChoice);
@@ -105,6 +108,16 @@ export function VoiceScreen({
     setLang(next);
   };
 
+  /** How much liquid glass: one CSS variable for the look, one filter attribute for the refraction. */
+  const chooseGlass = (level: number) => {
+    document.documentElement.style.setProperty("--liquid", String(level / 100));
+    document
+      .querySelector("#sarjy-refract feDisplacementMap")
+      ?.setAttribute("scale", String(refractScale(level)));
+    rememberChoice(COOKIE.glass, String(level));
+    setGlass(level);
+  };
+
   const openSettings = (at: SettingsSection = "general") => {
     setSection(at);
     setSettingsOpen(true);
@@ -130,6 +143,12 @@ export function VoiceScreen({
 
   return (
     <div className={styles.screen} data-state={sarjy.state} data-sidebar={sidebarOpen ? "open" : "closed"}>
+      {/* The light behind the glass: invisible at Solid, a slow drifting field at Clear. */}
+      <div className="ambient" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
       {sidebarOpen && (
         <Sidebar
           lang={lang}
@@ -205,6 +224,8 @@ export function VoiceScreen({
           lang={lang}
           langChoice={langChoice}
           themeChoice={themeChoice}
+          glass={glass}
+          onGlass={chooseGlass}
           name={sarjy.profile?.name ?? null}
           avatar={sarjy.profile?.avatar ?? null}
           avatarImage={sarjy.profile?.avatarImage ?? null}

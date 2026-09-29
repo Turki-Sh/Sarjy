@@ -5,7 +5,14 @@ import { t, type Lang } from "@/shared/i18n";
 import type { ThemeChoice } from "@/shared/preferences";
 import styles from "./Settings.module.css";
 
-type Props = { lang: Lang; choice: ThemeChoice; onChoice: (choice: ThemeChoice) => void };
+type Props = {
+  lang: Lang;
+  choice: ThemeChoice;
+  onChoice: (choice: ThemeChoice) => void;
+  /** Liquid glass, 0 (solid) to 100 (clear). */
+  glass: number;
+  onGlass: (glass: number) => void;
+};
 
 /** A miniature voice screen: sidebar lines, the orb, the text box. */
 function Mini({ scheme }: { scheme: "light" | "dark" }) {
@@ -24,7 +31,7 @@ function Mini({ scheme }: { scheme: "light" | "dark" }) {
   );
 }
 
-export function Appearance({ lang, choice, onChoice }: Props) {
+export function Appearance({ lang, choice, onChoice, glass, onGlass }: Props) {
   const s = t(lang).settings;
   const options: { id: ThemeChoice; label: string }[] = [
     { id: "system", label: s.system },
@@ -59,6 +66,40 @@ export function Appearance({ lang, choice, onChoice }: Props) {
               <span className={styles.modeLabel}>{o.label}</span>
             </button>
           ))}
+        </div>
+      </div>
+      <div className={`${styles.row} ${styles.stack}`}>
+        <div>
+          <label htmlFor="settings-glass" className={styles.label}>
+            {s.glass}
+          </label>
+          <p className={styles.hint}>{s.glassHint}</p>
+        </div>
+        {/* Changes the page live as you drag: what you see is the setting. */}
+        <div className={styles.slider}>
+          <input
+            id="settings-glass"
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={glass}
+            aria-valuetext={`${glass}%, ${s.glassStops[Math.min(3, Math.floor(glass / 25))]}`}
+            onChange={(e) => onGlass(Number(e.target.value))}
+            style={{ ["--fill" as string]: `${glass}%` }}
+          />
+          <div className={styles.stops} aria-hidden="true">
+            {s.glassStops.map((stop, i) => (
+              <button
+                key={stop}
+                type="button"
+                tabIndex={-1}
+                onClick={() => onGlass(Math.round((i / 3) * 100))}
+              >
+                {stop}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
