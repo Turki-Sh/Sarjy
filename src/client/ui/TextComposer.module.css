@@ -1,0 +1,48 @@
+.form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: min(440px, 100%);
+  padding: 4px;
+  padding-inline-start: 16px;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 15px;
+  line-height: 24px;
+  color: var(--text);
+}
+.input::placeholder {
+  color: var(--text-2);
+}
+.input:lang(ar) {
+  font-family: var(--font-ar);
+}
+.send {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+  transition: opacity var(--t-base) var(--ease-rein);
+}
+.send:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.send svg {
+  width: 18px;
+  height: 18px;
+}

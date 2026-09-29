@@ -1,21 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// The voice screen as built in M1: states, theme, language. Acceptance tests AT-40, AT-45, AT-46, AT-105.
-
-test("runs a turn through the voice states", async ({ page }) => {
-  await page.goto("/");
-  const screen = page.locator("[data-state]").first();
-  await expect(screen).toHaveAttribute("data-state", "idle");
-
-  await page.getByRole("button", { name: "Talk to Sarjy" }).click();
-  await expect(screen).toHaveAttribute("data-state", "listening");
-  await expect(page.getByRole("button", { name: "Stop" })).toHaveAttribute("aria-pressed", "true");
-  await expect(screen).toHaveAttribute("data-state", "thinking", { timeout: 5000 });
-  await expect(screen).toHaveAttribute("data-state", "tool", { timeout: 3000 });
-  await expect(page.getByText('weather.forecast("Riyadh", "tomorrow")')).toBeVisible();
-  await expect(screen).toHaveAttribute("data-state", "speaking", { timeout: 3000 });
-  await expect(screen).toHaveAttribute("data-state", "idle", { timeout: 8000 });
-});
+// The voice screen: theme and language. Acceptance tests AT-45, AT-46, AT-105.
 
 test("dark mode persists across a reload, with no flash of light", async ({ page }) => {
   await page.goto("/");

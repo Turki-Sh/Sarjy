@@ -26,6 +26,9 @@ type Strings = {
   language: string;
   otherLanguage: string;
   invite: string;
+  typePlaceholder: string;
+  send: string;
+  emptyMemory: string;
   about: string;
   tagline: string;
   description: string;
@@ -61,7 +64,10 @@ export const STRINGS: Record<Lang, Strings> = {
     theme: "Switch theme",
     language: "Switch language",
     otherLanguage: "العربية",
-    invite: "Invite",
+    invite: "Invite to your Majlis",
+    typePlaceholder: "Type to Sarjy…",
+    send: "Send",
+    emptyMemory: "Nothing yet. Tell Sarjy something about you.",
     about: "About Sarjy",
     tagline: "Shaped to its rider.",
     description:
@@ -96,7 +102,10 @@ export const STRINGS: Record<Lang, Strings> = {
     theme: "تغيير المظهر",
     language: "تغيير اللغة",
     otherLanguage: "English",
-    invite: "دعوة",
+    invite: "ادعُ لمجلسك",
+    typePlaceholder: "اكتب لسرجي…",
+    send: "إرسال",
+    emptyMemory: "ما فيه شي للحين. قل لسرجي شي عنك.",
     about: "عن سرجي",
     tagline: "على مقاس فارسه.",
     description: "سرجي مساعد صوتي يتذكر اللي تقوله، ويجاوب من أدوات حقيقية، ويوريك كل شي يحفظه.",

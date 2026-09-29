@@ -3,22 +3,24 @@
 
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
+import type { Memory } from "@/shared/protocol";
 import { Logo } from "./brand/Logo";
 import { Icon } from "./Icon";
 import styles from "./Sidebar.module.css";
 
-export type MemoryItem = { id: string; label: string; value: string; lang: Lang };
 export type ChatItem = { id: string; title: string };
 
 type Props = {
   lang: Lang;
-  memories: MemoryItem[];
+  memories: Memory[];
+  /** The memory saved in this turn: it stitches itself in. */
+  freshId: string | null;
   recent: ChatItem[];
   userName: string | null;
   onNewChat: () => void;
 };
 
-export function Sidebar({ lang, memories, recent, userName, onNewChat }: Props) {
+export function Sidebar({ lang, memories, freshId, recent, userName, onNewChat }: Props) {
   const s = t(lang);
   return (
     <aside className={styles.side} aria-label={s.memory}>
@@ -37,9 +39,17 @@ export function Sidebar({ lang, memories, recent, userName, onNewChat }: Props) 
       </button>
 
       <h2 className={styles.group}>{s.memory}</h2>
+      {memories.length === 0 && <p className={styles.empty}>{s.emptyMemory}</p>}
       <ul className={styles.list}>
         {memories.map((m) => (
-          <li key={m.id} className={styles.memory} lang={m.lang} dir={m.lang === "ar" ? "rtl" : "ltr"}>
+          <li
+            key={m.id}
+            className={styles.memory}
+            data-fresh={m.id === freshId ? "true" : undefined}
+            lang={m.lang}
+            dir={m.lang === "ar" ? "rtl" : "ltr"}
+            title={m.source ?? undefined}
+          >
             <span>{m.label}</span>
             <b>{m.value}</b>
           </li>
@@ -48,14 +58,16 @@ export function Sidebar({ lang, memories, recent, userName, onNewChat }: Props) 
 
       <h2 className={styles.group}>{s.recent}</h2>
       <ul className={styles.list}>
-        {recent.map((c) => (
-          <li key={c.id}>
-            <button type="button" className={styles.item}>
-              <Icon name="chat" />
-              <span className={styles.ellipsis}>{c.title}</span>
-            </button>
-          </li>
-        ))}
+        {recent
+          .filter((c) => c.title)
+          .map((c) => (
+            <li key={c.id}>
+              <button type="button" className={styles.item}>
+                <Icon name="chat" />
+                <span className={styles.ellipsis}>{c.title}</span>
+              </button>
+            </li>
+          ))}
       </ul>
 
       <div className={styles.me}>

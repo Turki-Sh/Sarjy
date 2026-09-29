@@ -117,6 +117,31 @@
     linear-gradient(0deg, var(--memory) 60%, transparent 60%) right / 1px 8px repeat-y;
   opacity: 0.75;
 }
+/* A memory saved this turn stitches itself in. */
+.memory[data-fresh="true"]::before {
+  animation: stitch-in var(--t-slow) var(--ease-rein) both;
+}
+.memory[data-fresh="true"] {
+  animation: settle var(--t-slow) var(--ease-rein) both;
+}
+@keyframes stitch-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.empty {
+  margin: 4px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
 .memory span {
   display: block;
   font-size: 11px;

@@ -56,14 +56,14 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 
 **Done when:** `pnpm dev` shows the idle screen in light and dark, in English and Arabic; the preview image renders at `/opengraph-image`; CI is green.
 
-### M2 · The turn pipeline, with fake providers
-- [ ] `shared/protocol.ts` (turn and room events, validated with zod)
-- [ ] Database schema and first migration; PGlite for development and tests
-- [ ] Session cookie (`/api/session`)
-- [ ] `server/turn/prompt.ts`, `sentences.ts`, `pipeline.ts`, `onboarding.ts`
-- [ ] Tools: `remember`, `forget`, `get_weather` (Open-Meteo responses recorded as fixtures)
-- [ ] Fake providers: scripted model with tool calls, canned transcripts, generated tones
-- [ ] Text box on the page drives a full turn through the fakes; events render in the UI
+### M2 · The turn pipeline, with fake providers ✅
+- [x] `shared/protocol.ts` (turn and room events, validated with zod)
+- [x] Database schema and first migration; PGlite for development and tests
+- [x] Session cookie (`/api/session`)
+- [x] `server/turn/prompt.ts`, `sentences.ts`, `pipeline.ts`, `onboarding.ts`
+- [x] Tools: `remember`, `forget`, `get_weather` (Open-Meteo responses recorded as fixtures)
+- [x] Fake providers: scripted model with tool calls, canned transcripts, generated tones
+- [x] Text box on the page drives a full turn through the fakes; events render in the UI
 
 **Done when:** integration tests pass for save, recall, update, forget, weather and onboarding, entirely offline.
 
@@ -87,9 +87,9 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 **Done when:** a typed question gets a spoken answer from the real providers, and a typed fact survives a reload.
 
 ### M4 · The voice loop in the browser
-- [ ] `client/voice/machine.ts` with unit tests for every transition
+- [x] `client/voice/machine.ts` with unit tests for every transition
 - [ ] Mic with level meter; VAD with model files in `/public/vad`; WAV encoder
-- [ ] Turn stream reader; audio player queue on one `AudioContext` clock
+- [x] Turn stream reader; audio player queue on one `AudioContext` clock
 - [ ] Sound cues (open, close, saved)
 - [ ] No-mic path: dashed mic, text box focused
 - [ ] Live word preview while speaking (Web Speech API, where available)
@@ -103,10 +103,10 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 
 ### M5 · The interface deep dive (morning)
 - [ ] Orb driven by real audio: mic level while listening, output level while speaking; light, rotation and grain per the brand
-- [ ] Caption word timing from the audio envelope (`shared/wordTiming.ts`), unit tested; unspoken words blurred
-- [ ] The stitch: underline on the saved fact, card appears in the sidebar, tick sound
+- [x] Caption word timing from the audio envelope (`shared/wordTiming.ts`), unit tested; unspoken words blurred
+- [x] The stitch: underline on the saved fact, card appears in the sidebar (tick sound comes with the cues in M4)
 - [ ] Memory cards with Edit and Forget; Forget everything
-- [ ] Tool chip with label and timing
+- [x] Tool chip with label and timing
 - [ ] Settings sheet: theme, interface language, voice per language (with preview)
 - [ ] Onboarding in the interface (pre-rendered greeting, Skip)
 - [ ] Recent chats and New chat

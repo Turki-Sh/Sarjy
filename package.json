@@ -22,7 +22,8 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "docs:reader": "node scripts/docs-reader/build.mjs",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node scripts/db-migrate.mjs"
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "vercel-build": "pnpm db:migrate && next build"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
