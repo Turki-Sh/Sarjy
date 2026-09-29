@@ -57,6 +57,23 @@ The brief asks us to go deep on one area. We go deep on two (the interface, and 
 | Guardrails and reliability | Baseline | Numbers only from tools, no secrets stored, prompt-injection hardening for memory, rate limits, graceful fallbacks for every provider |
 | Multistep workflows | Baseline | Onboarding is a small structured flow (name, home city, units) with state kept on the server, and recovery when you answer something else |
 | Something else: bilingual | **Deep** (part of the interface) | Arabic in, Arabic out, a native Saudi voice, a mirrored interface |
+| Something else: cost modeling | Baseline | Cost per turn in the details panel, and a cost model for 1,000 daily users in the write-up |
+
+The full, line-by-line check of the brief against this plan is in [06 · Brief coverage](06-BRIEF-COVERAGE.md).
+
+### 3.2 Why this is not a one-shot
+
+The rubric asks whether Sarjy is clearly different from what a frontier model would produce in one prompt. A one-shot voice app is typically browser speech recognition, a chat call and the browser's voice, in a generic chat layout. Sarjy differs in ways a reviewer can see and hear within a minute:
+
+| A one-shot has | Sarjy has | Shown in the demo by |
+|---|---|---|
+| A generic chat layout | A designed visual identity: the glass orb driven by real audio, the stitch for memory, sound cues, dark mode | Steps 1 to 4 |
+| The browser's robotic voice, English only | Groq Orpheus voices, including a native Saudi voice for Arabic, and a mirrored Arabic interface | Step 6 |
+| Captions that appear all at once | Words that sharpen as they are spoken, timed from the audio | Every answer |
+| Memory hidden in a prompt | Memory you can see, edit and forget, confirmed out loud, with "you told me on Sunday" | Steps 2, 5, 7 |
+| A tool call you have to trust | A tool chip with timing, and numbers that must come from the tool | Step 4 |
+| One user | Rooms across devices with private memory per person | Steps 9, 10 |
+| Nothing measured | A latency waterfall and a cost per turn | Step 8 |
 
 ## 4. What we hold to
 
@@ -123,6 +140,24 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 | U9 | Per-turn details: a latency waterfall (speech-to-text, model, tool, voice, time to first audio) | Should |
 | U10 | Responsive: below 900 px the sidebar becomes a sheet | Should |
 | U11 | Reduced motion and reduced transparency respected | Should |
+| U12 | Sarjy can see: drop, paste or photograph an image into the chat and ask about it by voice; it shows as a thumbnail in the transcript | Must |
+
+### Guardrails and reliability
+
+| ID | Feature | Priority |
+|---|---|---|
+| G1 | Numbers about the world only from tool results; a tool failure is said plainly with no invented figures | Must |
+| G2 | A written topic policy (harmful instructions, sexual content, hate, self-harm, and personalised medical, legal or financial advice). Out-of-policy requests get a short, kind refusal in Sarjy's voice; self-harm gets a pointer to real help | Must |
+| G3 | Jailbreak resistance: Sarjy stays Sarjy (no role-play personas, no revealing or changing its instructions), and memory or tool text is treated as data, not instructions | Must |
+| G4 | The policy is checked by a safety classifier running in parallel with the main model, so it adds no delay to allowed turns | Must |
+| G5 | A red-team suite of 25 prompts in English and Arabic, run in CI with fakes and against the live stack before submitting | Must |
+
+### Latency and cost
+
+| ID | Feature | Priority |
+|---|---|---|
+| L1 | A latency write-up: where the time goes, what we tried, what worked, what didn't, what we would do with another week | Must |
+| CM1 | Cost per turn in the details panel (model tokens, voice characters, times Groq's prices), and a monthly cost model for 1,000 daily users in the write-up | Should |
 
 ### Multiplayer
 
@@ -175,6 +210,7 @@ The brand book's speaking rules become the system prompt. In short: answer first
 | Memory recall across a reload | 100% of acceptance script | Acceptance tests AT-10 to AT-17 |
 | Multiplayer | Two browsers in one room stay in sync; no memory crosses between people | AT-90 to AT-97 |
 | Link preview | Correct card in WhatsApp, X, Slack and LinkedIn previews | AT-100 to AT-104 |
+| Guardrails | 25 of 25 red-team prompts handled; 0 false refusals on the demo script | AT-120 to AT-125 |
 | Invented numbers in tool answers | 0 | AT-31, AT-34, plus a numeric grounding check in tests |
 | Time to first audio, no tool | p50 under 2.0 s | Per-turn timings, logged and shown in the details panel |
 | Time to first audio, with weather | p50 under 3.0 s | Same |

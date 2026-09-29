@@ -6,7 +6,7 @@ The build, day by day. Each milestone ends with something you can open in a brow
 |---|---|
 | Start | Tuesday 29 Sep 2026 |
 | Submission | Friday 2 Oct, midday. The email allows four calendar days from Monday 28 Sep; confirm the exact cutoff with Sarj. |
-| Scope | Every Must in the [PRD](01-PRD.md): voice, memory, weather, the interface deep dive, multiplayer rooms, full metadata, and a baseline for every other deep-dive option |
+| Scope | Every Must in the [PRD](01-PRD.md): voice, memory, weather, the interface deep dive (including images), multiplayer rooms, guardrails, full metadata, and a baseline for every other deep-dive option. Line-by-line check: [06 · Brief coverage](06-BRIEF-COVERAGE.md) |
 | Order of work | De-risk first: skeleton and metadata on Day 1, real voice on Day 2, interface and multiplayer on Day 3, hardening on Friday morning |
 | Tooling | pnpm, Next.js 16, TypeScript strict, Vitest, Playwright |
 
@@ -76,6 +76,10 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] Model bake-off (`scripts/bakeoff.ts`): 20 prompts, English and Arabic; results in the README
 - [ ] Groq Orpheus: English and Saudi Arabic voices; first sentence alone, the rest as one request
 - [ ] Live Open-Meteo (geocoding in Arabic and English, forecast, 4 s timeout)
+- [ ] Guardrails: topic policy, `gpt-oss-safeguard-20b` check in parallel with the main model, persona lock in the prompt
+- [ ] Red-team suite (`scripts/redteam.ts`), 25 prompts, wired into CI with fakes
+- [ ] Image turns route to `qwen/qwen3.8-27b`
+- [ ] Cost per turn (`server/turn/cost.ts`) in the `done` event
 - [ ] Rate limits (per user, per IP) and input caps
 - [ ] Structured timing logs per turn
 
@@ -105,7 +109,8 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] Settings sheet: theme, interface language, voice per language (with preview)
 - [ ] Onboarding in the interface (pre-rendered greeting, Skip)
 - [ ] Recent chats and New chat
-- [ ] Details panel: latency waterfall per turn
+- [ ] Details panel: latency waterfall and cost per turn
+- [ ] Images: drop, paste or photograph; resized in the browser; thumbnail in the transcript
 - [ ] Below 900 px: sidebar becomes a sheet; reduced motion and reduced transparency
 
 ### M6 · Multiplayer rooms (afternoon and evening)
@@ -129,9 +134,13 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ### M7 · Harden and submit
 - [ ] Every Must in the acceptance tests passes; E2E green in CI
 - [ ] Record latency (p50 and p90 over 20 turns, with and without the weather tool) in the README
+- [ ] Latency write-up: where the time goes, what we tried, what worked, what didn't, next week
+- [ ] Cost model for 1,000 daily users in the write-up
+- [ ] Red-team suite run against the live stack; results in the README
+- [ ] Write-up sections: the API justification, why bilingual, the deep dives, why not telephony or MCP yet, what's next
 - [ ] Link previews checked in WhatsApp, X, Slack and LinkedIn
 - [ ] README: live URL, what it is, how to run, architecture summary, the API justification, the deep dives, what we would do next
-- [ ] Short Loom or PDF walkthrough
+- [ ] 3 to 5 minute Loom and a PDF of the docs reader, sent to Sarj at least a day before the meeting
 - [ ] Final check of secrets: gitleaks clean, client bundle clean, Vercel env only
 - [ ] `main` is the default branch and holds everything
 - [ ] Submit in Ashby: deployment URL and repository URL
@@ -149,16 +158,19 @@ If we fall behind, cut in this order, top first. Musts are never cut.
 1. Full mascot skin (A2)
 2. Faceless companion (A1)
 3. Prayer times tool (T5)
-4. Hands-free mode (V7)
-5. Details panel (U9)
-6. Host can end a room (MP8)
-7. Barge-in (V6)
-8. Live word preview (V5)
-9. Recent chats (U8)
+4. Cost per turn and cost model (CM1)
+5. Hands-free mode (V7)
+6. Details panel (U9)
+7. Host can end a room (MP8)
+8. Barge-in (V6)
+9. Live word preview (V5)
+10. Recent chats (U8)
 
 ## Communication
 
-The brief scores communication. One short note to Sarj at the end of each day: what shipped, what is next, any blocker. Day 1's note says the PRD and TDD are in the repo.
+The brief scores communication. One short note to Sarj at the end of each day: what shipped, what is next, any blocker, even if the day was quiet. Day 1's note says the PRD and TDD are in the repo.
+
+Ask Sarj, rather than working around it, when: a free-tier limit blocks testing (ask for a key), the deadline is at risk (say so early), or a scope question has no clear answer in the brief.
 
 ## Preparing to present
 
@@ -170,4 +182,5 @@ By Friday you should be able to explain, without notes:
 4. How captions stay in sync without word timestamps from the voice.
 5. How a room works, and why no one's memory can leak to someone else in it.
 6. Where the time goes, with measured numbers, and how the model was chosen.
-7. What you would do with another week.
+7. How the guardrails work without slowing allowed turns, and what the red-team suite showed.
+8. What you would do with another week.

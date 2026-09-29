@@ -17,6 +17,7 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 | 03 | [Implementation plan](docs/03-IMPLEMENTATION-PLAN.md) | The three-day build, milestone by milestone |
 | 04 | [Acceptance tests](docs/04-ACCEPTANCE-TESTS.md) | How we know it works, and the demo script |
 | 05 | [Deployment](docs/05-DEPLOYMENT.md) | How it ships, and how keys stay secret in a public repo |
+| 06 | [Brief coverage](docs/06-BRIEF-COVERAGE.md) | Every requirement in the brief, and how and where we meet it |
 | | [Brand](docs/brand/) | The brand book and visual identity: the design source of truth |
 
 Prefer a single styled page? Run `pnpm install && pnpm docs:reader` and open `docs/reader.html`.
