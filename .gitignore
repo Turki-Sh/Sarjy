@@ -49,3 +49,6 @@ docs/reader.html
 # Other package managers (this repo uses pnpm)
 package-lock.json
 yarn.lock
+
+# Local PGlite database (development only)
+.data/

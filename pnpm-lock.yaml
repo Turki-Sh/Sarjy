@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/groq':
         specifier: ^4.0.52
         version: 4.0.52(zod@4.6.5)
+      '@ai-sdk/provider':
+        specifier: ^4.0.19
+        version: 4.0.19
       '@electric-sql/pglite':
         specifier: ^0.5.8
         version: 0.5.8
