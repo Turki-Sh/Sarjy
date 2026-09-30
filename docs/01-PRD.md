@@ -180,6 +180,7 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | MP6 | Private memory in a shared room: Sarjy only uses the current speaker's memories, and never reveals one person's memories to another | Must |
 | MP7 | Late joiners see the room's transcript so far | Should |
 | MP8 | The host can end the room; the link stops working | Should |
+| MP10 | Sarjy by choice: in a Majlis people talk to each other, and Sarjy answers only when asked (the Everyone / Sarjy switch, or starting with its name). A turn to everyone costs only its speech to text (Turki, Day 3) | Must |
 | MP9 | Pictures in a Majlis are seen by everyone, so each is checked by a guard model first; one that fails is never shown (Turki, Day 3). At most 8 people, each in their own color; hands-free off; the finjan in the orb | Must |
 
 ### Presentation and metadata

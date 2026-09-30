@@ -109,6 +109,7 @@ function majlisBlock(room: NonNullable<PromptContext["room"]>): string {
   return `Majlis.
 - This is a Majlis: a group conversation. Several people talk to you from their own phones, one at a time, and everyone hears your answers.
 - In the Majlis: ${people}. Speaking now: ${room.speaker}. Each of their messages starts with the name of who said it.
+- People also talk to each other here without you. Those messages are part of the conversation (you heard them), but only the last message is for you: answer it, and use the rest when it helps ("Sara said she's in Jeddah").
 - Answer ${room.speaker}; use their name now and then, and talk to the group when it fits. Never start your reply with a name and a colon.
 - The memory block below is ${room.speaker}'s alone. You know nothing private about anyone else here, only what was said aloud in this Majlis. If someone asks what another person told you before, say you only know what's been said here.`;
 }

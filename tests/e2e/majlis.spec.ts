@@ -5,12 +5,17 @@ import { expect, test, type Browser, type Page } from "@playwright/test";
 // is never shown to the room. Acceptance tests AT-90 to AT-99d, and AT-102.
 
 const say = async (page: Page, text: string) => {
-  await page.getByRole("textbox", { name: "Type to Sarjy…" }).fill(text);
+  await page.getByRole("textbox", { name: /^(Type to Sarjy|Message everyone)…$/ }).fill(text);
   await page.keyboard.press("Enter");
 };
 /** The caption under the orb (not the screen-reader copy of it). */
 const caption = (page: Page) => page.locator("main section p[lang]");
 const screen = (page: Page) => page.locator("[data-state]").first();
+/** Asks Sarjy, with the switch over the text box (people talk to everyone by default). */
+const ask = async (page: Page, text: string) => {
+  await page.getByRole("radio", { name: "Sarjy" }).click();
+  await say(page, text);
+};
 const bar = (page: Page) => page.getByRole("group", { name: /Majlis/ });
 
 /** Turki opens a Majlis (after telling Sarjy his name and a private fact); Sara comes in by link. */
@@ -54,7 +59,16 @@ test("two people in one Majlis see every turn, each in their own color (AT-90, A
   await guest.route("**/api/turn", (route) =>
     route.continue({ headers: { ...route.request().headers(), "x-sarjy-fake-slow-voice": "2500" } }),
   );
-  await say(guest, "Hello from Sara");
+  // Said to everyone (the default): no Sarjy, no answer. Turki sees her words, in her color.
+  await say(guest, "Hi everyone, Sara here");
+  await expect(
+    host.locator("main section [data-seat]").filter({ hasText: "Hi everyone, Sara here" }),
+  ).toContainText("Sara", { timeout: 10_000 });
+  await expect(screen(guest)).toHaveAttribute("data-state", "idle");
+  await expect(screen(host)).toHaveAttribute("data-state", "idle");
+  await expect(host.locator("main section .glass").filter({ hasText: /Sarjy|weather/ })).toHaveCount(0);
+
+  await ask(guest, "Hello from Sara");
   // While Sarjy answers her, she sits beside the cup with her name over her, and the screen says so.
   await expect(host.locator("main section li[data-active]")).toContainText("Sara", { timeout: 10_000 });
   await expect(host.getByText("Sarjy is answering Sara")).toBeVisible();
@@ -90,7 +104,9 @@ test("two people in one Majlis see every turn, each in their own color (AT-90, A
 
   // The room's chat is in both Recents, as a Majlis.
   await expect(
-    guest.getByRole("complementary").getByRole("button", { name: "Majlis: Hello from Sara", exact: true }),
+    guest
+      .getByRole("complementary")
+      .getByRole("button", { name: "Majlis: Hi everyone, Sara here", exact: true }),
   ).toBeVisible({
     timeout: 10_000,
   });
@@ -99,14 +115,14 @@ test("two people in one Majlis see every turn, each in their own color (AT-90, A
 test("memory stays each person's own in a Majlis (AT-96, AT-97)", async ({ browser }) => {
   const { host, guest } = await twoInAMajlis(browser);
   // Sara asks for "her" favorite color: Turki's is never in her turn.
-  await say(guest, "What's my favorite color?");
+  await ask(guest, "What's my favorite color?");
   await expect(caption(guest)).toHaveText(/don't have/, { timeout: 10_000 });
   await expect(caption(host)).toHaveText(/don't have/, { timeout: 10_000 });
   await expect(screen(host)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
   await expect(screen(guest)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
 
   // Turki asks for his: Sarjy knows it, and Sara hears the answer (he asked aloud).
-  await say(host, "What's my favorite color?");
+  await ask(host, "What's my favorite color?");
   await expect(caption(host)).toHaveText("Green. You told me today.", { timeout: 10_000 });
   await expect(caption(guest)).toHaveText("Green. You told me today.", { timeout: 10_000 });
   // Sara's memory holds only what she gave at the door (her name); Turki's color never reached it.

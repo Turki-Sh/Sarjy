@@ -119,6 +119,11 @@
   --orb-size: min(140px, 18dvh);
 }
 
+/* In a Majlis the dock also holds the Talk to switch: the stage leaves it room. */
+.screen[data-majlis] .stage {
+  padding-block-end: 140px;
+}
+
 /* The orb and, in a Majlis, the people seated around it (they are placed from its middle). */
 .orbSeat {
   position: relative;

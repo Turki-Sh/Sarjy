@@ -276,3 +276,44 @@
     animation: none;
   }
 }
+
+/* Talk to: everyone, or Sarjy (TalkTo.tsx). A small switch over the text box. */
+.talkTo {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+}
+.target {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-block: 6px;
+  padding-inline: 11px 13px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-2);
+  font: 500 13px/1 var(--font-ui);
+  cursor: pointer;
+  transition:
+    background var(--t-base) var(--ease-rein),
+    color var(--t-base) var(--ease-rein);
+}
+.target:lang(ar),
+:lang(ar) .target {
+  font-family: var(--font-ar);
+}
+.target svg {
+  width: 15px;
+  height: 15px;
+}
+.target[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  text-shadow: none;
+}
+.target:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}

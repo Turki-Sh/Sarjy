@@ -9,8 +9,9 @@ export type TurnRequest = {
   image?: Blob;
   conversationId: string | null;
   lang: "en" | "ar";
-  /** The Majlis this is said in, if any. */
+  /** The Majlis this is said in, if any, and who it is for there. */
   room?: string;
+  to?: "room" | "sarjy";
   signal?: AbortSignal;
   /** Test hook: what the fake speech to text should "hear" (only honored with fake providers). */
   fakeTranscript?: string;
@@ -24,6 +25,7 @@ export async function sendTurn(req: TurnRequest, onEvent: (event: TurnEvent) => 
   if (req.conversationId) form.append("conversationId", req.conversationId);
   form.append("lang", req.lang);
   if (req.room) form.append("room", req.room);
+  if (req.room && req.to) form.append("to", req.to);
   form.append("tz", Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   const res = await fetch("/api/turn", {

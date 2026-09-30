@@ -1,6 +1,6 @@
 // POST /api/turn: one conversational turn (architecture, section 3).
 // In: multipart form with `audio` (a WAV) or `text`, plus `conversationId`, `lang`, `tz`, and
-// `room` (a Majlis code) when it is said in a Majlis.
+// `room` (a Majlis code) and `to` ("room" or "sarjy") when it is said in a Majlis.
 // Out: a stream of newline-delimited JSON events (src/shared/protocol.ts). In a Majlis the same
 // events also go to everyone else in the room (server/rooms/outlet.ts).
 
@@ -129,6 +129,8 @@ export async function POST(request: Request) {
       input: {
         conversationId: room.conversationId,
         people: members.map((m) => ({ id: m.id, name: spokenName(m), host: m.host })),
+        // Everyone, unless the switch says Sarjy (its name at the start asks it either way).
+        to: form.get("to") === "sarjy" ? "sarjy" : "room",
       },
       outlet: roomOutlet({
         db,

@@ -61,6 +61,8 @@ export type RoomLinkForVoice = {
   who: (id: string) => Speaker | undefined;
   /** You stopped listening without saying anything: give the mic back. */
   onRest: () => void;
+  /** Who your next turn is for: everyone, or Sarjy (the switch under the finjan). */
+  to: () => "room" | "sarjy";
 };
 
 /** How many earlier lines show above the caption. */
@@ -197,6 +199,8 @@ export function useSarjy(
   const [lines, setLines] = useState<ChatLine[]>([]);
   /** In a Majlis: whose turn is on screen (they asked; Sarjy is answering them), by user id. */
   const [asker, setAsker] = useState<string | null>(null);
+  /** In a Majlis: whose own recorded words are playing on this screen right now. */
+  const [voicing, setVoicing] = useState<string | null>(null);
   // At rest, or you talking: nobody's turn is on screen. One rule for every way a turn can end
   // (finished, stopped, interrupted by a tap), so a seat is never left beside the cup.
   if (asker && (state === "idle" || state === "listening")) setAsker(null);
@@ -295,6 +299,8 @@ export function useSarjy(
       switch (event.type) {
         case "transcript":
           t.lang = event.lang;
+          // Said to everyone, not to Sarjy: nothing is coming, so Sarjy rests (the words stay).
+          if (event.forRoom) dispatch({ type: "CANCEL" });
           setLines((l) => [
             ...l,
             { role: "user", text: event.text, lang: event.lang, image: t.image, speaker: t.speaker },
@@ -349,6 +355,8 @@ export function useSarjy(
         case "done":
           conversationId.current = event.conversationId;
           setActiveChatId(event.conversationId);
+          // A turn with no answer (said to everyone in a Majlis) is over as soon as it is kept.
+          if (!event.text && !t.received && turn.current === t) turn.current = null;
           if (event.text) setLines((l) => [...l, { role: "assistant", text: event.text, lang: t.lang }]);
           setTimings(event.timings);
           t.streamDone = true;
@@ -399,6 +407,7 @@ export function useSarjy(
             conversationId: conversationId.current,
             lang,
             room: room?.code,
+            to: room?.to(),
             signal: abort.current.signal,
           },
           (e) => turn.current === t && handle(e, t),
@@ -622,10 +631,20 @@ export function useSarjy(
         setFreshId(null);
         setChatNote(null);
         dispatch({ type: "CANCEL" });
-        dispatch({ type: "SEND" });
+        // Sarjy thinks only when it was asked; words said to everyone just play.
+        if (!(event.type === "transcript" && event.forRoom)) dispatch({ type: "SEND" });
       }
-      // Their own words first, in their own voice; Sarjy's answer queues up behind them.
-      if (event.type === "transcript" && event.voice) getPlayer().clip(event.voice);
+      // Their own words first, in their own voice; Sarjy's answer queues up behind them. Their
+      // seat lights up while their words play.
+      if (event.type === "transcript" && event.voice) {
+        const p = getPlayer();
+        void p.clip(event.voice).then((span) => {
+          if (!span) return;
+          const at = (seconds: number) => Math.max(0, (seconds - p.now()) * 1000);
+          window.setTimeout(() => setVoicing(speakerId), at(span.startAt));
+          window.setTimeout(() => setVoicing((v) => (v === speakerId ? null : v)), at(span.endAt));
+        });
+      }
       handle(event, t);
     },
     [closeEar, handle, lang],
@@ -890,6 +909,7 @@ export function useSarjy(
     refreshSession,
     whenReady,
     asker,
+    voicing,
   };
 }
 

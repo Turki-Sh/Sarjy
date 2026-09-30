@@ -138,6 +138,11 @@ type Strings = {
     guest: (seat: number) => string;
     holding: (name: string) => string;
     answering: (name: string) => string;
+    talkTo: string;
+    everyone: string;
+    sarjy: string;
+    tapToAsk: string;
+    typeEveryone: string;
     busy: (name: string) => string;
     tapToTalk: string;
     leave: string;
@@ -313,8 +318,13 @@ export const STRINGS: Record<Lang, Strings> = {
       guest: (seat) => `Guest ${seat + 1}`,
       holding: (name) => `${name} has the mic`,
       answering: (name) => `Sarjy is answering ${name}`,
+      talkTo: "Talk to",
+      everyone: "Everyone",
+      sarjy: "Sarjy",
+      tapToAsk: "Tap the finjan to ask Sarjy",
+      typeEveryone: "Message everyone…",
       busy: (name) => `${name} has the mic. Give them a sec.`,
-      tapToTalk: "Tap the finjan to talk",
+      tapToTalk: 'Tap to talk to everyone. Start with "Sarjy" to ask it.',
       leave: "Leave",
       end: "End for everyone",
       endConfirm: "End the Majlis for everyone?",
@@ -485,8 +495,13 @@ export const STRINGS: Record<Lang, Strings> = {
       guest: (seat) => `ضيف ${(seat + 1).toLocaleString("ar-SA")}`,
       holding: (name) => `المايك مع ${name}`,
       answering: (name) => `سرجي يرد على ${name}`,
+      talkTo: "تكلم مع",
+      everyone: "الكل",
+      sarjy: "سرجي",
+      tapToAsk: "اضغط الفنجال واسأل سرجي",
+      typeEveryone: "اكتب للكل…",
       busy: (name) => `المايك مع ${name}. لحظة لين يخلص.`,
-      tapToTalk: "اضغط الفنجال وتكلم",
+      tapToTalk: 'اضغط وتكلم مع الكل. ابدأ بـ"سرجي" عشان تسأله.',
       leave: "اطلع",
       end: "سكّر المجلس",
       endConfirm: "تسكّر المجلس على الكل؟",

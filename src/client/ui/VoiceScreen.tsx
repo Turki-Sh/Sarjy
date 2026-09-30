@@ -16,6 +16,7 @@ import { chatLines, useSarjy, type FetchedChat, type RoomLinkForVoice } from "..
 import { MajlisBar } from "./majlis/MajlisBar";
 import { MajlisDoor } from "./majlis/MajlisDoor";
 import { MajlisSeats } from "./majlis/MajlisSeats";
+import { TalkTo, type TalkTarget } from "./majlis/TalkTo";
 import { SavedCard } from "./SavedCard";
 import { Settings, type SettingsSection } from "./settings/Settings";
 import { Orb } from "./Orb";
@@ -86,8 +87,14 @@ export function VoiceScreen({
     [lang, majlis.members, me],
   );
   const inRoom = !!room && majlis.phase === "in" && !!me;
+  /** In a Majlis, who your next turn is for: everyone by default, Sarjy when you want its input. */
+  const [talkTo, setTalkTo] = useState<TalkTarget>("room");
+  const talkToRef = useRef(talkTo);
+  useEffect(() => {
+    talkToRef.current = talkTo;
+  }, [talkTo]);
   const roomLink: RoomLinkForVoice | null = inRoom
-    ? { code: room.code, me: me!, who: nameOf, onRest: majlis.dropFloor }
+    ? { code: room.code, me: me!, who: nameOf, onRest: majlis.dropFloor, to: () => talkToRef.current }
     : null;
   const sarjy = useSarjy(lang, { onBackupVoice: () => flash(s.voiceResting, 5000), room: roomLink });
   useEffect(() => {
@@ -304,7 +311,9 @@ export function VoiceScreen({
         room && inRoom && sarjy.state === "idle"
         ? holder
           ? s.majlis.holding(holder)
-          : s.majlis.tapToTalk
+          : talkTo === "sarjy"
+            ? s.majlis.tapToAsk
+            : s.majlis.tapToTalk
         : // Someone else's turn: say whose, so it's clear who Sarjy is talking to.
           room && sarjy.asker && sarjy.asker !== me && sarjy.state !== "listening"
           ? s.majlis.answering(nameOf(sarjy.asker)?.name ?? "…")
@@ -428,6 +437,7 @@ export function VoiceScreen({
                 me={me!}
                 floor={majlis.floor}
                 asker={sarjy.asker}
+                voicing={sarjy.voicing}
               />
             )}
           </div>
@@ -467,9 +477,10 @@ export function VoiceScreen({
         </section>
 
         <div className={styles.dock} hidden={!!room && !inRoom}>
+          {inRoom && <TalkTo lang={lang} value={talkTo} onChange={setTalkTo} />}
           <TextComposer
             inputRef={composer}
-            placeholder={s.typePlaceholder}
+            placeholder={inRoom && talkTo === "room" ? s.majlis.typeEveryone : s.typePlaceholder}
             sendLabel={s.send}
             onSend={(text) => void sarjy.send({ text })}
             picture={sarjy.picture}

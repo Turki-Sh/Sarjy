@@ -141,6 +141,44 @@ export async function saveTurn(
   return assistant!.id;
 }
 
+/**
+ * In a Majlis: something said to everyone, not to Sarjy. Kept as a message with no answer, so the
+ * chat reads right afterwards and Sarjy knows it when someone asks later.
+ */
+export async function saveRoomMessage(
+  db: Db,
+  input: {
+    conversationId: string;
+    speakerId: string;
+    lang: "en" | "ar";
+    text: string;
+    picture?: { bytes: Uint8Array; mediaType: string } | null;
+  },
+): Promise<string> {
+  const [message] = await db
+    .insert(messages)
+    .values({
+      conversationId: input.conversationId,
+      speakerId: input.speakerId,
+      role: "user",
+      text: input.text,
+      lang: input.lang,
+    })
+    .returning({ id: messages.id });
+  if (input.picture) {
+    await db.insert(pictures).values({
+      messageId: message!.id,
+      mediaType: input.picture.mediaType,
+      bytes: Buffer.from(input.picture.bytes),
+    });
+  }
+  await db
+    .update(conversations)
+    .set({ updatedAt: new Date() })
+    .where(eq(conversations.id, input.conversationId));
+  return message!.id;
+}
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";

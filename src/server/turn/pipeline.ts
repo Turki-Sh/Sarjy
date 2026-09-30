@@ -17,8 +17,10 @@ import {
   picturesOf,
   recentMessages,
   roomConversation,
+  saveRoomMessage,
   saveTurn,
 } from "../chat/repo";
+import { addressesSarjy } from "./address";
 import type { Db } from "../db/client";
 import { users, type User } from "../db/schema";
 import { listMemories } from "../memory/repo";
@@ -46,7 +48,12 @@ export type TurnInput = {
    * In a Majlis: the room's conversation, and everyone in it by the name they go by (the speaker
    * is `user`). Memory stays the speaker's own: nobody else's is ever loaded.
    */
-  room?: { conversationId: string; people: { id: string; name: string; host: boolean }[] };
+  room?: {
+    conversationId: string;
+    people: { id: string; name: string; host: boolean }[];
+    /** Who this turn is for: everyone in the room, or Sarjy (the switch under the finjan). */
+    to: "room" | "sarjy";
+  };
 };
 
 const SAY: Record<"not_understood" | "model_unavailable" | "internal", Record<Lang, string>> = {
@@ -127,6 +134,41 @@ export async function runTurn(
   if (!heard && input.image) heard = LOOK[input.uiLang];
   if (!heard) {
     emit({ type: "error", code: "not_understood", say: SAY.not_understood[input.uiLang] });
+    return;
+  }
+  // In a Majlis, people talk to each other and Sarjy answers only when asked (Turki, Day 3): by
+  // the switch, or by its name at the start. Said to everyone, the turn ends here: it is kept in
+  // the chat (so Sarjy knows it when asked later) and nothing else runs, no model, no voice, no
+  // memory. Speech to text is its only cost.
+  if (input.room && input.room.to === "room" && !addressesSarjy(heard)) {
+    emit({ type: "transcript", text: heard, lang, ms: since(), forRoom: true });
+    const image = input.image ? new Uint8Array(await input.image.arrayBuffer()) : null;
+    await roomConversation(db, input.room.conversationId, heard);
+    const messageId = await saveRoomMessage(db, {
+      conversationId: input.room.conversationId,
+      speakerId: input.user.id,
+      lang,
+      text: heard,
+      picture: image ? { bytes: image, mediaType: input.image?.type || "image/jpeg" } : null,
+    });
+    const audioSeconds = input.audio ? wavSeconds(input.audio.size) : 0;
+    emit({
+      type: "done",
+      messageId,
+      conversationId: input.room.conversationId,
+      text: "",
+      timings: {
+        ...(timings as Record<string, number>),
+        totalMs: since(),
+        costUsd: turnCost({
+          model: "",
+          inputTokens: 0,
+          outputTokens: 0,
+          audioSeconds,
+          voiced: { en: 0, ar: 0 },
+        }),
+      },
+    });
     return;
   }
   emit({ type: "transcript", text: heard, lang, ms: since() });

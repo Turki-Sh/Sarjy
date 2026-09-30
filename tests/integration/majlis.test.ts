@@ -31,7 +31,7 @@ async function person(name: string | null) {
 }
 
 /** One typed turn said in the room; returns the speaker's own events and what the room heard. */
-async function say(room: RoomRow, userId: string, text: string) {
+async function say(room: RoomRow, userId: string, text: string, to: "room" | "sarjy" = "sarjy") {
   const [user] = await db.select().from(users).where(eq(users.id, userId));
   const heard: RoomEvent[] = [];
   const stop = listenLocal(room.code, "listener", (e) => heard.push(RoomEvent.parse(e)));
@@ -49,6 +49,7 @@ async function say(room: RoomRow, userId: string, text: string) {
       room: {
         conversationId: room.conversationId,
         people: members.map((m) => ({ id: m.id, name: spokenName(m), host: m.host })),
+        to,
       },
     },
     { db, providers: getProviders() },
@@ -192,6 +193,31 @@ describe("a Majlis", () => {
     const turns = heard.flatMap((e) => (e.type === "turn" ? [e.event] : []));
     expect(turns).toEqual([
       { type: "transcript", text: "Hello", lang: "en", ms: 300, voice: `/api/rooms/${room.code}/media/clip` },
+    ]);
+  });
+
+  it("keeps what is said to everyone without asking Sarjy, and Sarjy knows it when asked (AT-99g)", async () => {
+    const host = await person("Turki");
+    const sara = await person("Sara");
+    const room = await createRoom(db, host);
+    await joinRoom(db, room, sara);
+
+    const chat = await say(room, sara, "My favorite color is blue, everyone.", "room");
+    // Only the words and the end: no model, no voice, no memory.
+    expect(chat.own.map((e) => e.type)).toEqual(["transcript", "done"]);
+    expect(chat.own[0]).toMatchObject({ forRoom: true });
+    expect(chat.said).toBe("");
+    expect(chat.turns.map((t) => t.event.type)).toEqual(["transcript", "done"]);
+
+    // Starting with Sarjy's name asks it, whatever the switch says.
+    const asked = await say(room, host, "Sarjy, hello", "room");
+    expect(asked.own.some((e) => e.type === "segment")).toBe(true);
+
+    const saved = await getConversation(db, host, room.conversationId);
+    expect(saved?.messages.map((m) => [m.role, m.text])).toEqual([
+      ["user", "My favorite color is blue, everyone."],
+      ["user", "Sarjy, hello"],
+      ["assistant", asked.said],
     ]);
   });
 });

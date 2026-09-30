@@ -110,8 +110,9 @@ export class Player {
   /**
    * In a Majlis: someone's own recorded words, played in turn like a segment (so Sarjy's answer
    * follows it), but never part of Sarjy's caption. A clip that can't be fetched is skipped.
+   * Resolves with when it plays, on the player's clock (null if it doesn't).
    */
-  clip(url: string): void {
+  clip(url: string): Promise<{ startAt: number; endAt: number } | null> {
     this.unlock();
     this.pending++;
     const generation = this.generation;
@@ -121,12 +122,15 @@ export class Player {
     const run = this.chain
       .then(async () => {
         const wav = await fetched;
-        if (!wav || generation !== this.generation) return;
+        if (!wav || generation !== this.generation) return null;
         const audio = await this.ctx!.decodeAudioData(wav);
-        if (generation === this.generation) this.start(audio);
+        if (generation !== this.generation) return null;
+        const startAt = this.start(audio);
+        return { startAt, endAt: startAt + audio.duration };
       })
       .finally(() => this.pending--);
     this.chain = run.catch(() => {});
+    return run.catch(() => null);
   }
 
   /** Starts decoded audio when everything before it has played. Returns when it starts, on the clock. */

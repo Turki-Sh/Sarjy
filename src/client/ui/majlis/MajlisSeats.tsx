@@ -22,19 +22,22 @@ type Props = {
   floor: string | null;
   /** Whose turn Sarjy is on: they asked, it answers. */
   asker: string | null;
+  /** Whose own recorded words are playing here now: they are talking, to this screen. */
+  voicing: string | null;
 };
 
-export function MajlisSeats({ lang, members, online, me, floor, asker }: Props) {
+export function MajlisSeats({ lang, members, online, me, floor, asker, voicing }: Props) {
   const s = t(lang).majlis;
   const rtl = lang === "ar";
-  const active = floor ?? asker;
+  const talking = voicing ?? floor;
+  const active = talking ?? asker;
   const nameOf = (m: Member) => (m.id === me ? s.you : (m.name ?? s.guest(m.seat)));
 
   return (
     <ul className={styles.seats} aria-label={s.people}>
       {members.map((m, i) => {
         const here = m.id === me || online.includes(m.id);
-        const mode = m.id === floor ? "talking" : m.id === active ? "asked" : undefined;
+        const mode = m.id === talking ? "talking" : m.id === active ? "asked" : undefined;
         const label = mode === "talking" ? s.holding(nameOf(m)) : nameOf(m);
         return (
           <li
