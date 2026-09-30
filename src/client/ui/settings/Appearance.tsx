@@ -1,8 +1,18 @@
 // Settings, Appearance: System, Light or Dark, each shown as a tiny picture of the voice screen
 // drawn in that scheme (the .scheme-light and .scheme-dark token classes), not a sun and a moon.
 
+import { useRef, useState } from "react";
 import { t, type Lang } from "@/shared/i18n";
 import { GLASS_STOPS, MAX_GLASS, type ThemeChoice } from "@/shared/preferences";
+import {
+  OWN_WALLPAPER_MAX_BYTES,
+  WALLPAPERS,
+  wallpaperThumb,
+  wallpaperUrl,
+  type WallpaperChoice,
+} from "@/shared/wallpapers";
+import { Icon } from "../Icon";
+import { shrinkWallpaper } from "./shrinkImage";
 import styles from "./Settings.module.css";
 
 type Props = {
@@ -12,6 +22,10 @@ type Props = {
   /** Liquid glass, 0 (solid) to 100 (clear) to 150 (pure). */
   glass: number;
   onGlass: (glass: number) => void;
+  wallpaper: WallpaperChoice;
+  ownWallpaper: number | null;
+  onWallpaper: (choice: WallpaperChoice) => void;
+  onUploadWallpaper: (picture: Blob) => Promise<boolean>;
 };
 
 /** The index of the stop nearest a glass level, for its name. */
@@ -40,7 +54,8 @@ function Mini({ scheme }: { scheme: "light" | "dark" }) {
   );
 }
 
-export function Appearance({ lang, choice, onChoice, glass, onGlass }: Props) {
+export function Appearance(props: Props) {
+  const { lang, choice, onChoice, glass, onGlass } = props;
   const s = t(lang).settings;
   // The device asks for less transparency and you haven't chosen yet: say why Sarjy looks solid.
   const deviceAsksSolid =
@@ -120,6 +135,94 @@ export function Appearance({ lang, choice, onChoice, glass, onGlass }: Props) {
             ))}
           </div>
         </div>
+      </div>
+      <Background {...props} />
+    </div>
+  );
+}
+
+/** The background: the light field, one of the rugs, your own picture, or a new upload. */
+function Background({ lang, wallpaper, ownWallpaper, onWallpaper, onUploadWallpaper }: Props) {
+  const s = t(lang).settings;
+  const file = useRef<HTMLInputElement>(null);
+  const [problem, setProblem] = useState(false);
+  const own = ownWallpaper !== null ? (`own-${ownWallpaper}` as const) : null;
+
+  const upload = async (picked: File | undefined) => {
+    if (!picked) return;
+    const picture = await shrinkWallpaper(picked, OWN_WALLPAPER_MAX_BYTES);
+    const ok = !!picture && (await onUploadWallpaper(picture));
+    setProblem(!ok);
+  };
+
+  return (
+    <div className={`${styles.row} ${styles.stack}`}>
+      <div>
+        <span className={styles.label} id="settings-background">
+          {s.background}
+        </span>
+        <p className={styles.hint} role={problem ? "alert" : undefined}>
+          {problem ? s.backgroundBad : s.backgroundHint}
+        </p>
+      </div>
+      <div className={styles.walls} role="radiogroup" aria-labelledby="settings-background">
+        <button
+          type="button"
+          role="radio"
+          aria-checked={wallpaper === "none"}
+          aria-label={s.backgroundLight}
+          title={s.backgroundLight}
+          className={`${styles.wall} ${styles.wallLight}`}
+          onClick={() => onWallpaper("none")}
+        />
+        {WALLPAPERS.map((w) => (
+          <button
+            key={w.id}
+            type="button"
+            role="radio"
+            aria-checked={wallpaper === w.id}
+            aria-label={w.name[lang]}
+            title={w.name[lang]}
+            className={styles.wall}
+            onClick={() => onWallpaper(w.id)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- a small fixed-size thumbnail */}
+            <img src={wallpaperThumb(w.id)} alt="" width={120} height={80} />
+          </button>
+        ))}
+        {own && (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={wallpaper === own}
+            aria-label={s.backgroundYours}
+            title={s.backgroundYours}
+            className={styles.wall}
+            onClick={() => onWallpaper(own)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- your own picture, served by the app */}
+            <img src={wallpaperUrl(own)!} alt="" width={120} height={80} />
+          </button>
+        )}
+        <button
+          type="button"
+          className={`${styles.wall} ${styles.uploadTile}`}
+          aria-label={s.backgroundUpload}
+          title={s.backgroundUpload}
+          onClick={() => file.current?.click()}
+        >
+          <Icon name="upload" />
+        </button>
+        <input
+          ref={file}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            void upload(e.target.files?.[0]);
+            e.target.value = ""; // choosing the same file again still triggers a change
+          }}
+        />
       </div>
     </div>
   );

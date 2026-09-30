@@ -43,6 +43,13 @@
       "when": 1790730622450,
       "tag": "0005_mute_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790735937958,
+      "tag": "0006_certain_tana_nile",
+      "breakpoints": true
     }
   ]
 }

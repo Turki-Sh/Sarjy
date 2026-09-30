@@ -92,6 +92,9 @@
    as an outline, not as glass.) */
 .glass::after,
 .glass-panel::after {
+  /* The lit corner is at the reading start: left in English, right in Arabic. */
+  --rim-from: 0%;
+  --rim-to: 100%;
   content: "";
   position: absolute;
   inset: 0;
@@ -100,12 +103,12 @@
   pointer-events: none;
   background:
     radial-gradient(
-      140px 90px at 0% 0%,
+      140px 90px at var(--rim-from) 0%,
       color-mix(in srgb, var(--white) var(--rim), transparent),
       transparent 70%
     ),
     radial-gradient(
-      110px 70px at 100% 100%,
+      110px 70px at var(--rim-to) 100%,
       color-mix(in srgb, var(--white) calc(var(--rim) * 0.55), transparent),
       transparent 70%
     ),
@@ -122,10 +125,13 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
 }
+/* The light comes from the reading start, so it mirrors in Arabic. Only the light moves: flipping
+   the whole ring (it was scaleX(-1)) also flipped its corner shapes, and on a bubble, whose tail
+   corner is smaller than the others, the ring then stuck out past two corners (Turki's review, Day 2). */
 :dir(rtl) .glass::after,
 :dir(rtl) .glass-panel::after {
-  /* The light comes from the reading start, so it mirrors in Arabic. */
-  transform: scaleX(-1);
+  --rim-from: 100%;
+  --rim-to: 0%;
 }
 .glass > * {
   position: relative;
@@ -138,8 +144,12 @@
     transparent
   );
   color: var(--text);
-  /* At Pure there is no tint behind the words, so a soft halo in the page color keeps them clear. */
-  text-shadow: 0 0 calc(var(--pure) * 4px) color-mix(in srgb, var(--bg) calc(var(--pure) * 60%), transparent);
+  /* At Pure there is no tint behind the words, so a soft halo in the page color keeps them clear;
+     over a wallpaper, the stronger one in VoiceScreen.module.css (--wall-halo). */
+  text-shadow: var(
+    --wall-halo,
+    0 0 calc(var(--pure) * 4px) color-mix(in srgb, var(--bg) calc(var(--pure) * 60%), transparent)
+  );
 }
 
 /* Surfaces you read: solid at 0, turning to glass as --liquid rises. */

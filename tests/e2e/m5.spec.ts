@@ -160,3 +160,34 @@ test("on a short window, bubbles are never cut and the whole chat stays above th
     })
     .toBe(true);
 });
+
+// Arabic interface, English words (Turki's review, Day 2: something stuck out past the corners of
+// Sarjy's bubbles). Bubbles keep the page's direction, so the tail corner is on their own side, and
+// the rim light is mirrored by moving it, not by flipping its shape.
+test("in Arabic, every bubble's corners and rim match its side, whatever language it holds", async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([{ name: "sarjy_lang", value: "ar", url: "http://localhost:3100" }]);
+  await page.goto("/");
+  for (const t of ["My favorite color is green.", "What's my favorite color?"]) {
+    await page.getByRole("textbox").fill(t);
+    await page.keyboard.press("Enter");
+    await idle(page);
+  }
+  const bubbles = page.locator("main section ol li");
+  await expect(bubbles.last()).toBeVisible();
+  for (const li of await bubbles.all()) {
+    const look = await li.evaluate((el) => ({
+      direction: getComputedStyle(el).direction,
+      rim: getComputedStyle(el, "::after").transform,
+      words: getComputedStyle(el.querySelector("span")!).direction,
+    }));
+    expect(look.direction).toBe("rtl");
+    expect(look.words).toBe("ltr"); // English words still read left to right
+    expect(look.rim).toBe("none");
+  }
+  // Sarjy's bubble sits at the reading start (the right) with its small tail corner there.
+  const sarjy = page.locator("main section ol li.glass").last();
+  expect(await sarjy.evaluate((el) => getComputedStyle(el).borderBottomRightRadius)).toBe("6px");
+});

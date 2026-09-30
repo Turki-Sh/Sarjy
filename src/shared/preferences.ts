@@ -16,6 +16,7 @@ export const COOKIE = {
   lang: "sarjy_lang",
   sidebar: "sarjy_sidebar",
   glass: "sarjy_glass",
+  wallpaper: "sarjy_wallpaper",
 } as const;
 
 /**

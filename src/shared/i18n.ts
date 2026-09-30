@@ -93,6 +93,13 @@ type Strings = {
     glassHint: string;
     glassStops: [string, string, string, string, string];
     glassSystem: string;
+    /** Settings, Appearance, Background (Turki's direction, Day 2). */
+    background: string;
+    backgroundHint: string;
+    backgroundLight: string;
+    backgroundYours: string;
+    backgroundUpload: string;
+    backgroundBad: string;
     system: string;
     light: string;
     dark: string;
@@ -232,6 +239,12 @@ export const STRINGS: Record<Lang, Strings> = {
       glassStops: ["Solid", "Frosted", "Liquid", "Clear", "Pure"],
       glassSystem:
         "Your device asks for less transparency (on Windows: Transparency effects is off), so Sarjy started Solid. Move the slider to choose for yourself.",
+      background: "Background",
+      backgroundHint: "The glow, a rug, or your own picture. Pure glass shows it best.",
+      backgroundLight: "Glow",
+      backgroundYours: "Your picture",
+      backgroundUpload: "Upload a wallpaper",
+      backgroundBad: "That picture couldn't be used. Try a JPEG or PNG.",
       system: "System",
       light: "Light",
       dark: "Dark",
@@ -368,6 +381,12 @@ export const STRINGS: Record<Lang, Strings> = {
       glassStops: ["سادة", "مصنفر", "سائل", "شفاف", "صافي"],
       glassSystem:
         "جهازك طالب شفافية أقل (في ويندوز: تأثيرات الشفافية مقفلة)، عشان كذا بدأ سرجي سادة. حرّك المؤشر واختر بنفسك.",
+      background: "الخلفية",
+      backgroundHint: "الوهج، أو سجادة، أو صورتك. الزجاج الصافي يبينها أحلى شي.",
+      backgroundLight: "الوهج",
+      backgroundYours: "صورتك",
+      backgroundUpload: "ارفع خلفية",
+      backgroundBad: "ما قدرت أستخدم هالصورة. جرب JPEG أو PNG.",
       system: "حسب الجهاز",
       light: "فاتح",
       dark: "داكن",

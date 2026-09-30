@@ -244,6 +244,11 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ### Pure glass (Turki's direction, Day 2)
 - [x] The Glass slider goes past Clear to Pure: every level up to Clear looks as before, and from Clear to Pure the tint and frosting fade to nothing, the sheen thins, the edge light brightens and the bend grows, until only the edges draw each surface (like Apple's camera mode pill). Words on pure glass keep a soft halo in the page color; Settings stays readable because the page behind it blurs more. Stops sit under their real points (Solid, Frosted, Liquid, Clear, Pure)
 
+### Wallpapers, a clear Pure, Arabic bubble corners (Turki's direction, Day 2)
+- [x] Settings, Appearance, Background: the glow (the light field, as before), three rugs Turki chose (Crimson, Midnight, Sunlit; `public/wallpapers`, with thumbnails), or your own picture (shrunk in the browser to 2560 px, stored in its own `wallpapers` table, served only to you at a versioned address, deleted by Forget everything). The choice is a cookie, so the first paint is right. Over a picture, a light veil and a halo around words keep them readable
+- [x] At Pure the page behind Settings is neither blurred nor dimmed: pure means clear. Its words carry a halo instead
+- [x] In Arabic, the rim light stuck out past two corners of Sarjy's bubbles: the ring was mirrored by flipping it, which also flipped its corner shapes. Now only the light moves. An English line in the Arabic interface also had its tail corner on the wrong side: bubbles keep the page's direction, and only the words run in their own
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

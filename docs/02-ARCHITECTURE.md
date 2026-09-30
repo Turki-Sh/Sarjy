@@ -412,7 +412,7 @@ Three layers, each cheap, each tested.
 - **Fonts**: `next/font/google` self-hosts Figtree, Newsreader, IBM Plex Sans Arabic, Noto Naskh Arabic and JetBrains Mono, mapped to the brand's font tokens.
 - **Logo**: the SVG paths from the brand files, as React components with `fill="currentColor"`, colored by `--mark`. Never retyped in a font.
 - **The orb**: DOM and SVG, following the visual identity's reference build: a blurred conic light (Saffron, Coral, Dusk), a glass sphere, and the wave path. Per frame, `useSarjy` writes three CSS variables (`--glow`, `--rot`, `--lvl`) and the wave's `d` attribute. No React re-render per frame.
-- **Liquid glass, with a dial** (Turki's direction, Day 2, replacing the brand book's fixed "glass vs solid" rule): Settings, Appearance, Glass sets one number, `--liquid`, from Solid (0, the original look: frosted floating pieces, solid panels, a plain page) to Clear (1), and on to Pure (1.5; slider 150): past Clear the tint and frosting fade to nothing, the sheen thins, and the edge light and the bend grow, until only the edges draw each surface. Levels up to Clear are unchanged; `--lq` is the 0 to 1 part and `--pure` the Clear to Pure part. `styles/glass.css` derives everything from it: the tint that stays, the frosting (strongest in the middle, like Apple's regular glass, thin at Clear), saturation, a specular rim and inner glow, the depth shadow, and a slow light field of Saffron, Coral and Dusk behind the interface so the glass has something to bend. Floating pieces (`.glass`) are glass at every level; surfaces you read (`.glass-panel`: the sidebar, which lifts off the edge into a floating sheet, settings, the text box) are solid at 0 and turn to glass as it rises. Refraction, the backdrop wavering through an SVG displacement filter whose strength follows the dial, is drawn where the browser supports SVG filters in `backdrop-filter` (Chromium); elsewhere the same glass renders without the warp. "Reduce transparency" and "Increase contrast" start at Solid until you choose a level yourself (a cookie marks the choice, and it wins). Words on glass keep more tint, so they stay readable at Clear.
+- **Liquid glass, with a dial** (Turki's direction, Day 2, replacing the brand book's fixed "glass vs solid" rule): Settings, Appearance, Glass sets one number, `--liquid`, from Solid (0, the original look: frosted floating pieces, solid panels, a plain page) to Clear (1), and on to Pure (1.5; slider 150): past Clear the tint and frosting fade to nothing, the sheen thins, and the edge light and the bend grow, until only the edges draw each surface. Levels up to Clear are unchanged; `--lq` is the 0 to 1 part and `--pure` the Clear to Pure part. Behind the glass is the light field, or a wallpaper (Settings, Appearance, Background): one of three rugs in `public/wallpapers`, or your own picture, stored in the `wallpapers` table (one per user, apart from `users` so a user loads without it) and served by `GET /api/wallpaper?v={version}` to its owner only. The choice lives in the `sarjy_wallpaper` cookie (`none`, a rug id, or `own-{version}`), read on the server for the first paint. `styles/glass.css` derives everything from it: the tint that stays, the frosting (strongest in the middle, like Apple's regular glass, thin at Clear), saturation, a specular rim and inner glow, the depth shadow, and a slow light field of Saffron, Coral and Dusk behind the interface so the glass has something to bend. Floating pieces (`.glass`) are glass at every level; surfaces you read (`.glass-panel`: the sidebar, which lifts off the edge into a floating sheet, settings, the text box) are solid at 0 and turn to glass as it rises. Refraction, the backdrop wavering through an SVG displacement filter whose strength follows the dial, is drawn where the browser supports SVG filters in `backdrop-filter` (Chromium); elsewhere the same glass renders without the warp. "Reduce transparency" and "Increase contrast" start at Solid until you choose a level yourself (a cookie marks the choice, and it wins). Words on glass keep more tint, so they stay readable at Clear.
 
 ## 13. Multiplayer: the Majlis
 
@@ -516,6 +516,7 @@ erDiagram
   users ||--o{ conversations : has
   conversations ||--o{ messages : contains
   messages ||--o| pictures : "sent with"
+  users ||--o| wallpapers : "has"
   conversations ||--o| rooms : "shared as"
   rooms ||--o{ room_members : has
   rooms ||--o{ room_segments : "keeps audio for 1 h"
@@ -556,6 +557,12 @@ erDiagram
     jsonb tools
     jsonb timings
     timestamptz created_at
+  }
+  wallpapers {
+    uuid user_id PK
+    text media_type
+    bytea bytes
+    timestamptz updated_at
   }
   pictures {
     uuid id PK

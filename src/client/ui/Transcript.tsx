@@ -95,8 +95,10 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
               <li
                 key={`${earlier.length - i}:${line.text.slice(0, 24)}`}
                 className={`${styles.bubble} ${line.role === "assistant" ? `${styles.sarjy} glass text` : styles.user}`}
+                // The bubble keeps the interface's direction, so its tail corner and its side match
+                // the page; only the words run in their own direction (below). With the direction on
+                // the bubble, an English line in Arabic had its tail on the wrong side (Day 2).
                 lang={line.lang}
-                dir={line.lang === "ar" ? "rtl" : "ltr"}
                 // The newest earlier line is the clearest; older ones fade.
                 data-age={whole ? undefined : earlier.length - 1 - i}
               >
@@ -104,7 +106,9 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
                   // eslint-disable-next-line @next/next/no-img-element -- a local object URL
                   <img className={styles.picture} src={line.image} alt="" />
                 )}
-                <span className={styles.words}>{line.text}</span>
+                <span className={styles.words} dir={line.lang === "ar" ? "rtl" : "ltr"}>
+                  {line.text}
+                </span>
               </li>
             ))}
           </ol>

@@ -38,3 +38,33 @@ export async function shrinkImage(file: File): Promise<string | null> {
   if (!url.startsWith("data:image/webp")) url = canvas.toDataURL("image/jpeg", 0.85);
   return url.length <= UPLOAD.maxChars ? url : canvas.toDataURL("image/jpeg", 0.6);
 }
+
+/** A wallpaper's longest side: sharp on a large screen, still a few hundred KB as JPEG. */
+const WALLPAPER_LONGEST = 2560;
+
+/**
+ * Your own wallpaper, scaled down to at most 2560 px on its longest side, as a JPEG; null if the
+ * file can't be read. Only the result is uploaded.
+ */
+export async function shrinkWallpaper(file: File, maxBytes: number): Promise<Blob | null> {
+  if (!file.type.startsWith("image/") || file.size > MAX_FILE_BYTES) return null;
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return null;
+  }
+  const scale = Math.min(1, WALLPAPER_LONGEST / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const encode = (quality: number) =>
+    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+  const first = await encode(0.82);
+  return first && first.size > maxBytes ? encode(0.6) : first;
+}

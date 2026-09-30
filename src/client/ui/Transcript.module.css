@@ -183,6 +183,10 @@
 .earlier .bubble {
   font-size: 14px;
 }
+/* The words run in their own direction inside the bubble, as a block so they align to their own start. */
+.words {
+  display: block;
+}
 .earlier:not([data-whole]) .words {
   display: -webkit-box;
   -webkit-box-orient: vertical;

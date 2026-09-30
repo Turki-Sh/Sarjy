@@ -12,6 +12,40 @@
   position: relative;
   z-index: 1;
 }
+/* Your wallpaper (Settings, Appearance), behind everything like the light field it replaces. A
+   light veil in the page color keeps the words that sit straight on it (the line under the orb,
+   your own bubbles) easy to read; the glass above shows the picture through. */
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center;
+}
+.wallpaper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 26%, transparent);
+}
+:root[data-theme="dark"] .wallpaper::after {
+  background: color-mix(in srgb, var(--bg) 40%, transparent);
+}
+/* A picture is busier than the glow, so words over it get a halo in the page color, the way clear
+   glass stays readable over a photo. Tight layers make a clean edge around each letter rather than
+   a fog; glass text and Settings use the same (--wall-halo). */
+.screen[data-wall] {
+  --wall-halo:
+    0 0 1px var(--bg), 0 0 2px var(--bg), 0 0 5px color-mix(in srgb, var(--bg) 80%, transparent),
+    0 0 12px color-mix(in srgb, var(--bg) 55%, transparent);
+}
+.screen[data-wall] > aside,
+.screen[data-wall] > main {
+  text-shadow: var(--wall-halo);
+}
+
 .screen[data-sidebar="closed"] {
   grid-template-columns: minmax(0, 1fr);
 }

@@ -114,6 +114,19 @@ export const pictures = pgTable(
 );
 
 /**
+ * Your own wallpaper (Settings, Appearance). One per user, kept apart from `users` so loading a
+ * user never loads the picture (300 to 600 KB). Deleting the user deletes it.
+ */
+export const wallpapers = pgTable("wallpapers", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  mediaType: text("media_type").notNull(),
+  bytes: bytes("bytes").notNull(),
+  updatedAt,
+});
+
+/**
  * A shared moment: one exchange the user chose to share, copied at the time of sharing.
  * Link-only (random code, noindex). Deleting the user deletes their shares.
  */

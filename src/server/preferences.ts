@@ -1,6 +1,7 @@
 import "server-only";
 
-// Reads the visitor's theme and interface language for the first render (cookies, then Accept-Language).
+// Reads the visitor's theme, interface language, glass and background for the first render
+// (cookies, then Accept-Language).
 
 import { cookies, headers } from "next/headers";
 import {
@@ -12,6 +13,7 @@ import {
   readTheme,
   readThemeChoice,
 } from "@/shared/preferences";
+import { readWallpaper } from "@/shared/wallpapers";
 
 export async function readPreferences() {
   const jar = await cookies();
@@ -23,5 +25,6 @@ export async function readPreferences() {
   const glass = readGlass(jar.get(COOKIE.glass)?.value);
   /** You chose a glass level yourself: it wins over the device's "reduce transparency". */
   const glassSet = jar.has(COOKIE.glass);
-  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass, glassSet };
+  const wallpaper = readWallpaper(jar.get(COOKIE.wallpaper)?.value);
+  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass, glassSet, wallpaper };
 }

@@ -50,6 +50,8 @@ export type Profile = {
   avatarImage: string | null;
   /** Sarjy's voice in each language. */
   voices: Record<Lang, string>;
+  /** The version of your own wallpaper, if you uploaded one. */
+  wallpaper: number | null;
 };
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
@@ -672,6 +674,15 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
     await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ image }) });
   }, []);
 
+  /** Your own wallpaper (already shrunk in the browser). Returns its version, or null if refused. */
+  const uploadWallpaper = useCallback(async (picture: Blob): Promise<number | null> => {
+    const res = await fetch("/api/wallpaper", { method: "PUT", body: picture });
+    if (!res.ok) return null;
+    const { version } = (await res.json()) as { version: number };
+    setProfile((p) => (p ? { ...p, wallpaper: version } : p));
+    return version;
+  }, []);
+
   /** Your name, on the profile and as the `name` memory. */
   const setName = useCallback(
     async (name: string) => {
@@ -709,6 +720,7 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
     openChat,
     setAvatar,
     uploadAvatar,
+    uploadWallpaper,
     setVoice,
     skipIntro,
     lines,

@@ -4,7 +4,7 @@ import { VoiceScreen } from "@/client/ui/VoiceScreen";
 import { readPreferences } from "@/server/preferences";
 
 export default async function Home() {
-  const { lang, langChoice, themeChoice, sidebarOpen, glass } = await readPreferences();
+  const { lang, langChoice, themeChoice, sidebarOpen, glass, wallpaper } = await readPreferences();
   return (
     <VoiceScreen
       initialLang={lang}
@@ -12,6 +12,7 @@ export default async function Home() {
       initialThemeChoice={themeChoice}
       initialSidebarOpen={sidebarOpen}
       initialGlass={glass}
+      initialWallpaper={wallpaper}
     />
   );
 }

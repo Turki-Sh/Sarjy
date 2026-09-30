@@ -92,3 +92,56 @@ test("memory lives in Settings: the sidebar has one row that opens it, and the s
   await side.getByRole("button", { name: /Memory/ }).click();
   await expect(settings(page).getByRole("heading", { name: "Memory" })).toBeVisible();
 });
+
+// Settings, Appearance, Background (Turki's direction, Day 2): the light field, a rug, or your own
+// picture, remembered, and your own served only to you.
+test("pick a rug or your own picture as the background, and keep it", async ({ page, browser }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Appearance", exact: true }).click();
+  const layer = page.locator("[data-wallpaper]");
+  await expect(layer).toHaveCount(0); // the light field by default
+
+  await page.getByRole("radio", { name: "Crimson" }).click();
+  await expect(layer).toHaveAttribute("data-wallpaper", "crimson");
+  await expect(layer).toHaveCSS("background-image", /\/wallpapers\/crimson\.jpg/);
+  await page.reload();
+  await expect(layer).toHaveAttribute("data-wallpaper", "crimson");
+
+  // Your own: shrunk in the browser, uploaded, chosen, and a new choice in the picker.
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Appearance", exact: true }).click();
+  await page.getByRole("dialog").locator('input[type="file"]').setInputFiles("public/wallpapers/sunlit.jpg");
+  await expect(layer).toHaveAttribute("data-wallpaper", /^own-\d+$/);
+  await expect(page.getByRole("radio", { name: "Your picture" })).toHaveAttribute("aria-checked", "true");
+  const url = (await layer.getAttribute("style"))!.match(/url\("([^"]+)"\)/)![1]!;
+  const mine = await page.request.get(url);
+  expect(mine.status()).toBe(200);
+  expect(mine.headers()["content-type"]).toBe("image/jpeg");
+
+  // Someone else (another browser, another anonymous user) gets nothing.
+  const stranger = await browser.newContext();
+  expect((await stranger.request.get(new URL(url, page.url()).toString())).status()).toBe(404);
+  await stranger.close();
+
+  // Back to the glow.
+  await page.getByRole("radio", { name: "Glow" }).click();
+  await expect(layer).toHaveCount(0);
+  await expect(page.locator(".ambient")).toHaveCount(1);
+});
+
+test("at Pure, the page behind Settings is not frosted or dimmed", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Appearance", exact: true }).click();
+  const backdrop = () =>
+    page.locator("dialog").evaluate((d) => {
+      const b = getComputedStyle(d, "::backdrop");
+      return { filter: b.backdropFilter, background: b.backgroundColor };
+    });
+  expect((await backdrop()).filter).not.toBe("blur(0px)");
+  await page.getByRole("dialog").getByText("Pure", { exact: true }).click();
+  const pure = await backdrop();
+  expect(pure.filter).toBe("blur(0px)");
+  expect(pure.background).toMatch(/[,/] 0\)$|transparent/); // alpha 0, in whichever notation
+});

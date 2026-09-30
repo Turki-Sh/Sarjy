@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { avatarUrl } from "@/shared/avatars";
 import { dir, t, type Lang } from "@/shared/i18n";
 import { COOKIE, refractScale, type LangChoice, type ThemeChoice } from "@/shared/preferences";
+import { wallpaperUrl, type WallpaperChoice } from "@/shared/wallpapers";
 import { useSarjy } from "../voice/useSarjy";
 import { SavedCard } from "./SavedCard";
 import { Settings, type SettingsSection } from "./settings/Settings";
@@ -30,6 +31,7 @@ type Props = {
   initialThemeChoice: ThemeChoice;
   initialSidebarOpen: boolean;
   initialGlass: number;
+  initialWallpaper: WallpaperChoice;
 };
 
 /** The language "Auto detect" resolves to: the browser's own. */
@@ -41,8 +43,10 @@ export function VoiceScreen({
   initialThemeChoice,
   initialSidebarOpen,
   initialGlass,
+  initialWallpaper,
 }: Props) {
   const [glass, setGlass] = useState(initialGlass);
+  const [wallpaper, setWallpaper] = useState(initialWallpaper);
   const [lang, setLang] = useState(initialLang);
   const [langChoice, setLangChoice] = useState(initialLangChoice);
   const [themeChoice, setThemeChoice] = useState(initialThemeChoice);
@@ -130,6 +134,20 @@ export function VoiceScreen({
     setGlass(level);
   };
 
+  /** The background: the light field, a rug, or your own picture. Shown at once, and remembered. */
+  const chooseWallpaper = (choice: WallpaperChoice) => {
+    rememberChoice(COOKIE.wallpaper, choice);
+    setWallpaper(choice);
+  };
+  /** Your own wallpaper: uploaded, then chosen. False if it couldn't be used. */
+  const uploadWallpaper = async (picture: Blob) => {
+    const version = await sarjy.uploadWallpaper(picture);
+    if (version === null) return false;
+    chooseWallpaper(`own-${version}`);
+    return true;
+  };
+  const wallpaperSrc = wallpaperUrl(wallpaper);
+
   /** A picture from the button, a paste or a drop: shrunk and held for the next turn. */
   const attach = async (file: File) => {
     if (!(await sarjy.attachPicture(file))) flash(s.picture.bad);
@@ -175,13 +193,24 @@ export function VoiceScreen({
       data-state={sarjy.state}
       data-sidebar={sidebarOpen ? "open" : "closed"}
       data-sheet={sheet ? "open" : undefined}
+      data-wall={wallpaperSrc ? "on" : undefined}
     >
-      {/* The light behind the glass: invisible at Solid, a slow drifting field at Clear. */}
-      <div className="ambient" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </div>
+      {/* Behind the glass: your wallpaper, or the light field (invisible at Solid, a slow drifting
+          field at Clear). */}
+      {wallpaperSrc ? (
+        <div
+          className={styles.wallpaper}
+          data-wallpaper={wallpaper}
+          style={{ backgroundImage: `url("${wallpaperSrc}")` }}
+          aria-hidden="true"
+        />
+      ) : (
+        <div className="ambient" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </div>
+      )}
       {sheet && <div className={styles.scrim} aria-hidden="true" onClick={() => setSheet(false)} />}
       {(sidebarOpen || sheet) && (
         <Sidebar
@@ -292,6 +321,10 @@ export function VoiceScreen({
           themeChoice={themeChoice}
           glass={glass}
           onGlass={chooseGlass}
+          wallpaper={wallpaper}
+          ownWallpaper={sarjy.profile?.wallpaper ?? null}
+          onWallpaper={chooseWallpaper}
+          onUploadWallpaper={uploadWallpaper}
           name={sarjy.profile?.name ?? null}
           avatar={sarjy.profile?.avatar ?? null}
           avatarImage={sarjy.profile?.avatarImage ?? null}

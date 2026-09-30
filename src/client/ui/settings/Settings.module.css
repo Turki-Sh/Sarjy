@@ -12,11 +12,16 @@
   overflow: visible;
 }
 .dialog::backdrop {
-  background: color-mix(in srgb, var(--scrim) calc((1 - var(--lq) * 0.55) * 100%), transparent);
-  /* Toward Pure the panel itself turns fully clear, so the page behind softens more instead
-     (like what's behind iOS's Control Center), keeping settings easy to read. */
-  -webkit-backdrop-filter: blur(calc(3px + var(--pure) * 16px));
-  backdrop-filter: blur(calc(3px + var(--pure) * 16px));
+  /* The page behind dims and softens a little, less as glass clears, and not at all at Pure: pure
+     glass means the page shows through as it is (Turki's review, Day 2: "it should be completely
+     clear"). The words in the panel carry a small halo there instead (.panel below). */
+  background: color-mix(
+    in srgb,
+    var(--scrim) calc((1 - var(--lq) * 0.55 - var(--pure) * 0.45) * 100%),
+    transparent
+  );
+  -webkit-backdrop-filter: blur(calc(3px * (1 - var(--pure))));
+  backdrop-filter: blur(calc(3px * (1 - var(--pure))));
 }
 .dialog[open] {
   animation: pop var(--t-base) var(--ease-rein) both;
@@ -29,6 +34,12 @@
 }
 
 .panel {
+  /* At Pure the panel is clear: a halo in the page color keeps its words readable, the stronger
+     one over a wallpaper (--wall-halo, VoiceScreen.module.css). */
+  text-shadow: var(
+    --wall-halo,
+    0 0 calc(var(--pure) * 4px) color-mix(in srgb, var(--bg) calc(var(--pure) * 70%), transparent)
+  );
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
   height: 100%;
@@ -459,6 +470,42 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+/* Backgrounds: small landscape tiles, the chosen one ringed like the profile pictures. */
+.walls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.wall {
+  width: 96px;
+  height: 64px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--sunken);
+}
+.wall[aria-checked="true"] {
+  border-color: var(--accent);
+}
+.wall:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.wall img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* The light field, drawn small with the same three lights. */
+.wallLight {
+  background:
+    radial-gradient(circle at 25% 20%, var(--light-a), transparent 60%),
+    radial-gradient(circle at 85% 90%, var(--light-b), transparent 60%),
+    radial-gradient(circle at 5% 80%, var(--light-c), transparent 55%), var(--bg);
 }
 .uploadTile {
   display: grid;

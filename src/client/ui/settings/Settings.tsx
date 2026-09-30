@@ -12,6 +12,7 @@ import type { LangChoice, ThemeChoice } from "@/shared/preferences";
 import type { Memory } from "@/shared/protocol";
 import { Icon } from "../Icon";
 import type { IconName } from "@/shared/brand/icons";
+import type { WallpaperChoice } from "@/shared/wallpapers";
 import { Appearance } from "./Appearance";
 import { General } from "./General";
 import { MemoryList } from "./MemoryList";
@@ -38,6 +39,12 @@ type Props = {
   themeChoice: ThemeChoice;
   glass: number;
   onGlass: (glass: number) => void;
+  wallpaper: WallpaperChoice;
+  /** The version of your own wallpaper, if you uploaded one. */
+  ownWallpaper: number | null;
+  onWallpaper: (choice: WallpaperChoice) => void;
+  /** Uploads your own wallpaper (already shrunk); false if it couldn't be used. */
+  onUploadWallpaper: (picture: Blob) => Promise<boolean>;
   name: string | null;
   avatar: AvatarChoice | null;
   avatarImage: string | null;
@@ -135,6 +142,10 @@ export function Settings(props: Props) {
               onChoice={props.onThemeChoice}
               glass={props.glass}
               onGlass={props.onGlass}
+              wallpaper={props.wallpaper}
+              ownWallpaper={props.ownWallpaper}
+              onWallpaper={props.onWallpaper}
+              onUploadWallpaper={props.onUploadWallpaper}
             />
           )}
           {open && section === "voice" && <Voice lang={lang} voices={props.voices} onVoice={props.onVoice} />}

@@ -11,13 +11,19 @@ import { users } from "@/server/db/schema";
 import { currentUser, json } from "@/server/http";
 import { listMemories } from "@/server/memory/repo";
 import { SESSION_COOKIE } from "@/server/session";
+import { wallpaperVersion } from "@/server/wallpaper/repo";
+import { COOKIE } from "@/shared/preferences";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { lang?: string };
   const { db, user } = await currentUser(body.lang === "ar" ? "ar" : "en");
-  const [memories, chats] = await Promise.all([listMemories(db, user.id), listConversations(db, user.id)]);
+  const [memories, chats, wallpaper] = await Promise.all([
+    listMemories(db, user.id),
+    listConversations(db, user.id),
+    wallpaperVersion(db, user.id),
+  ]);
   return json({
     user: {
       id: user.id,
@@ -26,6 +32,8 @@ export async function POST(request: Request) {
       avatar: avatarFor(user.id, user.avatar, user.avatarImage),
       avatarImage: user.avatar === "upload" ? user.avatarImage : null,
       voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
+      /** The version of your own wallpaper, if you uploaded one (Settings shows it as a choice). */
+      wallpaper,
     },
     memories,
     chats,
@@ -35,6 +43,9 @@ export async function POST(request: Request) {
 export async function DELETE() {
   const { db, user } = await currentUser();
   await db.delete(users).where(eq(users.id, user.id));
-  (await cookies()).delete(SESSION_COOKIE);
+  const jar = await cookies();
+  jar.delete(SESSION_COOKIE);
+  // Your own wallpaper went with you; the background falls back to the light field.
+  if (jar.get(COOKIE.wallpaper)?.value.startsWith("own-")) jar.delete(COOKIE.wallpaper);
   return json({ ok: true });
 }
