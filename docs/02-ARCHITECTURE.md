@@ -346,6 +346,7 @@ Each external capability sits behind a small interface in `server/providers/type
 ```ts
 interface SpeechToText { transcribe(audio: Blob, hint?: Lang): Promise<{ text: string; lang: Lang }> }
 interface TextToSpeech { synthesize(text: string, lang: Lang, voice: string): Promise<ArrayBuffer> }
+interface WebSearch { search(question: string, ctx: { now; timeZone; lang }): Promise<WebAnswer | null> }
 // The model is a Vercel AI SDK LanguageModel, so it can be swapped by changing one line.
 ```
 
@@ -355,6 +356,8 @@ interface TextToSpeech { synthesize(text: string, lang: Lang, voice: string): Pr
 | Language model | Groq `openai/gpt-oss-120b` with low reasoning effort; then `qwen/qwen3.8-27b` (thinking off), then `openai/gpt-oss-20b`, on rate limits or errors | About 500 tokens a second, the most reliable tool calling on Groq, cheapest per token. Each model on Groq has its own per-minute token quota, so a chain of three rides out a burst that one model would not (measured on Day 2: the free tier allows 8,000 tokens a minute on the main model, about four turns) |
 | Text to speech | Groq `canopylabs/orpheus-v1-english` and `canopylabs/orpheus-arabic-saudi` | The brand requires a native Saudi voice for Arabic, never an English voice reading Arabic |
 | Weather | Open-Meteo forecast and geocoding | Free, no key, global, structured |
+| Web search | Groq `openai/gpt-oss-20b` with Groq's built-in `browser_search` (then `openai/gpt-oss-120b`), told today's date and your time zone, reporting in English | Turki's call (Day 2): "an extra second is better than a no". Behind a `WebSearch` interface with a fake. About 3 to 5 seconds and about one US cent a search ($5 to $8 per 1,000 searches, plus about 10,000 tokens it reads); see "Looking things up" in section 9 |
+| Memory writer | Groq `openai/gpt-oss-20b`, then `openai/gpt-oss-120b` | Short structured job, own per-minute quota (section 6) |
 | Seeing images | Groq `qwen/qwen3.8-27b` | Accepts images; the main model does not |
 | Safety check | Groq `openai/gpt-oss-safeguard-20b` | Follows a policy we write, over 1,000 tokens a second, explains its decision for the logs |
 
@@ -371,9 +374,22 @@ The model goes through the Vercel AI SDK (`streamText` with tools and a step lim
 | `get_weather({ location?, day? })` | `weather.forecast("Riyadh", "tomorrow")` | Geocodes the place (in Arabic or English), fetches the forecast, returns rounded numbers in your units. If `location` is missing it uses your `home_city` memory; if that is missing it returns `no_location`, and the model asks. |
 | `forget({ key })` | `memory.forget(key: "home_city")` | Deletes it |
 | `search_chats({ query, when })` | `chats.search("game")` | Finds earlier exchanges in your other chats (section 6) |
+| `search_web({ query })` | `web.search("Al Hilal latest match result September 2026")` | Looks it up on the web (below) |
 | `get_prayer_times({ city, day })` (Could) | `prayer.times("Riyadh", "today")` | Aladhan API, Umm al-Qura method |
 
 Tool results are compact JSON with only the fields the model may quote. Numbers are rounded before the model sees them, so it cannot say "41.3 °C".
+
+## 9b. Looking things up on the web
+
+Sarjy used to say "I can't browse the web". Turki's call (Day 2): an extra second is better than a no.
+
+1. The answering model calls `search_web({ query })` for anything current or specific it isn't sure of (news, results, prices, schedules, opening hours, people), never for the weather (`get_weather`) or timeless common knowledge. For anything recent, it puts the month and year in the query: without it, "latest" results varied by months between searches.
+2. The moment the search starts, Sarjy says "One sec, looking it up." ("لحظة، أشوف لك."), so the seconds it takes are never silent: the first sound comes in about 1.5 to 2 seconds. (Not "Let me check": the filter that keeps a model's leaked planning from being spoken drops that phrase.) This line doesn't count as having started the answer, so a fallback model can still take over.
+3. `server/providers/groq/web.ts` asks `openai/gpt-oss-20b`, with Groq's built-in `browser_search`, to search and reply in English in two to four plain sentences, given today's date and the user's time zone (without them it reported a February 2025 match as the latest in September 2026). English because the small searcher garbled names writing Arabic. `openai/gpt-oss-20b` was chosen over `openai/gpt-oss-120b` after a side by side: the same answer in about half the time and tokens. The 120b is the fallback; its citation marks ("【1†L2】") are removed.
+4. The answering model speaks from the result: only what it says, in the user's language, keeping every name, score and result exactly (an Arabic answer once reversed who won). A failed search is owned: "I couldn't look that up right now. Want me to try again?"
+5. The chip shows `web.search("...")` with its timing; the search's cost (per search plus the tokens it read) is part of the turn's cost. A web answer is not a fact about the user, so nothing is remembered from it.
+
+On Groq's free tier a search reads about 10,000 tokens, more than the 8,000 a minute `gpt-oss-20b` allows, so a second search within a minute falls back to `gpt-oss-120b`. The Dev tier removes this.
 
 ## 9a. Images in the chat
 

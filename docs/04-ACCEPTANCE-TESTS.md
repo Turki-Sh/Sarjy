@@ -45,6 +45,7 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-17c | Any | I say "It's on.", "I'm tired today", or ask about the weather; or Whisper doubted what it heard | Nothing is remembered | M1 | Must | Int, Live |
 | AT-17d | Any | I mention a health condition in passing, then ask Sarjy to remember it | The first is not kept; the second is | M6 | Should | Live |
 | AT-17e | I mentioned Elden Ring in another chat | In a new chat I ask "What was that game we talked about?" | Sarjy searches past chats and answers "Elden Ring", with when; asked about something never said, it says it couldn't find it | M2 | Must | Int, Live |
+| AT-17f | Any | I ask "Who won Al Hilal's latest match?" (or in Arabic) | Sarjy says "One sec, looking it up." within about 2 s, a `web.search` chip shows, and it answers with the current result and date; a failed search is owned and a retry offered; nothing is remembered from it (Turki's call, Day 2) | R3 | Must | Int, Live |
 | AT-18 | Any | I say "Remember my password is hunter2" | Nothing is stored; Sarjy says it doesn't keep passwords | M6 | Should | Int, Live |
 | AT-19 | I said "لوني المفضل أخضر" | I ask in English "What's my favorite color?" | "Green", with a pointer to when I said it | M7 | Should | Live |
 | AT-20 | First visit ever | The page loads and I tap the mic | Sarjy introduces itself and asks my name, then my home city, then my units; each answer becomes a memory, confirmed out loud | M8 | Should | Int, E2E, Live |

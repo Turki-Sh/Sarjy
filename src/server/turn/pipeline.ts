@@ -15,14 +15,15 @@ import { openConversation, pictureBytes, picturesOf, recentMessages, saveTurn } 
 import type { Db } from "../db/client";
 import { users, type User } from "../db/schema";
 import { listMemories } from "../memory/repo";
-import type { Lang, Providers } from "../providers/types";
+import type { Lang, Providers, WebAnswer } from "../providers/types";
 import { chatSearchTool } from "../tools/chats";
+import { webSearchTool } from "../tools/web";
 import { forgetTool } from "../tools/memory";
 import { applyWrites, planWrites } from "../memory/writer";
 import { weatherTool, type Units } from "../tools/weather";
 import { isStep, nextStep } from "./onboarding";
 import { buildSystemPrompt } from "./prompt";
-import { turnCost, wavSeconds } from "./cost";
+import { SEARCH_USD, turnCost, wavSeconds } from "./cost";
 import { SpeechChunker, tidy } from "./sentences";
 
 export type TurnInput = {
@@ -47,6 +48,10 @@ const SAY: Record<"not_understood" | "model_unavailable" | "internal", Record<La
 
 /** How an earlier picture appears to a model that can't see it, or once a newer one is in view. */
 const PICTURE_NOTE = "(A picture was sent with this message. Your reply after it says what was in it.)";
+
+/** Said the moment a web search starts, so the few seconds it takes are never silent. */
+// (Not "Let me check.": the filter that keeps a model's leaked planning from being spoken drops it.)
+const CHECKING: Record<Lang, string> = { en: "One sec, looking it up.", ar: "لحظة، أشوف لك." };
 
 /** What a picture sent without words is taken to ask. */
 const LOOK: Record<Lang, string> = { en: "What's in this picture?", ar: "وش في هالصورة؟" };
@@ -163,6 +168,10 @@ export async function runTurn(
   const toolLog: { name: string; label: string; ok: boolean; ms: number }[] = [];
   const toolStarts = new Map<string, { label: string; at: number }>();
   const forgottenKeys: string[] = [];
+  /** Whether "Let me check." was said: it doesn't count as having started the answer. */
+  let saidChecking = false;
+  /** What each web search took, for the turn's cost. */
+  const webUsage: WebAnswer[] = [];
   let toolCounter = 0;
   const onStart = (label: string) => {
     const id = `tool-${++toolCounter}`;
@@ -194,6 +203,23 @@ export async function runTurn(
       onForgotten: (id, key) => {
         forgottenKeys.push(key);
         emit({ type: "memory_forgotten", id, key });
+      },
+      onStart,
+      onEnd,
+    }),
+    search_web: webSearchTool({
+      web: providers.web,
+      now: new Date(),
+      timeZone: input.timeZone,
+      lang,
+      signal,
+      onUsage: (found) => webUsage.push(found),
+      // A search takes a few seconds: rather than silence, Sarjy says it's checking, unless it
+      // has already said something this turn.
+      onSearching: () => {
+        if (segmentIndex > 0) return;
+        speak(CHECKING[lang]);
+        saidChecking = true;
       },
       onStart,
       onEnd,
@@ -290,7 +316,7 @@ export async function runTurn(
       timings.model = id;
       break;
     } catch {
-      if (segmentIndex > 0 || signal?.aborted) break;
+      if (segmentIndex > (saidChecking ? 1 : 0) || signal?.aborted) break;
     }
   }
   if (signal?.aborted) return;
@@ -378,7 +404,20 @@ export async function runTurn(
           audioSeconds: 0,
           voiced: { en: 0, ar: 0 },
         })
-      : 0);
+      : 0) +
+    webUsage.reduce(
+      (sum, w) =>
+        sum +
+        w.searches * SEARCH_USD +
+        turnCost({
+          model: w.model,
+          inputTokens: w.inputTokens,
+          outputTokens: w.outputTokens,
+          audioSeconds: 0,
+          voiced: { en: 0, ar: 0 },
+        }),
+      0,
+    );
   emit({
     type: "done",
     messageId,

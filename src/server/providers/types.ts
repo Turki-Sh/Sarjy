@@ -1,6 +1,6 @@
 import "server-only";
 
-// The three external capabilities, behind small interfaces (architecture, section 8).
+// The external capabilities, behind small interfaces (architecture, section 8).
 // `fake` implementations make every test and all offline work independent of network and quota.
 
 import type { LanguageModel } from "ai";
@@ -10,6 +10,26 @@ export type Lang = "en" | "ar";
 export interface SpeechToText {
   /** Audio in, text and detected language out. `hint` is the interface language. */
   transcribe(audio: Blob, hint: Lang): Promise<{ text: string; lang: Lang; unsure?: boolean }>;
+}
+
+/** What a web search found, as a few plain sentences, and what it took. */
+export type WebAnswer = {
+  answer: string;
+  /** The sites it read, as domains ("arabnews.com"). */
+  sources: string[];
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  /** How many searches it ran (each is billed). */
+  searches: number;
+};
+
+export interface WebSearch {
+  /** Looks something up on the web and answers briefly (live: in English); null when it can't. */
+  search(
+    question: string,
+    ctx: { now: Date; timeZone: string; lang: Lang; signal?: AbortSignal },
+  ): Promise<WebAnswer | null>;
 }
 
 export interface TextToSpeech {
@@ -36,5 +56,7 @@ export type Providers = {
   models: Models;
   /** The models that decide what to remember after each turn (server/memory/writer.ts), best first. */
   writer: Models;
+  /** Looking things up on the web (the search_web tool). */
+  web: WebSearch;
   fetch: Fetch;
 };

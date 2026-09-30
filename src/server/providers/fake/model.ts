@@ -89,6 +89,11 @@ function firstReply(user: string, system: string): Reply {
   const forget = user.match(/forget (?:my )?([^.!?]+)|انسَ? ([^.،!؟]+)/i);
   if (forget) return { tool: { name: "forget", input: { key: clean(forget[1] ?? forget[2] ?? "") } } };
 
+  // Something current: look it up on the web.
+  if (/who won|latest|news|price of|look up|search the web|ابحث|مين فاز|آخر (أخبار|مباراة)/i.test(user)) {
+    return { tool: { name: "search_web", input: { query: clean(user) } } };
+  }
+
   // A question about an earlier chat: look it up.
   if (/what did we talk about|we talked about|we were talking about|وش سولفنا|تكلمنا عن/i.test(user)) {
     const when = /yesterday|أمس|امس/i.test(user) ? "yesterday" : /today|اليوم/i.test(user) ? "today" : "any";
@@ -185,6 +190,13 @@ function afterTool(name: string, output: Record<string, unknown>, ar: boolean): 
     return ar
       ? `${day} ${condition}، والعظمى ${toArabicDigits(String(high))} في ${place}.`
       : `${cap(condition)} and a high of ${high} ${day} in ${place}.`;
+  }
+  if (name === "search_web") {
+    if (output.error)
+      return ar
+        ? "ما قدرت أدور عليها الحين. أجرب مرة ثانية؟"
+        : "I couldn't look that up right now. Want me to try again?";
+    return String(output.answer);
   }
   if (name === "search_chats") {
     const chats = (output.chats ?? []) as { when: string; lines: string[] }[];

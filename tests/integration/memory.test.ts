@@ -135,3 +135,29 @@ describe("searching past chats", () => {
     expect(none.said).toBe("I couldn't find that in our chats.");
   });
 });
+
+describe("searching the web", () => {
+  it("looks it up instead of saying no, with a chip, and counts what it cost", async () => {
+    const id = await newUser();
+    const found = await turn(id, "Who won Al Hilal's latest match?");
+    const chip = found.events.find((e) => e.type === "tool_start");
+    expect(chip?.type === "tool_start" && chip.label).toMatch(/^web\.search\(/);
+    expect(found.said).toBe("Al Hilal beat Al Taawoun 6-0 on 12 September 2026.");
+    // The search takes seconds, so the first thing heard is that Sarjy is checking.
+    const spoken = found.events.flatMap((e) => (e.type === "segment" ? [e.text] : []));
+    expect(spoken[0]).toBe("One sec, looking it up.");
+    const done = found.events.find((e) => e.type === "done");
+    // The stand-in search is billed like a real one: one search.
+    expect(done?.type === "done" && done.timings.costUsd).toBeGreaterThanOrEqual(0.008);
+    // A web answer is not a fact about the user: nothing is remembered.
+    expect(found.saved).toHaveLength(0);
+  });
+
+  it("owns a failed search and offers to try again", async () => {
+    const id = await newUser();
+    const failed = await turn(id, "What's the latest news on the unreachable island?");
+    expect(failed.said).toBe("I couldn't look that up right now. Want me to try again?");
+    const end = failed.events.find((e) => e.type === "tool_end");
+    expect(end?.type === "tool_end" && end.ok).toBe(false);
+  });
+});

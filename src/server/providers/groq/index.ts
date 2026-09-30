@@ -10,6 +10,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { DEFAULT_VOICE } from "@/shared/voices";
 import { fixWavHeader } from "@/shared/wav";
 import type { Lang, Providers, SpeechToText, TextToSpeech } from "../types";
+import { groqWeb } from "./web";
 
 const API = "https://api.groq.com/openai/v1";
 
@@ -123,6 +124,7 @@ export function createGroqProviders(
     // The small model first: deciding what to remember is a short, structured job, and it has its
     // own per-minute quota, so it never takes tokens from the answer.
     writer: [GROQ_MODELS.reserve, GROQ_MODELS.main].map((id) => ({ id, model: groq(id) })),
+    web: groqWeb(apiKey),
     fetch: (url, init) => fetch(url, init),
   };
 }

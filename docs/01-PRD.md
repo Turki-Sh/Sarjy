@@ -37,7 +37,7 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 |---|---|---|
 | R1 | Listens and responds by voice | Mic in the browser, automatic end-of-speech detection, Groq Whisper for speech-to-text, Groq Orpheus for the voice (English and Saudi Arabic). |
 | R2 | Remembers facts and preferences across sessions | Memories stored in Postgres per user, loaded into every turn, visible as stitched cards you can edit and forget. |
-| R3 | Calls at least one external API, justified | Weather through Open-Meteo, using the remembered home city and units. Justification in section 7. |
+| R3 | Calls at least one external API, justified | Weather through Open-Meteo, using the remembered home city and units; and the web, through Groq's browser search, for anything current (Turki's call, Day 2). Justification in section 7. |
 | R4 | Deployed URL, no special setup | Vercel production URL. No login: a signed cookie identifies the browser. Text input works without a mic. |
 | D1 | Deep dive: UI/UX and multimodal | The orb driven by real audio, captions that sharpen word by word as Sarjy speaks, tool chips with timings, the memory stitch, sound cues, dark mode, and full Arabic with a mirrored layout. |
 | D2 | Multiplayer: the conversation available to several participants at once | Rooms: share a link, everyone sees the same orb and captions live and hears Sarjy, one person holds the mic at a time, and each person's memory stays their own. |

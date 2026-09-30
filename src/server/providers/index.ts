@@ -6,6 +6,7 @@ import { env } from "../env";
 import { fakeFetch } from "./fake/fetch";
 import { createFakeModel } from "./fake/model";
 import { createFakeStt, createFakeTts } from "./fake/speech";
+import { createFakeWeb } from "./fake/web";
 import { createGroqProviders } from "./groq";
 import type { Providers } from "./types";
 
@@ -31,6 +32,7 @@ export function getProviders(
       { id: "fake-fallback", model: createFakeModel("fake-fallback"), vision: true },
     ],
     writer: [{ id: "fake-writer", model: createFakeModel("fake-writer") }],
+    web: createFakeWeb(),
     fetch: fakeFetch,
   };
 }

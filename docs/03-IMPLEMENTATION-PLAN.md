@@ -258,6 +258,9 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [x] "You told me" dates from the last change; each memory shows the words it came from
 - [x] `scripts/eval/memory.mjs`: a live eval of what is kept, what is left out, updates, forgetting and search, in English and Arabic. First live run: 16 of 18. Fixed from it: notes written in the wrong language, formal Arabic instead of Saudi dialect, health kept in passing but not when asked, the writer trusting Sarjy's reply. After the fixes every writer case passed live. The search cases need gpt-oss-120b, whose free-tier daily token cap (200K) ran out during testing; they pass with the fakes and are to be rerun live (on the Dev tier the cap goes away)
 
+### Web search (Turki's call, Day 2)
+- [x] `search_web`: Sarjy looks things up instead of saying it can't (gpt-oss-20b with Groq's browser search, told today's date; English reports; the 120b as fallback). A spoken "One sec, looking it up." as it starts (first sound in about 1.5 to 2 s); month and year added to recent questions; only what the search said, names and results kept exact in Arabic; a failed search owned. Chip, timing and cost like the weather. Checked live: current match results and the gold price, in English and Arabic
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)
