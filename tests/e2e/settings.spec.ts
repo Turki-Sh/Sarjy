@@ -18,7 +18,7 @@ const open = async (page: Page, section: string) => {
 const myPicture = (page: Page) => page.getByRole("button", { name: "Open settings" }).locator("img");
 
 test("opens as a popup and closes with Escape or the close button", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Open settings" }).click();
   await expect(settings(page)).toBeVisible();
   await expect(settings(page).getByRole("heading", { name: "General" })).toBeVisible();
@@ -30,7 +30,7 @@ test("opens as a popup and closes with Escape or the close button", async ({ pag
 });
 
 test("your picture: one of the paintings, or a photo from your computer", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await expect(myPicture(page)).toHaveAttribute("src", /\/avatars\/(rider-at-rest|falconer|the-ride)\.webp/);
   await open(page, "Profile");
   await settings(page).getByRole("radio", { name: "The falconer" }).click();
@@ -43,7 +43,7 @@ test("your picture: one of the paintings, or a photo from your computer", async 
 });
 
 test("your name, and your memories: edit, forget, forget everything", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await open(page, "Profile");
   await settings(page).getByRole("textbox", { name: "Your name" }).fill("Turki");
   await settings(page).getByRole("button", { name: "Save" }).click();
@@ -82,7 +82,7 @@ test("your name, and your memories: edit, forget, forget everything", async ({ p
 test("memory lives in Settings: the sidebar has one row that opens it, and the saved card does too", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   const side = page.getByRole("complementary");
   await say(page, "My favorite color is green.");
   const card = page.getByRole("button", { name: /^Noted: Your favorite color is Green\./ });
@@ -100,7 +100,7 @@ test("memory lives in Settings: the sidebar has one row that opens it, and the s
 // Settings, Appearance, Background (Turki's direction, Day 2): the light field, a rug, or your own
 // picture, remembered, and your own served only to you.
 test("pick a rug or your own picture as the background, and keep it", async ({ page, browser }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Open settings" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Appearance", exact: true }).click();
   const layer = page.locator("[data-wallpaper]");
@@ -135,7 +135,7 @@ test("pick a rug or your own picture as the background, and keep it", async ({ p
 });
 
 test("at Pure, the page behind Settings is not frosted or dimmed", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Open settings" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Appearance", exact: true }).click();
   const backdrop = () =>

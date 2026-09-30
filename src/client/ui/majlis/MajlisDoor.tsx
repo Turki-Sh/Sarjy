@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
+import { TALK } from "@/shared/site";
 import type { RoomPhase } from "../../room/useRoom";
 import { Icon } from "../Icon";
 import styles from "./Majlis.module.css";
@@ -36,7 +37,7 @@ export function MajlisDoor({ lang, phase, hostName, people, askName, onJoin }: P
       {closed ? (
         <>
           {phase !== "missing" && <p className={styles.doorHint}>{phase === "full" ? s.full : s.ended}</p>}
-          <Link href="/" className={styles.join}>
+          <Link href={TALK} className={styles.join}>
             {s.back}
           </Link>
         </>

@@ -109,6 +109,45 @@
   --tassel-blue: #72838f;
   --tassel-cream: #e8d4ae;
 
+  /* Scenes on the home page and the 404 (Turki, Day 4): the desert the Rafeeqs live in, at four
+     times of day, and a campfire for the lost ones. The same in both themes: they are places. */
+  --sky-dawn-top: #6f7fb3;
+  --sky-dawn-low: #f4b98a;
+  --sky-day-top: #8cc8e8;
+  --sky-day-low: #f6e7c8;
+  --sky-dusk-top: #4a3470;
+  --sky-dusk-low: #e7875f;
+  --sky-night-top: #0b1020;
+  --sky-night-low: #26304f;
+  --sand-far: #ecd0a0;
+  --sand-mid: #e1b67a;
+  --sand-near: #d19d5c;
+  --sand-shade: #b8834a;
+  --sand-night-far: #2e3047;
+  --sand-night-mid: #24263a;
+  --sand-night-near: #1a1c2b;
+  --sand-night-shade: #12131e;
+  --sun: #ffd98a;
+  --sun-glow: rgba(255, 196, 102, 0.45);
+  --moon: #f4efdc;
+  --moon-shade: #d6cfb4;
+  --moon-glow: rgba(244, 239, 220, 0.28);
+  --star: #fff8e6;
+  --fire-core: #fff2b8;
+  --fire-mid: #f7b440;
+  --fire-edge: #e8663a;
+  --fire-glow: rgba(247, 150, 60, 0.42);
+  --ember: #ffb347;
+  --smoke: rgba(214, 214, 226, 0.22);
+  --wood: #6b4a33;
+  --wood-dark: #3f2a1d;
+  --stone: #4e4b55;
+  --stone-light: #6d6975;
+  --dust: #ead5b0;
+  --dust-shade: #d2b688;
+  --paper: #f3e6c9;
+  --paper-shade: #dcc9a2;
+
   /* Behind a popup (settings): dims the page in both themes. */
   --scrim: rgba(0, 0, 0, 0.45);
   /* Destructive actions (Forget everything). */

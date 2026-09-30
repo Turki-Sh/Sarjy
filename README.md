@@ -33,7 +33,7 @@ git clone https://github.com/Turki-Sh/Sarjy.git
 cd Sarjy
 corepack enable        # once, makes pnpm available
 pnpm install
-pnpm dev               # then open http://localhost:3000
+pnpm dev               # then open http://localhost:3000 (the voice screen is at /talk)
 ```
 
 With no keys, Sarjy runs on stand-in providers: typed turns, memory, weather (recorded answers) and the full interface all work, and nothing leaves your machine. Its database lives in `.data/` (delete the folder to start fresh).

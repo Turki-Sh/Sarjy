@@ -66,6 +66,11 @@ type Props = {
   onPet?: () => void;
   /** A small, calm preview (Settings): no greeting, no sleep, no fidgets, no pointer. */
   preview?: boolean;
+  /**
+   * A scene directing it (the home page, the 404): the mood it plays, over its own. It still
+   * breathes, blinks, watches you and answers your pointer in character between acts.
+   */
+  act?: Mood | null;
 };
 
 export function Rafeeq({
@@ -77,6 +82,7 @@ export function Rafeeq({
   cue,
   onPet,
   preview = false,
+  act = null,
 }: Props) {
   const root = useRef<HTMLDivElement>(null);
   const uid = `rq${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -107,7 +113,8 @@ export function Rafeeq({
   // Hello, when you arrive (from bond level 2), in its own way.
   useEffect(() => {
     if (preview || level < UNLOCKS.greet) return;
-    const t = window.setTimeout(() => flashRef.current("greet", 1700), 500);
+    // A little after you arrive, and not all at once when there are several of them.
+    const t = window.setTimeout(() => flashRef.current("greet", 1700), 500 + Math.random() * 900);
     return () => window.clearTimeout(t);
     // Only on arrival, not whenever the level changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -235,16 +242,17 @@ export function Rafeeq({
   };
 
   const idle = state === "idle";
+  const shown = act ?? mood;
   return (
     <div
       ref={root}
       className={styles.wrap}
       data-rafeeq={id}
       data-state={state}
-      data-mood={mood}
-      data-fidget={mood === "none" && idle && !hover ? (fidget ?? undefined) : undefined}
-      data-hover={mood === "none" && idle ? (hover ?? undefined) : undefined}
-      data-expr={expressionOf(id, mood, hover, idle) ?? undefined}
+      data-mood={shown}
+      data-fidget={shown === "none" && idle && !hover ? (fidget ?? undefined) : undefined}
+      data-hover={shown === "none" && idle ? (hover ?? undefined) : undefined}
+      data-expr={expressionOf(id, shown, hover, idle) ?? undefined}
       data-temper={self.temper}
       data-pet={self.pet}
       data-fail={self.fail}

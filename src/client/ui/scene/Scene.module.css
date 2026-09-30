@@ -1,0 +1,448 @@
+/*
+ * Scenes: the desert the Rafeeqs live in, on the home page and the 404 (Turki, Day 4). A scene
+ * is a stage (sized by its width, so everything on it scales together) with a sky, dunes and
+ * actors. Its time of day (data-time) sets every color, and the colors blend when it changes.
+ */
+
+@property --sky-top {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --sky-low {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --dune-far {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --dune-mid {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --dune-near {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --dune-shade {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --night {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --sun-up {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.scene {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  container-type: inline-size;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    --sky-top 1.4s var(--ease-rein),
+    --sky-low 1.4s var(--ease-rein),
+    --dune-far 1.4s var(--ease-rein),
+    --dune-mid 1.4s var(--ease-rein),
+    --dune-near 1.4s var(--ease-rein),
+    --dune-shade 1.4s var(--ease-rein),
+    --night 1.4s var(--ease-rein),
+    --sun-up 1.4s var(--ease-rein);
+}
+
+/* ---- Time of day ---- */
+
+.scene[data-time="day"] {
+  --sky-top: var(--sky-day-top);
+  --sky-low: var(--sky-day-low);
+  --dune-far: var(--sand-far);
+  --dune-mid: var(--sand-mid);
+  --dune-near: var(--sand-near);
+  --dune-shade: var(--sand-shade);
+  --night: 0;
+  --sun-up: 1;
+}
+.scene[data-time="dawn"] {
+  --sky-top: var(--sky-dawn-top);
+  --sky-low: var(--sky-dawn-low);
+  --dune-far: color-mix(in srgb, var(--sand-far) 70%, var(--sky-dawn-top));
+  --dune-mid: color-mix(in srgb, var(--sand-mid) 78%, var(--sky-dawn-top));
+  --dune-near: color-mix(in srgb, var(--sand-near) 80%, var(--sky-dawn-top));
+  --dune-shade: color-mix(in srgb, var(--sand-shade) 70%, var(--sky-dawn-top));
+  --night: 0.25;
+  --sun-up: 1;
+}
+.scene[data-time="dusk"] {
+  --sky-top: var(--sky-dusk-top);
+  --sky-low: var(--sky-dusk-low);
+  --dune-far: color-mix(in srgb, var(--sand-mid) 55%, var(--dusk));
+  --dune-mid: color-mix(in srgb, var(--sand-near) 62%, var(--dusk));
+  --dune-near: color-mix(in srgb, var(--sand-shade) 62%, var(--sky-dusk-top));
+  --dune-shade: color-mix(in srgb, var(--sand-shade) 40%, var(--sky-night-top));
+  --night: 0.45;
+  --sun-up: 1;
+}
+.scene[data-time="night"] {
+  --sky-top: var(--sky-night-top);
+  --sky-low: var(--sky-night-low);
+  --dune-far: var(--sand-night-far);
+  --dune-mid: var(--sand-night-mid);
+  --dune-near: var(--sand-night-near);
+  --dune-shade: var(--sand-night-shade);
+  --night: 1;
+  --sun-up: 0;
+}
+/* "theme": the page's own light or dark, as a place (the home page's hero). The sky starts from
+   the page's background, so the scene melts into the page above it. */
+.scene[data-time="theme"] {
+  --sky-top: var(--bg);
+  --sky-low: var(--sky-day-low);
+  --dune-far: var(--sand-far);
+  --dune-mid: var(--sand-mid);
+  --dune-near: var(--sand-near);
+  --dune-shade: var(--sand-shade);
+  --night: 0;
+  --sun-up: 1;
+}
+:root[data-theme="dark"] .scene[data-time="theme"] {
+  --sky-top: var(--bg);
+  --sky-low: var(--sky-night-low);
+  --dune-far: var(--sand-night-far);
+  --dune-mid: var(--sand-night-mid);
+  --dune-near: var(--sand-night-near);
+  --dune-shade: var(--sand-night-shade);
+  --night: 1;
+  --sun-up: 0;
+}
+/* The lit side of each ridge: a little lighter, toward the sky. */
+.scene {
+  --dune-far-lit: color-mix(in srgb, var(--dune-far) 80%, var(--sky-low));
+  --dune-mid-lit: color-mix(in srgb, var(--dune-mid) 82%, var(--sky-low));
+  --dune-near-lit: color-mix(in srgb, var(--dune-near) 85%, var(--sky-low));
+}
+
+/* ---- Sky ---- */
+
+.sky {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(to bottom, var(--sky-top), var(--sky-low) 78%);
+}
+.stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--star);
+  opacity: var(--night);
+}
+.twinkle {
+  animation: twinkle 3.4s ease-in-out infinite;
+}
+@keyframes twinkle {
+  50% {
+    opacity: 0.25;
+  }
+}
+.shooting {
+  position: absolute;
+  inset-block-start: 12%;
+  left: 62%;
+  width: 14cqw;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to left, var(--star), transparent);
+  opacity: 0;
+  rotate: -24deg;
+  animation: shoot 11s ease-in 4s infinite;
+  filter: drop-shadow(0 0 4px var(--moon-glow));
+}
+@keyframes shoot {
+  0%,
+  92% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  94% {
+    opacity: calc(var(--night) * 0.95);
+  }
+  100% {
+    opacity: 0;
+    translate: -30cqw 12cqw;
+  }
+}
+.orbit {
+  position: absolute;
+  left: var(--arc-x);
+  top: var(--arc-y);
+  translate: -50% -50%;
+  transition:
+    left 1.4s var(--ease-rein),
+    top 1.4s var(--ease-rein);
+}
+.sun,
+.moon {
+  position: absolute;
+  translate: -50% -50%;
+  border-radius: 50%;
+  transition: opacity 1.2s var(--ease-rein);
+}
+.sun {
+  width: 5cqw;
+  aspect-ratio: 1;
+  background: var(--sun);
+  box-shadow:
+    0 0 0 1.1cqw color-mix(in srgb, var(--sun) 32%, transparent),
+    0 0 7cqw 3cqw var(--sun-glow);
+  opacity: var(--sun-up);
+}
+.moon {
+  width: 5cqw;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 34% 40%, var(--moon-shade) 10%, transparent 11%),
+    radial-gradient(circle at 62% 64%, var(--moon-shade) 7%, transparent 8%),
+    radial-gradient(circle at 60% 30%, var(--moon-shade) 5%, transparent 6%), var(--moon);
+  box-shadow: 0 0 5cqw 1.5cqw var(--moon-glow);
+  opacity: var(--night);
+}
+
+/* ---- Dunes ---- */
+
+.dunes {
+  position: absolute;
+  inset-inline: -4%;
+  inset-block-end: 0;
+  width: 108%;
+  height: 100%;
+  z-index: -1;
+  overflow: visible;
+  pointer-events: none;
+}
+.far,
+.mid,
+.near {
+  transition: translate 0.2s linear;
+}
+.far {
+  translate: calc(var(--px) * -8px) calc(var(--py) * -2px);
+}
+.mid {
+  translate: calc(var(--px) * -18px) calc(var(--py) * -4px);
+}
+.near {
+  translate: calc(var(--px) * -32px) calc(var(--py) * -6px);
+}
+.sandGrain {
+  mix-blend-mode: multiply;
+  opacity: 0.14;
+}
+.ridge {
+  fill: none;
+  stroke: var(--dune-mid-lit);
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+/* ---- Actors ---- */
+
+.actor {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: var(--z);
+  width: calc(var(--size) * 1cqw);
+  translate: -50% -93%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.body {
+  --orb-size: 100%;
+  width: 100%;
+}
+.actor[data-facing="-1"] .body {
+  scale: -1 1;
+}
+/* A walking gait: a little bounce and sway with each step (the scene moves it along). */
+.actor[data-walk] .body {
+  animation: gait 0.52s ease-in-out infinite;
+  transform-origin: 50% 95%;
+}
+@keyframes gait {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -2.5deg;
+  }
+  50% {
+    translate: 0 -5%;
+    rotate: 2.5deg;
+  }
+}
+
+/* ---- Campfire ---- */
+
+.campfire {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.fireGlow {
+  position: absolute;
+  inset: -90% -120% -40%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--fire-glow), transparent);
+  animation: breathe 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.campfire[data-stoked] .fireGlow {
+  scale: 1.25;
+}
+@keyframes breathe {
+  50% {
+    opacity: 0.72;
+    scale: 0.94;
+  }
+}
+.fireSvg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.flames {
+  transform-origin: 50px 100px;
+  transition: scale 0.5s var(--ease-rein);
+}
+.campfire[data-stoked] .flames {
+  scale: 1.3 1.45;
+}
+.flames path {
+  transform-box: view-box;
+  transform-origin: 50px 100px;
+}
+.flameEdge {
+  fill: var(--fire-edge);
+  animation: flicker 0.9s ease-in-out infinite alternate;
+}
+.flameMid {
+  fill: var(--fire-mid);
+  animation: flicker 0.66s ease-in-out infinite alternate-reverse;
+}
+.flameCore {
+  fill: var(--fire-core);
+  animation: flicker 0.5s ease-in-out infinite alternate;
+}
+.tongue {
+  animation-duration: 0.74s;
+}
+.tongueR {
+  animation-duration: 0.82s;
+  animation-direction: alternate-reverse;
+}
+@keyframes flicker {
+  0% {
+    transform: scale(1, 1) skewX(-3deg);
+  }
+  50% {
+    transform: scale(0.94, 1.08) skewX(2deg);
+  }
+  100% {
+    transform: scale(1.04, 0.95) skewX(-1deg);
+  }
+}
+.logs rect {
+  fill: var(--wood);
+  stroke: var(--wood-dark);
+  stroke-width: 1.5;
+}
+.logEnd {
+  fill: var(--wood-dark);
+}
+.stones ellipse {
+  fill: var(--stone);
+  stroke: var(--stone-light);
+  stroke-width: 1;
+}
+.smoke path {
+  fill: none;
+  stroke: var(--smoke);
+  stroke-width: 3;
+  stroke-linecap: round;
+  animation: smoke 4s ease-out infinite;
+}
+.smoke path + path {
+  animation-delay: 2s;
+}
+@keyframes smoke {
+  0% {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 4px -18px;
+  }
+}
+.ember {
+  position: absolute;
+  left: var(--ex);
+  top: 55%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 6px var(--ember);
+  opacity: 0;
+  animation: rise var(--dur) ease-out var(--delay) infinite;
+  pointer-events: none;
+}
+.campfire[data-stoked] .ember {
+  animation-duration: calc(var(--dur) * 0.55);
+}
+@keyframes rise {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx) -12cqw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene *,
+  .scene *::before,
+  .scene *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .far,
+  .mid,
+  .near {
+    translate: none;
+  }
+}

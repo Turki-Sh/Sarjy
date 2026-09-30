@@ -14,6 +14,7 @@ import { wallpaperUrl, type WallpaperChoice } from "@/shared/wallpapers";
 import { useRoom, type RoomPhase } from "../room/useRoom";
 import { chatLines, useSarjy, type FetchedChat, type RoomLinkForVoice } from "../voice/useSarjy";
 import { bondOf, type BondEvent, type RafeeqId } from "@/shared/rafeeq";
+import { TALK } from "@/shared/site";
 import { BondPill } from "./rafeeq/BondPill";
 import { Rafeeq, type RafeeqCue } from "./rafeeq/Rafeeq";
 import { MajlisBar } from "./majlis/MajlisBar";
@@ -218,7 +219,7 @@ export function VoiceScreen({
   const [freshLine, setFreshLine] = useState(0);
   const newChat = () => {
     setSheet(false);
-    if (room) return router.push("/");
+    if (room) return router.push(TALK);
     sarjy.newChat();
     setFreshLine((i) => {
       // Never the same line twice in a row.
@@ -233,7 +234,7 @@ export function VoiceScreen({
     // on the home screen).
     const live = sarjy.chats.find((c) => c.id === id)?.majlis;
     if (live?.live) return router.push(`/majlis/${live.code}`);
-    if (room) return router.push(`/?chat=${id}`);
+    if (room) return router.push(`${TALK}?chat=${id}`);
     await sarjy.openChat(id);
     setSwitches((n) => n + 1);
   };
@@ -244,7 +245,7 @@ export function VoiceScreen({
     if (room) return;
     const id = new URLSearchParams(window.location.search).get("chat");
     if (!id) return;
-    window.history.replaceState(null, "", "/");
+    window.history.replaceState(null, "", TALK);
     void open(id);
   }, [room, open]);
 
@@ -484,7 +485,7 @@ export function VoiceScreen({
                 me={me!}
                 reconnecting={majlis.status === "reconnecting"}
                 onInvite={() => void invite()}
-                onLeave={() => router.push("/")}
+                onLeave={() => router.push(TALK)}
                 onEnd={() => void majlis.end()}
               />
             ) : companion ? (

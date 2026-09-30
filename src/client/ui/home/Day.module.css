@@ -1,0 +1,342 @@
+/*
+ * A day with Sarjy: a wide scene whose sky and sand follow the hour, the exchange over it, and a
+ * timeline under it (hour ticks, a dot per moment, a pill on the current one).
+ */
+
+.day {
+  position: relative;
+}
+.day [data-tight] {
+  padding-block: 20px 0;
+}
+
+.stage {
+  width: min(100% - 2 * clamp(16px, 4vw, 48px), 1240px);
+  margin-inline: auto;
+  aspect-ratio: 2.3;
+  border-radius: 28px;
+  box-shadow: var(--frame-shadow);
+}
+.enter {
+  animation: step-in 0.8s var(--ease-rein) both;
+}
+.enter + .enter {
+  animation-delay: 0.12s;
+}
+@keyframes step-in {
+  from {
+    opacity: 0;
+    translate: -50% -80%;
+  }
+}
+
+/* The exchange, on the right of the picture (a picture doesn't mirror). */
+.chat {
+  position: absolute;
+  right: 4%;
+  top: 9%;
+  display: grid;
+  gap: 10px;
+  width: min(46%, 460px);
+  animation: step-in-chat 0.6s var(--ease-rein) both;
+}
+@keyframes step-in-chat {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+.moment {
+  margin: 0;
+  color: var(--frost);
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+.chat .time {
+  font-family: var(--font-data);
+  margin-inline-end: 6px;
+  opacity: 0.85;
+}
+.you,
+.sarjy {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 20px;
+  line-height: 1.4;
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+.you {
+  justify-self: end;
+  display: grid;
+  gap: 2px;
+  max-width: 88%;
+  border-end-end-radius: 6px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  font-size: 16px;
+}
+.who {
+  color: var(--graphite);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tool {
+  justify-self: start;
+  margin: 2px 0 0;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(17, 17, 17, 0.55);
+  color: var(--frost);
+  font-family: var(--font-data);
+  font-size: 12px;
+}
+.sarjy {
+  justify-self: start;
+  min-height: 3.2em;
+  max-width: 92%;
+  border-end-start-radius: 6px;
+  background: rgba(17, 17, 17, 0.62);
+  color: var(--frost);
+  font-family: var(--font-voice);
+  font-style: italic;
+  font-size: 19px;
+}
+.sarjy:lang(ar) {
+  font-family: var(--font-ar-voice);
+  font-style: normal;
+}
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-inline-start: 2px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---- The timeline ---- */
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-block: 56px 8px;
+}
+.play {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.play:hover {
+  background: var(--sunken);
+}
+.playIcon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.pauseIcon {
+  width: 10px;
+  height: 12px;
+  border-inline: 3.5px solid currentColor;
+}
+.track {
+  position: relative;
+  flex: 1;
+  height: 36px;
+  cursor: pointer;
+  touch-action: none;
+}
+.track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--line);
+}
+.tick {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 8px;
+  translate: 0 -50%;
+  background: var(--line);
+}
+.tick[data-hour] {
+  height: 14px;
+  background: color-mix(in srgb, var(--text-2) 45%, transparent);
+}
+.stopDot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-2) 55%, var(--bg));
+  transition: background var(--t-base);
+}
+[dir="rtl"] .stopDot,
+[dir="rtl"] .needle,
+[dir="rtl"] .pill {
+  translate: 50% -50%;
+}
+.stopDot[data-on] {
+  background: var(--saffron);
+}
+.needle {
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: 26px;
+  translate: -50% -50%;
+  border-radius: 2px;
+  background: var(--saffron);
+  transition: inset-inline-start var(--t-slow) var(--ease-rein);
+}
+.pill {
+  position: absolute;
+  bottom: 100%;
+  display: flex;
+  align-items: center;
+  translate: -50% -4px;
+  border-radius: var(--r-m);
+  background: var(--saffron);
+  color: var(--ink);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--saffron) 40%, transparent);
+  transition: inset-inline-start var(--t-slow) var(--ease-rein);
+}
+[dir="rtl"] .pill {
+  translate: 50% -4px;
+}
+.pill::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 0;
+  border: 6px solid transparent;
+  border-top-color: var(--saffron);
+}
+.time {
+  padding: 6px 4px;
+  font-family: var(--font-data);
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-radius: var(--r-s);
+}
+.time:lang(ar) {
+  font-family: var(--font-ar);
+  font-weight: 600;
+}
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.arrow svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+}
+.back {
+  rotate: 90deg;
+}
+.on {
+  rotate: -90deg;
+}
+[dir="rtl"] .back {
+  rotate: -90deg;
+}
+[dir="rtl"] .on {
+  rotate: 90deg;
+}
+:is(.play, .arrow, .time):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.sample {
+  margin: 12px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* On a phone the exchange goes under the picture. */
+@media (max-width: 760px) {
+  .stage {
+    aspect-ratio: 0.9;
+    border-radius: 22px;
+  }
+  .stage [data-actor] {
+    width: calc(var(--size) * 1.9cqw);
+  }
+  .chat {
+    left: 4%;
+    right: 4%;
+    top: 5%;
+    width: auto;
+  }
+  .sarjy {
+    font-size: 17px;
+  }
+  .timeline {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 56px;
+    padding-block-start: 24px;
+  }
+  .play {
+    align-self: flex-start;
+  }
+  /* The pill sits centered over the track (at the ends it would run off the screen). */
+  .pill,
+  [dir="rtl"] .pill {
+    inset-inline-start: 50% !important;
+    translate: -50% -4px;
+  }
+  [dir="rtl"] .pill {
+    translate: 50% -4px;
+  }
+  .pill::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .chat,
+  .caret {
+    animation: none;
+  }
+}

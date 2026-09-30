@@ -34,7 +34,7 @@ test("everyone hears the speaker; Sarjy answers only when asked; the seats settl
   const context = { permissions: ["microphone"] };
   const host = await (await browser.newContext(context)).newPage();
   const guest = await (await browser.newContext(context)).newPage();
-  await Promise.all([host.waitForResponse("**/api/session"), host.goto("/")]);
+  await Promise.all([host.waitForResponse("**/api/session"), host.goto("/talk")]);
   await say(host, "My name is Turki.");
   await expect(screen(host)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
   await host.getByRole("button", { name: "Start a Majlis" }).click();

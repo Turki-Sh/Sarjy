@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 
 test("shares a weather answer; the link shows the exchange and a weather card", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("textbox", { name: "Type to Sarjy…" }).fill("What's the weather in Riyadh tomorrow?");
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-state]").first()).toHaveAttribute("data-state", "idle", {

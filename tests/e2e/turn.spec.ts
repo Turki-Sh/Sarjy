@@ -12,7 +12,7 @@ const screen = (page: Page) => page.locator("[data-state]").first();
 const caption = (page: Page) => page.locator("main section p[lang]");
 
 test("saves a fact, stitches it, and remembers it after a reload", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "My favorite color is green.");
 
   await expect(screen(page)).toHaveAttribute("data-state", /thinking|tool|speaking/);
@@ -38,7 +38,7 @@ test("saves a fact, stitches it, and remembers it after a reload", async ({ page
 });
 
 test("checks the weather with a timed tool chip", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "What's the weather in Riyadh tomorrow?");
   await expect(page.getByText('weather.forecast("Riyadh", "tomorrow")')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText(/\d+ ms/)).toBeVisible();
@@ -61,7 +61,7 @@ test("the whole answer plays even when the rest of it arrives after the first se
       return calls++ === 0 ? decoded : new Promise((resolve) => setTimeout(() => resolve(decoded), 400));
     } as typeof decode;
   });
-  await page.goto("/");
+  await page.goto("/talk");
   // A first visit's greeting gets a three-sentence answer: the first plays, the rest arrive late.
   await say(page, "Hello");
   await expect(screen(page)).toHaveAttribute("data-state", "speaking", { timeout: 15_000 });
@@ -76,7 +76,7 @@ test("the whole answer plays even when the rest of it arrives after the first se
 // its voice changed.
 test("when Sarjy's voice is out, the answer still comes, and the screen says why once", async ({ page }) => {
   await page.setExtraHTTPHeaders({ "x-sarjy-fake-voice-out": "1" });
-  await page.goto("/");
+  await page.goto("/talk");
   const box = page.getByRole("textbox", { name: "Type to Sarjy…" });
   const note = page.getByRole("status").filter({ hasText: "My voice is taking a break" });
   await box.fill("What's the weather in Riyadh tomorrow?");

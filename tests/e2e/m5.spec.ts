@@ -13,7 +13,7 @@ const screen = (page: Page) => page.locator("[data-state]").first();
 const idle = (page: Page) => expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
 
 test("how an answer was made: timings, model, tokens and cost", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "What's the weather in Riyadh tomorrow?");
   await idle(page);
   await page.getByRole("button", { name: "How this answer was made" }).click();
@@ -41,7 +41,7 @@ test("how an answer was made: timings, model, tokens and cost", async ({ page })
 });
 
 test("Settings, Voice: pick a voice per language, hear it, and keep it", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Open settings" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Voice", exact: true }).click();
   const diana = page.getByRole("radio", { name: "Diana" });
@@ -58,7 +58,7 @@ test("Settings, Voice: pick a voice per language, hear it, and keep it", async (
 });
 
 test("a picture goes with the turn, shows in your bubble, and Sarjy answers about it", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await page.locator('form input[type="file"]').setInputFiles(photo);
   await expect(page.getByRole("button", { name: "Remove the picture" })).toBeVisible();
   await page.getByRole("button", { name: "Send" }).click();
@@ -86,7 +86,7 @@ test("a picture goes with the turn, shows in your bubble, and Sarjy answers abou
 
 test("on a phone, the sidebar is a sheet you open and it closes when you pick", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/talk");
   const side = page.getByRole("complementary");
   await expect(side).toBeHidden();
   await page.getByRole("button", { name: "Open sidebar" }).click();
@@ -96,7 +96,7 @@ test("on a phone, the sidebar is a sheet you open and it closes when you pick", 
 });
 
 test("a first visit gets a quiet welcome, and Skip means Sarjy won't ask your name", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await expect(page.getByText(/Hey, I'm Sarjy\. Tap me and say hi/)).toBeVisible();
   await page.getByRole("button", { name: "Skip the intro" }).click();
   await expect(page.getByText(/Hey, I'm Sarjy\. Tap me and say hi/)).toHaveCount(0);
@@ -106,7 +106,7 @@ test("a first visit gets a quiet welcome, and Skip means Sarjy won't ask your na
 });
 
 test("the whole chat opens above the latest bubbles", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   for (const t of [
     "My favorite color is green.",
     "My favorite food is kabsa.",
@@ -128,7 +128,7 @@ test("on a short window, bubbles are never cut and the whole chat stays above th
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.goto("/");
+  await page.goto("/talk");
   for (const t of [
     "My favorite color is green.",
     "My favorite food is kabsa.",
@@ -169,7 +169,7 @@ test("in Arabic, every bubble's corners and rim match its side, whatever languag
   context,
 }) => {
   await context.addCookies([{ name: "sarjy_lang", value: "ar", url: "http://localhost:3100" }]);
-  await page.goto("/");
+  await page.goto("/talk");
   for (const t of ["My favorite color is green.", "What's my favorite color?"]) {
     await page.getByRole("textbox").fill(t);
     await page.keyboard.press("Enter");

@@ -8,7 +8,7 @@
 //   --look-x/y where its eyes point: your pointer, the text box while you type, a glance now and then
 // and it blinks, at a random moment every few seconds (data-blink). Its personality sets how
 // keenly it follows you and how fast it breathes; while your pointer rests on it, a shy or annoyed
-// one looks away, and a dodgy one slips aside (--dodge).
+// one looks away, and a dodgy one slips aside (--dodge). Off screen it rests: a page can hold many.
 
 import { useEffect, useRef, type RefObject } from "react";
 import type { VoiceState } from "@/shared/states";
@@ -58,6 +58,9 @@ export function useRafeeqMotion(
     const onKey = () => (typingUntil = performance.now() + 1400);
     window.addEventListener("pointermove", onPointer, { passive: true });
     window.addEventListener("keydown", onKey);
+    let visible = true;
+    const seen = new IntersectionObserver(([entry]) => (visible = entry?.isIntersecting ?? true));
+    seen.observe(el);
 
     // Blinking: every 2.5 to 6 seconds, sometimes twice.
     let blinkTimer = 0;
@@ -75,7 +78,7 @@ export function useRafeeqMotion(
     blinkTimer = window.setTimeout(blink, 1800);
 
     const tick = (now: number) => {
-      if (!reduce.matches) {
+      if (!reduce.matches && visible) {
         const s = stateRef.current;
         const input = levelsRef.current.input();
         const output = levelsRef.current.output();
@@ -129,6 +132,7 @@ export function useRafeeqMotion(
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
+      seen.disconnect();
       window.clearTimeout(blinkTimer);
       window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("keydown", onKey);

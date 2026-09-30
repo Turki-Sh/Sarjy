@@ -159,6 +159,18 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-116 | Fennec, then Keeper, picked | I rest my pointer on it, then open Settings | Fennec is wary, then annoyed if I stay, and settles when I leave; Keeper goes shy; each card shows its traits and the picked one its story | A4 | Should | Unit, E2E |
 | AT-114 | Any companion | Idle 45 s, a tool fails, the bond reaches a new level, reduced motion is on | It falls asleep and wakes with a start; it droops; it jumps with a chime and a toast; it holds a still pose | A2, A3 | Should | Unit (bond levels), Int (caps), Live |
 
+## The pages: home and 404
+
+| ID | Given | When | Then | Req | Priority | Verified by |
+|---|---|---|---|---|---|---|
+| AT-117 | A new visitor | I open `/` | The tagline headline with the eight Rafeeqs in the picture and a time-of-day greeting; hovering "Talk to Sarjy" makes them lean in; it leads to the voice screen at `/talk` | P11 | Should | E2E |
+| AT-118 | The home page | I pick Fennec in the finale | I land on `/talk` with Fennec in the orb's place | P11, A1 | Should | E2E |
+| AT-119 | Sarjy knows my name and I picked Lantern | I open `/` | It greets me by name, and Lantern stands on the headline with its level | P11 | Should | E2E |
+| AT-120 | Arabic chosen | I open `/`, then switch to English | The page is right to left in Arabic, then English | P11, P7 | Should | E2E |
+| AT-121 | The home page | I go to the end of the day, then forget a memory in the reins | The night scene with its reply; the forget is said out loud and can be undone | P11 | Should | E2E |
+| AT-122 | Any visitor | I open a page that doesn't exist | A 404 status and the lost Rafeeqs talking by a campfire; asking for directions plays another scene; stoking the fire cheers them; a way home | P12 | Should | Unit (casting, staging), E2E |
+| AT-123 | Arabic chosen | I open a missing page | It says so in Arabic, with the way home | P12 | Should | E2E |
+
 ## Guardrails
 
 | ID | Given | When | Then | Req | Priority | Verified by |

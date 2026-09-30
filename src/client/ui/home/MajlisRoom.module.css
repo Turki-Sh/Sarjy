@@ -1,0 +1,195 @@
+/*
+ * The Majlis picture: night, a Sadu rug, the finjan glowing in the middle, cushions in the seat
+ * colors, and the talk going round in bubbles edged with the speaker's color.
+ */
+
+.majlis {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+}
+.points {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 500;
+}
+.points li::before {
+  content: "";
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--seat);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--seat) 22%, transparent);
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  margin-block-start: 28px;
+  padding: 0 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.cta:hover {
+  background: var(--sunken);
+}
+.cta:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.room {
+  aspect-ratio: 1.12;
+  border-radius: 32px;
+  box-shadow: var(--frame-shadow);
+}
+/* The rug: Sadu weave in an oval, lit warm from the finjan. */
+.rug {
+  position: absolute;
+  left: 50%;
+  top: 68%;
+  width: 84%;
+  height: 36%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--fire-glow) 90%, transparent), transparent 75%),
+    radial-gradient(
+      closest-side,
+      transparent 68%,
+      var(--sadu-dark) 70% 74%,
+      var(--sadu-cream) 75% 78%,
+      var(--sadu-dark) 79%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--sadu-red) 0 18px,
+      var(--sadu-dark) 18px 22px,
+      var(--sadu-cream) 22px 25px,
+      var(--sadu-orange) 25px 40px,
+      var(--sadu-dark) 40px 44px
+    );
+  box-shadow:
+    inset 0 -10px 30px rgba(0, 0, 0, 0.45),
+    0 20px 40px rgba(0, 0, 0, 0.35);
+}
+.finjan {
+  position: absolute;
+  left: 50%;
+  top: 66%;
+  translate: -50% -62%;
+  --orb-size: 22cqw;
+}
+.finjan::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--fire-glow), transparent);
+  opacity: 0.6;
+  transition: opacity var(--t-slow);
+}
+.finjan[data-speaking]::before {
+  opacity: 1;
+}
+.cushion {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--size) * 1.05cqw);
+  height: calc(var(--size) * 0.3cqw);
+  translate: -50% -55%;
+  border-radius: 50%;
+  background: var(--seat);
+  opacity: 0.9;
+  transition: box-shadow var(--t-base) var(--ease-rein);
+}
+.cushion[data-on] {
+  box-shadow:
+    0 0 0 0.6cqw color-mix(in srgb, var(--seat) 45%, transparent),
+    0 0 4cqw 1cqw var(--seat);
+}
+.bubble {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-width: 42cqw;
+  margin: 0;
+  padding: 8px 14px;
+  translate: -50% -100%;
+  border: 2px solid var(--seat);
+  border-radius: 18px;
+  background: var(--frost);
+  color: var(--ink);
+  font-size: clamp(12px, 1.9cqw, 15px);
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  animation: speak 2.9s var(--ease-rein) both;
+}
+.bubble[data-sarjy] {
+  font-family: var(--font-voice);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(14px, 2.2cqw, 18px);
+}
+.bubble[data-sarjy]:lang(ar) {
+  font-family: var(--font-ar-voice);
+  font-style: normal;
+}
+.bubbleWho {
+  color: var(--graphite);
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+}
+.bubbleWho:lang(ar) {
+  font-family: var(--font-ar);
+}
+@keyframes speak {
+  0% {
+    opacity: 0;
+    scale: 0.8;
+  }
+  10%,
+  88% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .majlis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .room {
+    order: -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    animation: none;
+  }
+}

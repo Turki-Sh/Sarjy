@@ -14,7 +14,7 @@ const sidebar = (page: Page) => page.getByRole("complementary");
 const FRESH_LINES = STRINGS.en.freshChat.map((l) => l.replace(/[.?]/g, "\\$&")).join("|");
 
 test("new chat, reopening a past chat, and search", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "My favorite food is kabsa.");
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
 
@@ -49,7 +49,7 @@ test("new chat, reopening a past chat, and search", async ({ page }) => {
 });
 
 test("the sidebar closes, stays closed after a reload, and reopens", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await sidebar(page).getByRole("button", { name: "Close sidebar" }).click();
   await expect(sidebar(page)).toHaveCount(0);
   await page.reload();
@@ -59,7 +59,7 @@ test("the sidebar closes, stays closed after a reload, and reopens", async ({ pa
 });
 
 test("there is no End button: tapping the orb or pressing Escape stops Sarjy", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await expect(page.getByRole("button", { name: "End", exact: true })).toHaveCount(0);
   await say(page, "What's the weather in Riyadh tomorrow?");
   await expect(screen(page)).toHaveAttribute("data-state", /thinking|tool|speaking/);
@@ -68,7 +68,7 @@ test("there is no End button: tapping the orb or pressing Escape stops Sarjy", a
 });
 
 test("rename a chat: Enter saves, Escape leaves it as it was", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "My favorite color is green.");
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
 
@@ -88,7 +88,7 @@ test("rename a chat: Enter saves, Escape leaves it as it was", async ({ page }) 
 });
 
 test("earlier lines of the chat show small above the caption, and change with the chat", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "My favorite color is green.");
   await expect(screen(page)).toHaveAttribute("data-state", /saving|idle/, { timeout: 15_000 });
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 5_000 });
@@ -101,7 +101,7 @@ test("earlier lines of the chat show small above the caption, and change with th
 });
 
 test("pin keeps a chat at the top; delete asks once, then removes it", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "My favorite food is kabsa.");
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
   await sidebar(page).getByRole("button", { name: "New chat" }).click();
@@ -132,7 +132,7 @@ test("pin keeps a chat at the top; delete asks once, then removes it", async ({ 
 });
 
 test("the conversation shows as bubbles: yours and Sarjy's", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await say(page, "My favorite color is green.");
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
   await say(page, "What's my favorite color?");

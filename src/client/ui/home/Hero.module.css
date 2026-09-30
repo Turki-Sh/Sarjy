@@ -1,0 +1,308 @@
+/*
+ * The hero: a museum-poster headline (bold sans, then an italic serif, the brand's two voices)
+ * with the Rafeeqs living in it, and dunes along the bottom that melt into the page.
+ */
+
+.hero {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: calc(100svh - var(--nav-h, 64px));
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: clamp(28px, 7vh, 88px) clamp(16px, 4vw, 48px) 0;
+}
+
+.hello {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 1.5em;
+  margin: 0 0 clamp(12px, 2.5vh, 24px);
+  color: var(--text-2);
+  font-size: 17px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity var(--t-slow) var(--ease-rein);
+}
+.hello[data-shown] {
+  opacity: 1;
+}
+/* A small live light: it's here, and awake. */
+.live {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--oasis);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--oasis) 60%, transparent);
+  animation: pulse 2.4s ease-out infinite;
+}
+@keyframes pulse {
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(60px, 10.8vw, 184px);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  color: var(--text);
+}
+.title:lang(ar) {
+  font-family: var(--font-ar);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.2;
+  font-size: clamp(56px, 10vw, 168px);
+}
+.lineA,
+.lineB {
+  position: relative;
+  display: block;
+  width: fit-content;
+}
+.em {
+  font-family: var(--font-voice);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  padding-inline-end: 0.04em;
+}
+.em:lang(ar) {
+  font-family: var(--font-ar-voice);
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* Yours (or Rider), standing on the headline beside "rider.". */
+.perch {
+  position: relative;
+  display: inline-block;
+  width: 1.12em;
+  margin-inline-start: 0.04em;
+  vertical-align: -0.12em;
+  --orb-size: 100%;
+}
+.perch > div {
+  --orb-size: 100%;
+}
+.yours {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.yours:lang(ar) {
+  font-family: var(--font-ar);
+}
+[dir="rtl"] .yours {
+  translate: 50% 0;
+}
+
+/* Fennec (or Scout) peeking over the first line: only its ears and eyes clear the letters. */
+.peek {
+  position: absolute;
+  inset-inline-start: 0.12em;
+  inset-block-end: 0.78em;
+  width: 0.6em;
+  height: 0.5em;
+  overflow: hidden;
+  z-index: -1;
+}
+.title:lang(ar) .peek {
+  inset-block-end: 0.95em;
+}
+.peeker {
+  display: block;
+  width: 100%;
+  --orb-size: 100%;
+  translate: 0 4%;
+  transition: translate 0.5s var(--ease-rein);
+}
+/* Stare at it and it ducks down behind the word. */
+.peek:has([data-hover="long"]) .peeker {
+  translate: 0 55%;
+}
+
+/* Breeze drifting past the end of the first line. */
+.float {
+  position: absolute;
+  inset-inline-start: 100%;
+  inset-block-start: -0.18em;
+  width: 0.5em;
+  --orb-size: 100%;
+  animation: drift 9s ease-in-out infinite;
+}
+@keyframes drift {
+  0%,
+  100% {
+    translate: 0.1em 0;
+  }
+  35% {
+    translate: 0.5em -0.12em;
+  }
+  70% {
+    translate: 0.25em 0.08em;
+  }
+}
+
+.lede {
+  max-width: 30ch;
+  margin: clamp(20px, 3.5vh, 36px) 0 0;
+  color: var(--text-2);
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.lede:lang(ar) {
+  max-width: 34ch;
+  line-height: 1.7;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block-start: 28px;
+}
+.talk,
+.meet {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: var(--r-pill);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform var(--t-quick) var(--ease-rein),
+    box-shadow var(--t-base) var(--ease-rein),
+    background var(--t-base) var(--ease-rein);
+}
+.talk {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.talk:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+.mic {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 25%, transparent);
+}
+.meet {
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(8px);
+}
+.meet:hover {
+  background: var(--sunken);
+}
+.talk:focus-visible,
+.meet:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.note {
+  margin: 14px 0 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+/* The dunes along the bottom, with the caravan crossing them. */
+.horizon {
+  position: relative;
+  container-type: inline-size;
+  height: clamp(190px, 32vh, 340px);
+  margin-block-start: clamp(-150px, -16vh, -60px);
+}
+.horizon::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 36px;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events: none;
+}
+.walker {
+  --lane: calc(var(--i) * 3%);
+  top: calc(84% + var(--lane) * 0.4);
+  animation: cross 64s linear infinite;
+  animation-delay: calc(var(--i) * -64s / var(--n));
+}
+.walker:hover {
+  animation-play-state: paused;
+}
+.walker:hover > * {
+  animation: none;
+}
+@keyframes cross {
+  from {
+    left: -8%;
+  }
+  to {
+    left: 108%;
+  }
+}
+@media (max-width: 700px) {
+  .walker {
+    width: 13cqw;
+    animation-duration: 40s;
+    animation-delay: calc(var(--i) * -40s / var(--n));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float,
+  .live {
+    animation: none;
+  }
+  .walker {
+    animation: none;
+    left: calc(12% + var(--i) * 19%);
+  }
+}
+
+/* No star sits on a letter: the stars keep to the open sky, away from the words. */
+.sky svg {
+  mask-image: linear-gradient(to right, transparent 12%, black 70%);
+}
+[dir="rtl"] .sky svg {
+  mask-image: linear-gradient(to left, transparent 12%, black 70%);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

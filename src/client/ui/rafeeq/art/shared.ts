@@ -20,7 +20,7 @@ export const stop = (offset: string, token: string, opacity = 1) =>
  * browser draws once and reuses, laid over a shape at low opacity (multiply), so surfaces read as
  * soft material instead of flat color. (An SVG filter here would be redrawn every frame.)
  */
-const GRAIN =
+export const GRAIN =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
 
 /** Defs every companion can use: the grain, a soft ground shadow, a woven Sadu band. */

@@ -79,7 +79,9 @@ Sarjy/
 ├── src/
 │   ├── app/                        Next.js routes: the page and the API endpoints
 │   │   ├── layout.tsx              Fonts, theme, <html lang dir>, site metadata
-│   │   ├── page.tsx                The voice screen
+│   │   ├── page.tsx                The home page: what Sarjy is, with the Rafeeqs living in it
+│   │   ├── talk/page.tsx           The voice screen
+│   │   ├── not-found.tsx           The 404: lost Rafeeqs around a campfire, a new scene every visit
 │   │   ├── majlis/[code]/page.tsx  A Majlis (room): the same screen, joined to others
 │   │   ├── opengraph-image.tsx     The link preview image, drawn at request time
 │   │   ├── manifest.ts, robots.ts, sitemap.ts, icon.svg, apple-icon.png
@@ -108,7 +110,8 @@ Sarjy/
 │   │   │   ├── transport.ts        Ably, or the local event stream: events, presence, link status
 │   │   │   └── useRoom.ts          The door, who is here, the floor, remote events
 │   │   └── ui/                     React components: Orb, Caption, ToolChip, ControlBar,
-│   │                               Sidebar, MemoryCard, MajlisBar, MorningCard, SettingsSheet, TextComposer, Logo; rafeeq/: the companion
+│   │                               Sidebar, MemoryCard, MajlisBar, MorningCard, SettingsSheet, TextComposer, Logo; rafeeq/: the companion;
+│   │                               scene/: the desert the Rafeeqs live in; home/: the home page; lost/: the 404
 │   │
 │   ├── server/                     Runs on the server only; the only place keys exist
 │   │   ├── env.ts                  Reads and validates environment variables
@@ -562,6 +565,17 @@ Turki's design (Day 3), replacing the first plan of a faceless creature made fro
 | Bond | Gamified, one bond per companion (Turki: level up with each on its own, Pokémon style), in `rafeeq_bonds`. Coming back (once a day), each answer, each save and petting grow the bond with the one you have now, each within a daily cap for you, so it grows with use and switching doesn't farm it (`server/rafeeq/bond.ts`). Five levels: New friend, Getting close, Friend, Close friend, and Rafeeq. Level 2 greets you on arrival, 3 purrs with hearts when petted, 4 does its own trick while waiting (Rider and Dune gallop, Keeper shakes its load, Scout stands tall and looks ahead, Drifter stretches, Lantern swings its fanous, Fennec twitches its ears, Breeze loops), 5 wears a gold star and saves glow gold. Each card in Settings shows its own level; a pill at the top shows the current one's; "+2" floats up as it grows; a new level gets a chime, a jump and a toast. |
 | Stored | `users.rafeeq` (also a cookie, so the first paint already shows it) and `rafeeq_bonds` (user, companion, points). `/api/rafeeq`: PATCH picks, POST records a moment. The screen reacts to moments as events from `useSarjy` (`onAnswered`, `onToolFailed`), at the moment they show, not when the server sends them. |
 | Reduced motion | It holds a still pose; eyes and moods still change. |
+
+## 16b. The pages: home and 404
+
+Turki's direction (Day 4): the Rafeeqs are part of the picture on both pages, not cards in a showcase, and the pages feel live and personal, so you never feel alone on them. The voice screen moved from `/` to `/talk` (`shared/site.ts`, `TALK`); `/` is now the home page, an installed Sarjy still opens straight to `/talk` (the manifest's `start_url`), and every link into the app points there.
+
+| Part | How it works |
+|---|---|
+| Scenes | `client/ui/scene/`: a stage sized by its own width (`container-type`), so a composition holds at every size. `Actor` places a live Rafeeq on it by where its feet stand, sized in percent of the width; the scene can direct its mood (`act`, a new prop on `Rafeeq`), its state, which way it faces and a walking gait, and a tap makes it beam. `Sky` (stars from a seeded random, so the server and the browser draw the same sky; a shooting star; the sun or moon along an arc), `Dunes` (three ridges with grain and pointer parallax) and `Campfire` (three flames flickering out of step, a breathing glow, embers, smoke; tap to stoke). The time of day (`data-time`: dawn, day, dusk, night, or the page's own theme) sets every color through registered custom properties, so a change blends. Colors are the new scene tokens in `tokens.css`. |
+| Performance | A Rafeeq off screen stops its per-frame work (an `IntersectionObserver` in `useRafeeqMotion`), so a page can hold many. Reduced motion stills the walking, drifting and fire. |
+| Home | `client/ui/home/`, top to bottom. The hero: the tagline as a museum-poster headline (bold Figtree, then the italic Newsreader voice; Plex and Naskh in Arabic), with your own Rafeeq (or Rider) standing beside "rider.", Fennec peeking over the first line (it ducks if you stare), Breeze drifting past, and the rest walking the dunes; hover "Talk to Sarjy" and they all lean in to listen. It greets you by the time of day, and by name with your Rafeeq's level if Sarjy knows you (`server/visitor.ts`, read only: a first visit creates nobody). "Tell it once": the brand's promise told as you scroll (a tall section with a sticky picture), the saved fact flying into Keeper's satchel and back out. A day with Sarjy: one scene through five moments from dawn to lights out, the sky and sand following the hour, a different cast for each, the exchange with its tool and the reply typed as it is said; it plays while in view, and a timeline (hour ticks, a slider pill, arrow keys) lets you scrub. The gallery: a room per Rafeeq, its name huge and hollow behind it, number, both names, traits, story, and itself alive; wide screens slide it sideways as you scroll, phones swipe. The Majlis: Rafeeqs round a Sadu rug at night with the real finjan (`Orb`) in the middle, the talk going round the seat colors, Sarjy listening when named and answering the room. The reins: a working copy of the Memory panel, where Forget unpicks the sentence and Sarjy says so. The finale: all eight peeking up from the page's edge; pick one (`PATCH /api/rafeeq`, the same call Settings makes) and you land on `/talk` with it. A companion rides along in the corner after the hero, takes an interest in each section with a line the first time, and bows out at the end. The words are in `shared/home-copy.ts`, in both languages. |
+| 404 | `app/not-found.tsx` picks a seed on the server; `client/ui/lost/vignettes.ts` turns it into one of four scenes (a story by the fire, a squabble over the map, one walking in circles, a map held upside down) and a cast, with roles by personality (the sleepiest dozes, the liveliest squabble, the keenest-eyed keeps a lookout); `staging.ts` places everyone per beat (the squabble loops: a brawl in a dust cloud, a sulk back to back with the map torn in two, making up). They talk in their own voices (`shared/lost-copy.ts`), the fire can be stoked (everyone cheers, the sleeper wakes), and "Ask someone else for directions" plays a different scene. The moon is the zero of the giant 404. |
 
 ## 16a. Hijri, time of day and the Morning card
 

@@ -1,0 +1,133 @@
+/* "Who rides with you?": the words, then all eight peeking up from the page's bottom edge. */
+
+.finale {
+  position: relative;
+  overflow: hidden;
+  padding-block-start: clamp(80px, 14vh, 160px);
+  text-align: center;
+}
+.words {
+  display: grid;
+  justify-items: center;
+  padding-inline: 16px;
+}
+.title {
+  max-width: none;
+  font-size: clamp(52px, 9vw, 150px);
+}
+.words p {
+  margin-inline: auto;
+}
+.orb {
+  margin-block-start: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.orb:hover {
+  color: var(--text);
+}
+
+.lineup {
+  display: flex;
+  justify-content: center;
+  margin: clamp(40px, 8vh, 80px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lineup li {
+  flex: 0 1 190px;
+  margin-inline: -1.2%;
+}
+.pick {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  /* Peeking: the bottom third is below the edge; each bobs on its own beat. */
+  translate: 0 30%;
+  transition: translate 0.5s var(--ease-rein);
+  animation: bob 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.4s);
+}
+.pick:hover,
+.pick:focus-visible {
+  translate: 0 6%;
+  animation-play-state: paused;
+  outline: none;
+}
+.figure {
+  display: block;
+  --orb-size: 100%;
+}
+.figure > div {
+  --orb-size: 100%;
+}
+.name {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  translate: -50% 8px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    opacity var(--t-base),
+    translate var(--t-base) var(--ease-rein);
+}
+.pick:hover .name,
+.pick:focus-visible .name {
+  opacity: 1;
+  translate: -50% 0;
+}
+.pick:focus-visible .figure {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+@keyframes bob {
+  50% {
+    margin-block-start: -6px;
+  }
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .lineup {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .lineup li {
+    flex-basis: 25%;
+    margin-inline: 0;
+  }
+  .pick {
+    translate: 0 12%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pick {
+    animation: none;
+  }
+}

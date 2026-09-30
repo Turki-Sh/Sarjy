@@ -196,6 +196,8 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | P7 | `lang` and `dir` on the page match the interface language | Must |
 | P8 | A link-preview card per kind of link: the home page has its own generated card; shared moments, Majlis invites and the build notes each get one of Turki's twelve illustrated cards, chosen by what the link is about (weather, a recall, a saved fact, a conversation, a picture) and its language, the same card every time for the same link | Must |
 | P9 | Share a moment: after an answer, Share makes a link to that one exchange (`/s/{code}`), read-only, link-only (noindex), deleted by Forget everything | Should |
+| P11 | A home page at `/` that introduces Sarjy with the Rafeeqs living in it (the headline, the dunes, every section), greets a returning visitor by name with their own Rafeeq, lets you pick a Rafeeq and go straight to talk; the voice screen is at `/talk` (Turki, Day 4) | Should |
+| P12 | A 404 of lost Rafeeqs around a campfire: a different scene and cast every visit, each talking in its own voice, a way home and a way to talk, in both languages (Turki, Day 4) | Should |
 | P10 | The build notes (these documents) are served in the app as the Sarjy Handbook at `/handbook` (`/notes` forwards there) | Should |
 
 ### Rafeeq, the companion

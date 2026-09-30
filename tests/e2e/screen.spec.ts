@@ -8,12 +8,12 @@ const openSettings = async (page: Page, section: string) => {
 };
 
 test("dark mode persists across a reload, with no flash of light", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await openSettings(page, "Appearance");
   await page.getByRole("radio", { name: "Dark" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   // The server renders the saved theme, so it is right before any script runs.
-  const html = await (await page.request.get("/", { headers: { cookie: "sarjy_theme=dark" } })).text();
+  const html = await (await page.request.get("/talk", { headers: { cookie: "sarjy_theme=dark" } })).text();
   expect(html).toMatch(/<html[^>]*data-theme="dark"/);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -21,7 +21,7 @@ test("dark mode persists across a reload, with no flash of light", async ({ page
 
 test("System follows the device, before the first paint", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/");
+  await page.goto("/talk");
   await openSettings(page, "Appearance");
   await page.getByRole("radio", { name: "System" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -32,7 +32,7 @@ test("System follows the device, before the first paint", async ({ page }) => {
 });
 
 test("the Arabic interface mirrors and switches every string", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await openSettings(page, "General");
   // The language menu is Sarjy's own dropdown: a button, then a list with a check on the choice.
   await page.getByRole("button", { name: /^Language:/ }).click();
@@ -54,7 +54,7 @@ test("the Arabic interface mirrors and switches every string", async ({ page }) 
 });
 
 test("Glass goes from solid to clear, live, and is remembered", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   const liquid = () =>
     page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--liquid").trim());
   expect(await liquid()).toBe("0.6"); // the default
@@ -85,7 +85,7 @@ test("Glass goes from solid to clear, live, and is remembered", async ({ page })
 });
 
 test("the language menu works from the keyboard, and Escape closes only the menu", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await openSettings(page, "General");
   await page.getByRole("button", { name: /^Language:/ }).focus();
   await page.keyboard.press("ArrowDown");
@@ -100,7 +100,7 @@ test("a device that asks for less transparency starts Solid, but your own choice
   await cdp.send("Emulation.setEmulatedMedia", {
     features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
   });
-  await page.goto("/");
+  await page.goto("/talk");
   const ambient = page.locator(".ambient");
   await expect(ambient).toHaveCSS("opacity", "0");
   await openSettings(page, "Appearance");

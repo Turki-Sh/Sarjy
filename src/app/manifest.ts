@@ -3,13 +3,15 @@
 import type { MetadataRoute } from "next";
 import { COLORS } from "@/shared/brand/colors";
 import { t } from "@/shared/i18n";
+import { TALK } from "@/shared/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Sarjy · سرجي",
     short_name: "Sarjy",
     description: t("en").description,
-    start_url: "/",
+    // An installed Sarjy opens straight to the voice screen.
+    start_url: TALK,
     display: "standalone",
     background_color: COLORS.white,
     theme_color: COLORS.white,

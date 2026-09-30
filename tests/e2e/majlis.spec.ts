@@ -23,7 +23,7 @@ async function twoInAMajlis(browser: Browser) {
   const host = await (await browser.newContext()).newPage();
   const guest = await (await browser.newContext()).newPage();
   // Wait for the visit to be known before talking, so the first turn and the page are one person.
-  await Promise.all([host.waitForResponse("**/api/session"), host.goto("/")]);
+  await Promise.all([host.waitForResponse("**/api/session"), host.goto("/talk")]);
   await say(host, "My name is Turki.");
   await expect(screen(host)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
   await say(host, "My favorite color is green.");

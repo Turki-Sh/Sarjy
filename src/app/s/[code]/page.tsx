@@ -10,6 +10,7 @@ import { readPreferences } from "@/server/preferences";
 import { getShare } from "@/server/share/repo";
 import { t } from "@/shared/i18n";
 import { cardImage, pickCard, type CardKind } from "@/shared/og";
+import { TALK } from "@/shared/site";
 import styles from "./share.module.css";
 
 type Props = { params: Promise<{ code: string }> };
@@ -74,7 +75,7 @@ export default async function SharedMoment({ params }: Props) {
         </p>
       </article>
 
-      <Link href="/" className={styles.cta}>
+      <Link href={TALK} className={styles.cta}>
         {s.talk}
       </Link>
       <p className={styles.note}>{s.sharedNote}</p>

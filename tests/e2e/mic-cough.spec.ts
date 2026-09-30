@@ -25,7 +25,7 @@ test("a cough while listening never leaves the screen stuck on Listening", async
   test.setTimeout(40_000);
   let turns = 0;
   page.on("request", (r) => void (r.url().endsWith("/api/turn") && turns++));
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Talk to Sarjy" }).click();
   const screen = page.locator("[data-state]").first();
   await expect(screen).toHaveAttribute("data-state", "listening", { timeout: 15_000 });
@@ -41,7 +41,7 @@ test("a cough while listening never leaves the screen stuck on Listening", async
 test("tapping the orb while listening, before speaking, closes it quietly", async ({ page }) => {
   let turns = 0;
   page.on("request", (r) => void (r.url().endsWith("/api/turn") && turns++));
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Talk to Sarjy" }).click();
   const screen = page.locator("[data-state]").first();
   await expect(screen).toHaveAttribute("data-state", "listening", { timeout: 15_000 });

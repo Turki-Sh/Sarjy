@@ -177,9 +177,9 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Sarjy's voice: a casual Saudi friend, not a formal assistant (prompt, fake replies, PRD section 8)
 
 ### Pages (Turki's requests, after M5)
-- [ ] A high-quality home page that introduces Sarjy, with a clear way into the voice screen
-- [ ] A custom, animated 404 page in the brand, bilingual, with a way back (references: dribbble.com/tags/404-page, 404s.design)
-- [ ] Maybe: onboarding screens, a short first-run walkthrough (decide after M5's onboarding in the interface)
+- [x] A high-quality home page that introduces Sarjy, with a clear way into the voice screen (Day 4: the voice screen moves to `/talk`; the Rafeeqs live in the hero, a scroll-told promise, a day with Sarjy, a gallery, the Majlis, the reins, a finale to pick one; a companion rides along; greets you by name)
+- [x] A custom, animated 404 page in the brand, bilingual, with a way back (Day 4: lost Rafeeqs around a campfire, four scenes shuffled each visit, a squabble in a dust cloud, the moon as the zero)
+- [ ] Maybe: onboarding screens, a short first-run walkthrough (Turki, Day 4: skipped for now)
 
 ### Fixed from Turki's review (Day 2)
 - [x] The "Sarjy" title left the top bar (the sidebar already carries the name)

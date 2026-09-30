@@ -3,6 +3,9 @@
 
 export const SITE_NAME = "Sarjy";
 
+/** Where you talk to Sarjy: the voice screen. The home page (/) introduces it. */
+export const TALK = "/talk";
+
 export function siteUrl(): URL {
   const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
   return new URL(host ? `https://${host}` : "http://localhost:3000");

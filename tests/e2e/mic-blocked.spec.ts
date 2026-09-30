@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // Acceptance test AT-04 (no mic, or permission denied).
 
 test("without mic access, typing takes over", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   await page.getByRole("button", { name: "Talk to Sarjy" }).click();
 
   await expect(page.locator('button[data-look="blocked"]')).toBeVisible();

@@ -24,7 +24,7 @@ test.use({
 const screen = (page: import("@playwright/test").Page) => page.locator("[data-state]").first();
 
 test("tap the mic, speak, and Sarjy answers when you stop", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/talk");
   const mic = page.getByRole("button", { name: "Talk to Sarjy" });
   await mic.click();
 

@@ -23,7 +23,7 @@ async function pick(page: Page, name: RegExp) {
 test("a picked Rafeeq replaces the orb, follows a turn, and beams on a save (AT-110, AT-111)", async ({
   page,
 }) => {
-  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/talk")]);
   // No Rafeeq by default: the orb.
   await expect(rafeeq(page)).toHaveCount(0);
 
@@ -53,7 +53,7 @@ test("a picked Rafeeq replaces the orb, follows a turn, and beams on a save (AT-
 });
 
 test("petting it makes it happy and grows the bond (AT-112)", async ({ page }) => {
-  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/talk")]);
   await pick(page, /^Keeper/);
   const box = (await rafeeq(page).boundingBox())!;
   const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2];
@@ -85,7 +85,7 @@ test("petting it makes it happy and grows the bond (AT-112)", async ({ page }) =
 });
 
 test("a Majlis keeps the finjan, even with a Rafeeq picked (AT-113)", async ({ page }) => {
-  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/talk")]);
   await pick(page, /^Drifter/);
   await expect(rafeeq(page)).toBeVisible();
   await page.getByRole("button", { name: "Start a Majlis" }).click();
@@ -96,7 +96,7 @@ test("a Majlis keeps the finjan, even with a Rafeeq picked (AT-113)", async ({ p
 });
 
 test("each companion has its own bond, kept when you switch (AT-115)", async ({ page }) => {
-  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/talk")]);
   await pick(page, /^Scout/);
   await say(page, "My favorite color is green.");
   await expect(rafeeq(page)).toHaveAttribute("data-mood", "happy", { timeout: 10_000 });
@@ -115,7 +115,7 @@ test("each companion has its own bond, kept when you switch (AT-115)", async ({ 
 test("each companion has its own personality: Fennec gets annoyed, Keeper goes shy (AT-116)", async ({
   page,
 }) => {
-  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/talk")]);
   const restOn = async () => {
     const box = (await rafeeq(page).boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 3 });
