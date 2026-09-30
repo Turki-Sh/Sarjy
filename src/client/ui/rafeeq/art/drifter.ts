@@ -2,6 +2,7 @@
 // stories. A suede body lying low, a big hood whose tip flops to one side with a tassel, a woven
 // scarf with tassels, and a little leather bag on its back.
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { brassDefs, commonDefs, face, fill, grain, ground, stop, stroke, tassel } from "./shared";
 
 const BODY =
@@ -45,7 +46,7 @@ ${ground(uid, 74)}
   ${grain(uid, HOOD, 0.4)}
   <path d="M56 80 C62 56 82 44 104 44" ${stroke("suede-light", 3, "opacity:.6")}/>
   <ellipse cx="96" cy="92" rx="33" ry="31" ${stroke("suede-dark", 6, "opacity:.55")}/>
-  ${face(uid, { cx: 96, y: 88, spread: 12, plush: { cy: 92, rx: 30, ry: 28 } })}
+  ${face(uid, { cx: 96, y: 88, spread: 12, plush: { cy: 92, rx: 30, ry: 28 }, smile: PERSONALITIES.drifter.smile })}
 
   <!-- the scarf, woven, with tassels -->
   <path d="M50 126 C70 142 124 142 144 126 L146 138 C124 154 70 154 48 138 Z" fill="url(#${uid}-scarf)"/>

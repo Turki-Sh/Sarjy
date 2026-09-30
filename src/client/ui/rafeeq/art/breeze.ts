@@ -2,6 +2,7 @@
 // and a few grains of sand riding along. Dreamy, always drifting. (Redrawn on Day 3: the first
 // Drifter's tail read wrong, so the wind now moves around it instead of trailing behind.)
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { commonDefs, face, fill, grain, ground, stop, stroke } from "./shared";
 
 const BODY =
@@ -22,7 +23,7 @@ ${ground(uid, 46)}
   ${grain(uid, BODY, 0.12)}
   <path d="M58 104 C62 92 74 88 84 92 M104 76 C112 72 122 74 128 80" ${stroke("breeze-wind", 4, "opacity:.8")}/>
   <path d="M112 100 c8 -8 20 -2 16 8 c-3 6 -12 4 -10 -2" ${stroke("breeze-wind", 2.4, "opacity:.9")}/>
-  ${face(uid, { cx: 100, y: 128, spread: 18 })}
+  ${face(uid, { cx: 100, y: 128, spread: 18, smile: PERSONALITIES.breeze.smile })}
 </g>
 <g class="r-ribbon" style="transform-origin:100px 124px">
   <path d="M20 118 C30 100 56 104 60 120 C63 132 48 136 44 126" ${stroke("breeze-shade", 5.5, "opacity:.35")}/>

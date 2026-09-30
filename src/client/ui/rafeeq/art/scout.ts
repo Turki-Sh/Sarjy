@@ -2,6 +2,7 @@
 // with a pointed cream hood edged in Sadu weave, dark felt arms, a woven cape on its back, and a
 // leather collar with a brass ring and a tassel.
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { brass, brassDefs, commonDefs, face, fill, grain, ground, stop, stroke, tassel } from "./shared";
 
 const BELLY =
@@ -45,7 +46,7 @@ ${ground(uid, 48)}
     <path d="M60 96 C62 70 78 52 100 50 C124 52 140 72 140 96" ${stroke("plush-cream-light", 3, "opacity:.5")}/>
     <ellipse cx="100" cy="88" rx="33" ry="37" style="fill:none;stroke:url(#${uid}-sadu);stroke-width:8"/>
     <ellipse cx="100" cy="88" rx="37" ry="41" ${stroke("sadu-dark", 1.2, "opacity:.5")}/>
-    ${face(uid, { cx: 100, y: 84, spread: 11, eye: 0.95, plush: { cy: 88, rx: 29, ry: 33 } })}
+    ${face(uid, { cx: 100, y: 84, spread: 11, eye: 0.95, plush: { cy: 88, rx: 29, ry: 33 }, smile: PERSONALITIES.scout.smile })}
   </g>
 
   <!-- the collar: leather, a brass ring, a tassel -->

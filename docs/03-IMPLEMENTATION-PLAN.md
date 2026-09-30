@@ -289,6 +289,7 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [x] One bond per companion (Pokémon style), `rafeeq_bonds`; each card shows its own level
 - [x] More alive: a head-turn on plush faces, the body leaning toward you, tassels, hoods and ribbons swaying, fidgets between turns (hop, twitch, tilt, yawn, look), a trick each; the art lab (`scripts/rafeeq/lab.mjs`) draws every companion in every pose
 - [x] Turki's review (Day 4): a personality each. Its own reaction to your pointer resting on it (Fennec annoyed, Keeper shy, Dune proud, Breeze dodging), to petting (composed, melts, ticklish, giggles, grumbles then gives in) and to a failure; its own energy, gaze, fidgets and bedtime; a face at rest (brows, lids, mouth); traits and a story each in Settings, in both languages (AT-116)
+- [x] Turki's review (Day 4, again): a smile of its own for each (proud, bashful, beam, lazy, laugh, serene, smirk, cheeky); Fennec grumbles for longer, sulks, huffs as you leave, and gives in only at the third stroke
 - [ ] Live look on a phone with real audio (the mouth follows the voice level, which headless tests can't hear)
 
 ---

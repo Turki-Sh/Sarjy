@@ -1,6 +1,7 @@
 // Lantern (فانوس): gentle and glowing, with a brass fanous that lights up for every memory.
 // (The first Keeper, Day 3; renamed when the plush Rafeeqs took the name.)
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { brassDefs, commonDefs, face, fill, grain, ground, stop, stroke } from "./shared";
 
 const BODY =
@@ -30,5 +31,5 @@ ${ground(uid, 58)}
   <path class="r-tuft" d="M96 68 C91 52 102 42 112 47 C104 50 102 57 104 67 Z" ${fill("lantern-tuft")} style="fill:var(--lantern-tuft);transform-origin:100px 68px"/>
   <path d="M58 150 C62 170 80 178 100 178 C120 178 138 170 142 150 C132 160 118 164 100 164 C82 164 68 160 58 150 Z" ${fill("lantern-shade")}/>
   <path d="M60 104 C68 84 84 74 100 73" ${stroke("lantern-light", 4, "opacity:.8")}/>
-  ${face(uid, { cx: 100, y: 120, spread: 18 })}
+  ${face(uid, { cx: 100, y: 120, spread: 18, smile: PERSONALITIES.lantern.smile })}
 </g>`;

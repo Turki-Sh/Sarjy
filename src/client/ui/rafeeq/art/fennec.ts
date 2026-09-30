@@ -1,6 +1,7 @@
 // Fennec (فنك): the desert fox, with big ears that perk up for every search. Curious and quick.
 // (The first Scout, Day 3; renamed when the plush Rafeeqs took the name.)
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { commonDefs, face, fill, grain, ground, stop, stroke } from "./shared";
 
 const BODY = "M44 184 C40 134 62 100 100 100 C138 100 160 134 156 184 Z";
@@ -34,5 +35,5 @@ ${ground(uid, 60)}
   ${grain(uid, BODY, 0.2)}
   <path d="M70 172 C72 152 86 144 100 144 C114 144 128 152 130 172 C120 180 80 180 70 172 Z" ${fill("fennec-cream")}/>
   <path d="M62 132 C70 114 84 106 100 106" ${stroke("fennec-light", 3.5, "opacity:.8")}/>
-  ${face(uid, { cx: 100, y: 136, spread: 18 })}
+  ${face(uid, { cx: 100, y: 136, spread: 18, smile: PERSONALITIES.fennec.smile })}
 </g>`;

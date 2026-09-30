@@ -3,6 +3,7 @@
 // blanket; a stitched strap across its chest with a brass medallion and a tassel, and a Sadu
 // saddle cloth hanging down its side.
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { brass, brassDefs, commonDefs, face, fill, grain, ground, stop, stroke, tassel } from "./shared";
 
 const BODY =
@@ -60,5 +61,5 @@ ${ground(uid, 66)}
 
   <!-- a soft shadow under the face, then the face -->
   <ellipse cx="104" cy="134" rx="46" ry="34" style="fill:var(--rafeeq-ink);opacity:.12"/>
-  ${face(uid, { cx: 104, y: 126, spread: 15, plush: { cy: 128, rx: 44, ry: 32 } })}
+  ${face(uid, { cx: 104, y: 126, spread: 15, plush: { cy: 128, rx: 44, ry: 32 }, smile: PERSONALITIES.rider.smile })}
 </g>`;

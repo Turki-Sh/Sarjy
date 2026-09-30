@@ -32,6 +32,8 @@ describe("each Rafeeq's personality", () => {
     const selves = RAFEEQS.map((id) => JSON.stringify(PERSONALITIES[id]));
     expect(new Set(selves).size).toBe(RAFEEQS.length);
     expect(new Set(RAFEEQS.map((id) => PERSONALITIES[id].temper)).size).toBe(RAFEEQS.length);
+    // And none smiles like another.
+    expect(new Set(RAFEEQS.map((id) => PERSONALITIES[id].smile)).size).toBe(RAFEEQS.length);
     for (const id of RAFEEQS) {
       const p = PERSONALITIES[id];
       expect(p.energy).toBeGreaterThanOrEqual(0.5);

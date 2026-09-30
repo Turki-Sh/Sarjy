@@ -4,6 +4,8 @@
 // the --plush-*, --rider-* ... families), always through style, since SVG attributes can't read
 // CSS variables. Classes starting with r- are the moving parts Rafeeq.module.css animates.
 
+import type { Smile } from "@/shared/rafeeq";
+
 /** A fill from a token. */
 export const fill = (token: string) => `style="fill:var(--${token})"`;
 /** A stroke from a token, with its width. */
@@ -93,6 +95,8 @@ type FaceSpec = {
   /** Plush: a charcoal felt face patch, bead eyes, stitched mouth. Classic: eyes on the body. */
   plush?: { rx: number; ry: number; cy: number } | null;
   eye?: number;
+  /** Its own smile (shared/rafeeq.ts, PERSONALITIES). */
+  smile: Smile;
 };
 
 /**
@@ -102,7 +106,98 @@ type FaceSpec = {
  * the stylesheet shows one. On a plush companion the eyes are glossy beads on a felt patch, and
  * the patch and the eyes move by different amounts as it looks around, like a head turning.
  */
-export function face(uid: string, { cx, y, spread, plush = null, eye = 1 }: FaceSpec): string {
+/**
+ * Its own smile: happy eyes and a happy mouth, shown in every happy moment instead of the ω.
+ * Numbers are relative to the eyes (x, y, eye scale s) and the mouth (cx, my, mouth scale m).
+ */
+function smileOf(
+  kind: Smile,
+  { lx, rx, y, s, cx, my, m, line, w, mw, mouthFill, bead }: SmileSpec,
+): { eyes: string; mouth: string } {
+  const arc = (x: number, d: string, dy = 1) => `<path d="M${x - 8 * s} ${y + dy} ${d}" ${stroke(line, w)}/>`;
+  const up = `q${8 * s} ${-10 * s} ${16 * s} 0`;
+  const tongue = (x: number, ty: number, rx: number, ry: number) =>
+    `<ellipse cx="${x}" cy="${ty}" rx="${rx}" ry="${ry}" ${fill("rafeeq-blush")}/>`;
+  const curve = (d: string) => `<path d="${d}" ${stroke(line, mw)}/>`;
+  switch (kind) {
+    case "proud":
+      return {
+        eyes: arc(lx, up) + arc(rx, up),
+        mouth: curve(`M${cx - 7 * m} ${my} q${7 * m} ${6 * m} ${14 * m} 0`),
+      };
+    case "bashful": {
+      const small = `q${6 * s} ${-7 * s} ${12 * s} 0`;
+      return {
+        eyes: `<path d="M${lx - 6 * s} ${y + 3 * s} ${small}" ${stroke(line, w)}/><path d="M${rx - 6 * s} ${y + 3 * s} ${small}" ${stroke(line, w)}/>`,
+        mouth: curve(`M${cx - 5 * m} ${my} q${2.5 * m} ${3 * m} ${5 * m} 0 q${2.5 * m} ${3 * m} ${5 * m} 0`),
+      };
+    }
+    case "beam": {
+      const tall = `q${8 * s} ${-15 * s} ${16 * s} 0`;
+      return {
+        eyes: arc(lx, tall, 3 * s) + arc(rx, tall, 3 * s),
+        mouth: `<path d="M${cx - 10 * m} ${my - 1} q${10 * m} ${16 * m} ${20 * m} 0 Z" ${fill(mouthFill)}/>${tongue(cx, my + 7 * m, 5 * m, 2.8 * m)}`,
+      };
+    }
+    case "lazy": {
+      // Half-lidded and pleased: the lower half of the bead, a lid line over it, a glint.
+      const half = (x: number) => `
+        <path d="M${x - 7.5 * s} ${y + 1 * s} a${7.5 * s} ${7.5 * s} 0 0 0 ${15 * s} 0 Z" ${fill("rafeeq-ink")}/>
+        <path d="M${x - 9 * s} ${y + 0.5 * s} q${9 * s} ${-3 * s} ${18 * s} 0" ${stroke(line, w * 0.8)}/>
+        <circle cx="${x + 2.5 * s}" cy="${y + 4 * s}" r="${1.8 * s}" ${fill("rafeeq-shine")}/>`;
+      return {
+        eyes: half(lx) + half(rx),
+        mouth: curve(`M${cx - 7 * m} ${my + 1} q${6 * m} ${5 * m} ${13 * m} ${-3 * m}`),
+      };
+    }
+    case "laugh": {
+      const squeeze = (x: number, dir: 1 | -1) =>
+        `<path d="M${x - 6 * s * dir} ${y - 6 * s} l${11 * s * dir} ${6 * s} l${-11 * s * dir} ${6 * s}" ${stroke(line, w)}/>`;
+      return {
+        eyes: squeeze(lx, 1) + squeeze(rx, -1),
+        mouth: `<path d="M${cx - 11 * m} ${my - 2} q${11 * m} ${18 * m} ${22 * m} 0 Z" ${fill(mouthFill)}/>${tongue(cx, my + 8 * m, 6 * m, 3.2 * m)}`,
+      };
+    }
+    case "serene": {
+      const down = `q${8 * s} ${7 * s} ${16 * s} 0`;
+      return {
+        eyes: arc(lx, down) + arc(rx, down),
+        mouth: curve(`M${cx - 9 * m} ${my} q${9 * m} ${5 * m} ${18 * m} 0`),
+      };
+    }
+    case "smirk": {
+      const flat = `q${8 * s} ${-5 * s} ${16 * s} 0`;
+      return {
+        eyes: arc(lx, up) + arc(rx, flat, 0),
+        mouth: curve(`M${cx - 6 * m} ${my + 2} q${7 * m} ${3 * m} ${12 * m} ${-4 * m}`),
+      };
+    }
+    case "cheeky":
+      return {
+        eyes: arc(lx, up) + bead(rx),
+        mouth:
+          curve(`M${cx - 8 * m} ${my} q${4 * m} ${5 * m} ${8 * m} 0 q${4 * m} ${5 * m} ${8 * m} 0`) +
+          tongue(cx + 3 * m, my + 5 * m, 3.2 * m, 3.8 * m),
+      };
+  }
+}
+
+type SmileSpec = {
+  lx: number;
+  rx: number;
+  y: number;
+  s: number;
+  cx: number;
+  my: number;
+  m: number;
+  line: string;
+  w: number;
+  mw: number;
+  mouthFill: string;
+  bead: (x: number) => string;
+};
+
+export function face(uid: string, { cx, y, spread, plush = null, eye = 1, smile }: FaceSpec): string {
   const lx = cx - spread;
   const rx = cx + spread;
   const s = eye * (plush ? 0.62 : 1);
@@ -116,18 +211,32 @@ export function face(uid: string, { cx, y, spread, plush = null, eye = 1 }: Face
   const line = plush ? "plush-stitch" : "rafeeq-ink";
   const w = plush ? 2.6 : 4.5;
   const arc = (x: number, d: string) => `<path d="M${x - 8 * s} ${y + 1} ${d}" ${stroke(line, w)}/>`;
-  const up = `q${8 * s} ${-10 * s} ${16 * s} 0`;
   const down = `q${8 * s} ${7 * s} ${16 * s} 0`;
   const my = y + (plush ? 10 : 14);
   const m = plush ? 0.7 : 1;
+  const happy = smileOf(smile, {
+    lx,
+    rx,
+    y,
+    s,
+    cx,
+    my,
+    m,
+    line,
+    w,
+    mw: plush ? 1.9 : 3.2,
+    mouthFill: plush ? "plush-mouth" : "rafeeq-ink",
+    bead,
+  });
   const features = `
     <g class="r-features">
       <g class="r-open">${bead(lx)}${bead(rx)}</g>
-      <g class="r-happy">${arc(lx, up)}${arc(rx, up)}</g>
+      <g class="r-happy">${happy.eyes}</g>
       <g class="r-closed">${arc(lx, down)}${arc(rx, down)}</g>
       <ellipse class="r-blush${plush ? " r-blush-soft" : ""}" cx="${lx - 10 * m}" cy="${my - 1}" rx="${7 * m}" ry="${4 * m}"/>
       <ellipse class="r-blush${plush ? " r-blush-soft" : ""}" cx="${rx + 10 * m}" cy="${my - 1}" rx="${7 * m}" ry="${4 * m}"/>
       <path class="r-mouth" d="M${cx - 8 * m} ${my} q${4 * m} ${5 * m} ${8 * m} 0 q${4 * m} ${5 * m} ${8 * m} 0" ${stroke(line, plush ? 1.9 : 3.2)}/>
+      <g class="r-smile">${happy.mouth}</g>
       <path class="r-mouth-flat" d="M${cx - 6 * m} ${my + 2} h${12 * m}" ${stroke(line, plush ? 1.9 : 3.2)}/>
       <g class="r-brows">
         <path class="r-brow r-brow-l" d="M${lx - 7 * s} ${y - 15 * s} h${14 * s}" ${stroke(line, plush ? 2.2 : 3.4)}/>

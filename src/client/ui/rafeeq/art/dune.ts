@@ -1,6 +1,7 @@
 // Dune (كثيب): a sand dune in a red-checked shemagh and a black agal. Bold and cheerful.
 // (The first Rider, Day 3; renamed when the plush Rafeeqs took the name.)
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { commonDefs, face, fill, grain, ground, stop, stroke } from "./shared";
 
 const BODY = "M36 184 C34 128 60 90 100 90 C140 90 166 128 164 184 Z";
@@ -34,5 +35,5 @@ ${ground(uid, 62)}
   <path d="M68 84 Q100 98 132 84" ${stroke("rafeeq-ink", 6)}/>
   <path d="M70 76 Q100 90 130 76" ${stroke("rafeeq-ink", 6)}/>
   <path d="M76 82 Q100 92 124 82" ${stroke("rafeeq-shine", 1.2, "opacity:.35")}/>
-  ${face(uid, { cx: 100, y: 128, spread: 18 })}
+  ${face(uid, { cx: 100, y: 128, spread: 18, smile: PERSONALITIES.dune.smile })}
 </g>`;

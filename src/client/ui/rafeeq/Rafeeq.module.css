@@ -317,6 +317,41 @@
 .wrap:is([data-mood="sleepy"], [data-fidget="yawn"]) :global(.r-closed) {
   opacity: 1;
 }
+/* Its own smile (art/shared.ts, smileOf): in every happy moment the ω gives way to it. */
+.wrap :global(.r-smile) {
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease-rein);
+}
+.wrap:is(
+    [data-mood="happy"],
+    [data-mood="petted"],
+    [data-mood="greet"],
+    [data-mood="celebrate"],
+    [data-mood="trick"],
+    [data-expr="giggle"]
+  )
+  :global(.r-smile) {
+  opacity: 1;
+}
+.wrap:is(
+    [data-mood="happy"],
+    [data-mood="petted"],
+    [data-mood="greet"],
+    [data-mood="celebrate"],
+    [data-mood="trick"],
+    [data-expr="giggle"]
+  )
+  :global(.r-mouth) {
+  opacity: 0;
+}
+.wrap:is([data-mood="happy"], [data-mood="petted"], [data-mood="greet"]) :global(.r-blush) {
+  opacity: 0.6;
+}
+/* Keeper's bashful smile comes with its deepest blush; Fennec's smirk, a blush it would deny. */
+.wrap:is([data-rafeeq="keeper"], [data-rafeeq="fennec"]):is([data-mood="happy"], [data-mood="petted"])
+  :global(.r-blush) {
+  opacity: 0.95;
+}
 
 /* Happy (a save): two bounces, sparkles, and everything that dangles swings. */
 .wrap[data-mood="happy"] .float {
@@ -944,6 +979,15 @@
     translate: 6px 0;
   }
 }
+/* After the stomps, a sulk: a slow, pointed turn away and a little huffy rise and fall. */
+@keyframes sulk {
+  30% {
+    transform: translateX(-3px) scale(1.02, 0.98);
+  }
+  60% {
+    transform: translateX(-4px) scale(0.99, 1.01);
+  }
+}
 @keyframes stomp {
   30% {
     transform: translateY(-5px) rotate(-3deg);
@@ -983,9 +1027,17 @@
 .wrap[data-mood="petted"][data-pet="giggles"] .float {
   animation: hop 0.35s var(--ease-rein) 4;
 }
-/* Grumbles (Fennec): a huff and a stomp; pet it again and it gives in (then it's "petted"). */
+/* Grumbles (Fennec): stomps, huffs, and turns its face away, eyes narrowed, for a good few
+   seconds. Pet it again and it grumbles again; the third time it gives in (then it's "petted"). */
+.wrap[data-mood="grumble"] {
+  --tilt: -9deg;
+  --face-x: 8px;
+  --lid: 0.4;
+}
 .wrap[data-mood="grumble"] .float {
-  animation: stomp 0.45s ease-in-out 2;
+  animation:
+    stomp 0.45s ease-in-out 3,
+    sulk 3.4s ease-in-out 1.35s;
 }
 .wrap[data-mood="grumble"] :global(.r-ear-l) {
   transform: rotate(-26deg);

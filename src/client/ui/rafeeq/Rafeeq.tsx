@@ -9,7 +9,8 @@
 //     shy and looks away, Scout leans in, Drifter doesn't care, Dune puffs up, Lantern glows,
 //     Fennec gets annoyed, Breeze dodges and giggles
 //   - stroke it and it reacts in character too: melts, giggles, keeps its composure, or grumbles
-//     (and gives in if you keep at it); a failed tool worries one and fires up another
+//     (twice, then gives in with a smirk); a failed tool worries one and fires up another
+//   - every happy moment gets its own smile (art/shared.ts, smileOf)
 //   - between turns it fidgets in its own way, at its own pace, and dozes off on its own schedule
 //   - it greets you when you arrive (level 2), does its own trick (level 4), wears a star (level 5)
 // The moods and personality live here; the looks live in Rafeeq.module.css, keyed on data-*.
@@ -39,8 +40,11 @@ const PET_PX = 260;
 /** Your pointer resting on it: a moment, then a while. */
 const NEAR_MS = 250;
 const LONG_MS = 2200;
-/** A grumbler gives in when petted again this soon. */
-const GIVE_IN_MS = 8000;
+/** A grumbler keeps count of strokes this close together, and gives in on the third. */
+const GIVE_IN_MS = 10_000;
+const GIVE_IN_AFTER = 3;
+/** How long a grumble lasts: long enough to be felt. */
+const GRUMBLE_MS = 4200;
 /** Where sparkles burst around it, on a save. */
 const SPARKLES: [number, number][] = [
   [44, 70],
@@ -200,6 +204,10 @@ export function Rafeeq({
   };
   const onPointerLeave = () => {
     hoverTimers.current.forEach(window.clearTimeout);
+    // A companion you annoyed doesn't forgive you the moment you leave: a parting huff.
+    if (self.temper === "annoyed" && hover === "long" && stateRef.current === "idle") {
+      flash("grumble", 2600);
+    }
     setHover(null);
     stroke.current.x = 0;
     stroke.current.y = 0;
@@ -207,7 +215,7 @@ export function Rafeeq({
   useEffect(() => () => hoverTimers.current.forEach(window.clearTimeout), []);
 
   // Petting: a stroke back and forth across it. A grumbler grumbles, then gives in if you persist.
-  const stroke = useRef({ px: 0, since: 0, x: 0, y: 0, lastPet: -Infinity });
+  const stroke = useRef({ px: 0, since: 0, x: 0, y: 0, lastPet: -Infinity, grumbles: 0 });
   const onPointerMove = (e: React.PointerEvent) => {
     if (preview) return;
     const s = stroke.current;
@@ -217,11 +225,11 @@ export function Rafeeq({
     s.x = e.clientX;
     s.y = e.clientY;
     if (s.px > PET_PX && now - s.lastPet > 2500 && stateRef.current === "idle") {
-      const persisted = now - s.lastPet < GIVE_IN_MS;
+      if (now - s.lastPet > GIVE_IN_MS) s.grumbles = 0;
       s.lastPet = now;
       s.px = 0;
-      if (self.pet === "grumbles" && !persisted) flash("grumble", 1600);
-      else flash("petted", 1800);
+      if (self.pet === "grumbles" && ++s.grumbles < GIVE_IN_AFTER) flash("grumble", GRUMBLE_MS);
+      else ((s.grumbles = 0), flash("petted", 2200));
       onPet?.();
     }
   };

@@ -2,6 +2,7 @@
 // cream loaf under a woven blanket tied with a braided rope, a leather satchel with a Sadu flap and
 // a big cream tassel at its side. It keeps what you tell Sarjy.
 
+import { PERSONALITIES } from "@/shared/rafeeq";
 import { brass, brassDefs, commonDefs, face, fill, grain, ground, stop, stroke, tassel } from "./shared";
 
 const BODY =
@@ -58,7 +59,7 @@ ${ground(uid, 72)}
 
   <!-- a soft shadow under the face, then the face -->
   <ellipse cx="106" cy="136" rx="48" ry="34" style="fill:var(--rafeeq-ink);opacity:.12"/>
-  ${face(uid, { cx: 106, y: 128, spread: 16, plush: { cy: 130, rx: 46, ry: 32 } })}
+  ${face(uid, { cx: 106, y: 128, spread: 16, plush: { cy: 130, rx: 46, ry: 32 }, smile: PERSONALITIES.keeper.smile })}
 
   <!-- the satchel at its side: leather, a Sadu flap, a brass buckle, a big tassel -->
   <g class="r-bag">

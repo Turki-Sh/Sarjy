@@ -90,6 +90,13 @@ export type FailStyle = "worried" | "determined" | "shrug" | "indignant" | "star
 /** The small things it does on its own while it waits. */
 export const FIDGETS = ["hop", "twitch", "tilt", "yawn", "look", "nod", "stretch", "spin", "stomp"] as const;
 export type Fidget = (typeof FIDGETS)[number];
+/**
+ * Its own smile, for every happy moment (Turki, Day 4: they shouldn't all smile alike):
+ * proud (a neat closed smile), bashful (a tiny mouth, a deep blush), beam (wide open), lazy
+ * (lopsided, eyes half shut), laugh (a big open laugh, eyes squeezed), serene (eyes closed, a
+ * gentle curve), smirk (one-sided, pleased despite itself), cheeky (a wink and its tongue out).
+ */
+export type Smile = "proud" | "bashful" | "beam" | "lazy" | "laugh" | "serene" | "smirk" | "cheeky";
 /** A face beyond happy and asleep: brows, lids and mouth. */
 export type Expression =
   "annoyed" | "wary" | "worried" | "smug" | "determined" | "content" | "shy" | "wide" | "giggle";
@@ -109,6 +116,7 @@ export type Personality = {
   fidgetEvery: readonly [number, number];
   /** Its face at rest, if it has one of its own. */
   rest: Expression | null;
+  smile: Smile;
 };
 
 export const PERSONALITIES: Record<RafeeqId, Personality> = {
@@ -123,6 +131,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["look", "nod", "twitch", "tilt"],
     fidgetEvery: [7, 12],
     rest: null,
+    smile: "proud",
   },
   // Gentle and a little sleepy: goes shy when watched, melts when petted, worries for you.
   keeper: {
@@ -135,6 +144,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["yawn", "tilt", "twitch"],
     fidgetEvery: [9, 15],
     rest: "content",
+    smile: "bashful",
   },
   // Curious and quick: leans in to see, ticklish, jumps when something goes wrong, rarely sleeps.
   scout: {
@@ -147,6 +157,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["look", "hop", "tilt", "look"],
     fidgetEvery: [4, 8],
     rest: "wide",
+    smile: "beam",
   },
   // Easygoing and dreamy: unbothered, loves a stroke, shrugs things off, naps often.
   drifter: {
@@ -159,6 +170,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["yawn", "stretch", "tilt"],
     fidgetEvery: [12, 20],
     rest: "content",
+    smile: "lazy",
   },
   // Bold and a show-off: puffs up when watched, giggles, is indignant when things fail.
   dune: {
@@ -171,6 +183,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["hop", "nod", "tilt"],
     fidgetEvery: [6, 10],
     rest: null,
+    smile: "laugh",
   },
   // Calm and wise: glows warmly at you, content, worries softly, keeps watch into the night.
   lantern: {
@@ -183,6 +196,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["tilt", "yawn", "look"],
     fidgetEvery: [10, 16],
     rest: "content",
+    smile: "serene",
   },
   // Prickly but soft inside: annoyed when hovered over, grumbles at petting (then gives in).
   fennec: {
@@ -195,6 +209,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["twitch", "twitch", "look", "stomp"],
     fidgetEvery: [5, 9],
     rest: null,
+    smile: "smirk",
   },
   // Playful and mischievous: dodges your pointer, giggles, spins off a failure, never still.
   breeze: {
@@ -207,6 +222,7 @@ export const PERSONALITIES: Record<RafeeqId, Personality> = {
     fidgets: ["spin", "hop", "look"],
     fidgetEvery: [5, 9],
     rest: null,
+    smile: "cheeky",
   },
 };
 
