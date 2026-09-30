@@ -7,6 +7,7 @@ import "server-only";
 // Whisper and Orpheus are two plain HTTP calls; the model goes through the AI SDK.
 
 import { createGroq } from "@ai-sdk/groq";
+import { DEFAULT_VOICE } from "@/shared/voices";
 import { fixWavHeader } from "@/shared/wav";
 import type { Lang, Providers, SpeechToText, TextToSpeech } from "../types";
 
@@ -20,8 +21,8 @@ export const GROQ_MODELS = {
   voice: { en: "canopylabs/orpheus-v1-english", ar: "canopylabs/orpheus-arabic-saudi" },
 } as const;
 
-/** Default voices: calm and mid-pitched, per the brand book. Changeable in settings (milestone M5). */
-export const DEFAULT_VOICES: Record<Lang, string> = { en: "troy", ar: "abdullah" };
+/** Default voices: calm and mid-pitched, per the brand book. Each person can choose in Settings, Voice. */
+export const DEFAULT_VOICES: Record<Lang, string> = DEFAULT_VOICE;
 
 // A short sample of what people say to Sarjy, in both languages. Whisper reads it as "the
 // conversation so far" and leans towards its words and spelling. Without it, short Saudi phrases
@@ -102,6 +103,8 @@ export function createGroqProviders(
     models: [GROQ_MODELS.main, GROQ_MODELS.fallback, GROQ_MODELS.reserve].map((id) => ({
       id,
       model: groq(id),
+      // Of the three, only Qwen reads pictures (checked on Day 2).
+      vision: id === GROQ_MODELS.fallback,
     })),
     fetch: (url, init) => fetch(url, init),
   };

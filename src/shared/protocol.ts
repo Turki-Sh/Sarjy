@@ -29,6 +29,10 @@ export const Timings = z.object({
   toolMs: z.number().optional(),
   totalMs: z.number(),
   model: z.string().optional(),
+  /** Tokens the model read and wrote, and what the whole turn cost in dollars (details panel). */
+  inputTokens: z.number().optional(),
+  outputTokens: z.number().optional(),
+  costUsd: z.number().optional(),
 });
 export type Timings = z.infer<typeof Timings>;
 

@@ -212,6 +212,9 @@ export function createFakeModel(modelId = "fake-sarjy") {
         const value =
           result && result.output.type === "json" ? (result.output.value as Record<string, unknown>) : {};
         reply = { text: afterTool(result?.toolName ?? "", value, ar) };
+      } else if (last.role === "user" && last.content.some((p) => p.type === "file")) {
+        // A picture: the stand-in can't see, but it answers like a model that can.
+        reply = { text: ar ? "شفت الصورة، حلوة مرة." : "I can see your picture. Nice one." };
       } else {
         reply = firstReply(lastUserText(prompt), systemText(prompt));
       }

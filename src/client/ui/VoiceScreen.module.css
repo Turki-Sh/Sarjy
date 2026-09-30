@@ -115,8 +115,47 @@
   .screen > aside {
     display: none;
   }
+  /* The sidebar as a sheet: it slides in from the reading start, over a dimmed page. */
+  .screen[data-sheet="open"] > aside {
+    display: flex;
+    position: fixed;
+    z-index: 30;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(300px, 86vw);
+    height: auto;
+    margin: 8px;
+    animation: sheet-in var(--t-base) var(--ease-rein) both;
+  }
   .main {
     padding-inline: 16px;
+  }
+}
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: var(--scrim);
+  animation: fade-in var(--t-base) var(--ease-rein) both;
+}
+@keyframes sheet-in {
+  from {
+    transform: translateX(-24px);
+    opacity: 0;
+  }
+}
+:dir(rtl) .screen[data-sheet="open"] > aside {
+  animation-name: sheet-in-rtl;
+}
+@keyframes sheet-in-rtl {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
 }
 

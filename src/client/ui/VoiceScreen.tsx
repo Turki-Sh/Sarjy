@@ -47,6 +47,9 @@ export function VoiceScreen({
   const [langChoice, setLangChoice] = useState(initialLangChoice);
   const [themeChoice, setThemeChoice] = useState(initialThemeChoice);
   const [sidebarOpen, setSidebarOpen] = useState(initialSidebarOpen);
+  /** On a narrow screen the sidebar is a sheet over the page, closed until you open it. */
+  const [sheet, setSheet] = useState(false);
+  const narrow = () => matchMedia("(max-width: 900px)").matches;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [section, setSection] = useState<SettingsSection>("general");
   /** Bumped when you switch chats, to replay the stage's fade (only on your click, never mid-answer). */
@@ -86,6 +89,7 @@ export function VoiceScreen({
   /** Which of the new-chat lines to show; a new one, at random, each time you start a chat. */
   const [freshLine, setFreshLine] = useState(0);
   const newChat = () => {
+    setSheet(false);
     sarjy.newChat();
     setFreshLine((i) => {
       // Never the same line twice in a row.
@@ -95,6 +99,7 @@ export function VoiceScreen({
     setSwitches((n) => n + 1);
   };
   const openChat = async (id: string) => {
+    setSheet(false);
     await sarjy.openChat(id);
     setSwitches((n) => n + 1);
   };
@@ -125,7 +130,13 @@ export function VoiceScreen({
     setGlass(level);
   };
 
+  /** A picture from the button, a paste or a drop: shrunk and held for the next turn. */
+  const attach = async (file: File) => {
+    if (!(await sarjy.attachPicture(file))) flash(s.picture.bad);
+  };
+
   const openSettings = (at: SettingsSection = "general") => {
+    setSheet(false);
     setSection(at);
     setSettingsOpen(true);
   };
@@ -159,14 +170,20 @@ export function VoiceScreen({
       : s.status[sarjy.state];
 
   return (
-    <div className={styles.screen} data-state={sarjy.state} data-sidebar={sidebarOpen ? "open" : "closed"}>
+    <div
+      className={styles.screen}
+      data-state={sarjy.state}
+      data-sidebar={sidebarOpen ? "open" : "closed"}
+      data-sheet={sheet ? "open" : undefined}
+    >
       {/* The light behind the glass: invisible at Solid, a slow drifting field at Clear. */}
       <div className="ambient" aria-hidden="true">
         <i />
         <i />
         <i />
       </div>
-      {sidebarOpen && (
+      {sheet && <div className={styles.scrim} aria-hidden="true" onClick={() => setSheet(false)} />}
+      {(sidebarOpen || sheet) && (
         <Sidebar
           lang={lang}
           memories={sarjy.memories}
@@ -189,14 +206,27 @@ export function VoiceScreen({
           onPinChat={(id, pinned) => void sarjy.pinChat(id, pinned)}
           onShareChat={(id) => void shareChat(id)}
           onDeleteChat={(id) => void sarjy.deleteChat(id)}
-          onClose={() => setSidebar(false)}
+          onClose={() => (narrow() ? setSheet(false) : setSidebar(false))}
         />
       )}
 
-      <main className={styles.main}>
+      <main
+        className={styles.main}
+        // Drop a picture anywhere on the screen: it waits in the text box for the next turn.
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+        }}
+        onDrop={(e) => {
+          const dropped = [...e.dataTransfer.files].find((f) => f.type.startsWith("image/"));
+          if (!dropped) return;
+          e.preventDefault();
+          void attach(dropped);
+        }}
+      >
         <TopBar
           lang={lang}
           onOpenSidebar={sidebarOpen ? undefined : () => setSidebar(true)}
+          onOpenSheet={() => setSheet(true)}
           onNewChat={newChat}
         />
 
@@ -219,7 +249,19 @@ export function VoiceScreen({
             memory={sarjy.freshId ? (sarjy.memories.find((m) => m.id === sarjy.freshId) ?? null) : null}
             onOpen={() => openSettings("memory")}
           />
-          <Transcript earlier={sarjy.earlier} caption={sarjy.caption} />
+          <Transcript
+            lang={lang}
+            all={sarjy.lines}
+            earlier={sarjy.earlier}
+            welcome={
+              // Only on a true first visit: no name yet, and no chats at all.
+              sarjy.profile?.onboardingStep === "name" && sarjy.chats.length === 0 && sarjy.state === "idle"
+                ? { ...s.welcome, onSkip: () => void sarjy.skipIntro() }
+                : null
+            }
+            caption={sarjy.caption}
+            timings={sarjy.state === "idle" ? sarjy.timings : null}
+          />
           <p className={styles.status}>{note}</p>
         </section>
 
@@ -229,6 +271,10 @@ export function VoiceScreen({
             placeholder={s.typePlaceholder}
             sendLabel={s.send}
             onSend={(text) => void sarjy.send({ text })}
+            picture={sarjy.picture}
+            labels={{ add: s.picture.add, remove: s.picture.remove }}
+            onPicture={(file) => void attach(file)}
+            onClearPicture={sarjy.clearPicture}
           />
         </div>
 
@@ -250,6 +296,8 @@ export function VoiceScreen({
           avatar={sarjy.profile?.avatar ?? null}
           avatarImage={sarjy.profile?.avatarImage ?? null}
           memories={sarjy.memories}
+          voices={sarjy.profile?.voices ?? { en: "troy", ar: "abdullah" }}
+          onVoice={(voiceLang, id) => void sarjy.setVoice(voiceLang, id)}
           onSection={setSection}
           onClose={() => setSettingsOpen(false)}
           onLangChoice={chooseLang}

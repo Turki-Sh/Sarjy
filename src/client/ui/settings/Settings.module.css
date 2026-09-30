@@ -363,6 +363,55 @@
   color: var(--text);
 }
 
+/* Voices: a pill per voice, with its own play button. */
+.voices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.voice {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  overflow: hidden;
+}
+.voice[data-on] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.voiceName,
+.voicePlay {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: 500 13px/1 var(--font-ui);
+}
+.voiceName {
+  padding: 9px 4px 9px 14px;
+}
+.voicePlay {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-2);
+}
+.voicePlay:hover {
+  color: var(--text);
+}
+.voicePlay svg {
+  width: 13px;
+  height: 13px;
+}
+.voiceName:focus-visible,
+.voicePlay:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
 /* Profile pictures. */
 .pictures {
   display: flex;

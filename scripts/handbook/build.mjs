@@ -1,6 +1,8 @@
-// Builds docs/reader.html: all numbered docs in docs/ as one searchable, styled page.
+// Builds the Sarjy Handbook: every numbered doc in docs/ as one searchable, styled page.
+// A "handbook" is the usual name for this: one document that says what a product is, how it is
+// built and how it is run (as in the GitLab Handbook).
 // The Markdown files stay the source of truth; this page is generated and git-ignored.
-// Usage: pnpm docs:reader
+// Usage: pnpm handbook   (writes docs/handbook.html, git-ignored, and public/handbook/index.html)
 
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -77,7 +79,7 @@ function resolveHref(href, doc) {
   return { href }; // a repository path such as brand/, relative to docs/
 }
 
-// Pass 2: render each doc with the reader's markup.
+// Pass 2: render each doc with the handbook's markup.
 function renderDoc(doc) {
   let tableCount = 0;
   let taskCount = 0;
@@ -184,7 +186,7 @@ const index = docs
   )
   .join("\n");
 
-// Mermaid renders in the browser, in the reader's own colors, and again when the theme changes.
+// Mermaid renders in the browser, in the handbook's own colors, and again when the theme changes.
 const mermaid = `<script type="module">
 import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
 const blocks = [...document.querySelectorAll("pre.mermaid")];
@@ -212,7 +214,7 @@ new MutationObserver(draw).observe(document.documentElement, { attributes: true,
 </script>
 <style>.diagram-wrap pre.mermaid{background:transparent;border:0;margin:0;padding:0;text-align:center}.diagram-wrap pre.mermaid svg{max-width:100%;height:auto}</style>`;
 
-// Link-preview tags for /notes: the "Notes from building Sarjy" card. Absolute URLs when the
+// Link-preview tags for /handbook: the "Notes from building Sarjy" card. Absolute URLs when the
 // production address is known (on Vercel), otherwise relative.
 function social() {
   const host = process.env.VERCEL_PROJECT_PRODUCTION_URL;
@@ -226,7 +228,7 @@ function social() {
     `<meta property="og:site_name" content="Sarjy">`,
     `<meta property="og:title" content="${title}">`,
     `<meta property="og:description" content="${description}">`,
-    `<meta property="og:url" content="${base}/notes">`,
+    `<meta property="og:url" content="${base}/handbook">`,
     `<meta property="og:image" content="${image}">`,
     `<meta property="og:image:width" content="1200">`,
     `<meta property="og:image:height" content="630">`,
@@ -248,7 +250,7 @@ const html = template
   .replaceAll("{{TOTAL}}", String(docs.length).padStart(2, "0"))
   .replaceAll("{{DATE}}", date)
   .replaceAll("{{DATE_DOTS}}", dateDots)
-  .replaceAll("{{VERSION}}", "READER EDITION")
+  .replaceAll("{{VERSION}}", "HANDBOOK")
   .replace("{{SIDEBAR}}", sidebar)
   .replace("{{INDEX}}", index)
   .replace(
@@ -259,10 +261,10 @@ const html = template
   .replace("{{MERMAID}}", mermaid)
   .replace("{{SOCIAL}}", social());
 
-writeFileSync(join(docsDir, "reader.html"), html);
+writeFileSync(join(docsDir, "handbook.html"), html);
 
-// The same page, served by the app at /notes (git-ignored; rebuilt by every `pnpm build`).
-const notesDir = join(here, "..", "..", "public", "notes");
-mkdirSync(notesDir, { recursive: true });
-writeFileSync(join(notesDir, "index.html"), html);
-console.log(`docs/reader.html: ${docs.length} chapters, ${(html.length / 1024).toFixed(0)} KB`);
+// The same page, served by the app at /handbook (git-ignored; rebuilt by every `pnpm build`).
+const publicDir = join(here, "..", "..", "public", "handbook");
+mkdirSync(publicDir, { recursive: true });
+writeFileSync(join(publicDir, "index.html"), html);
+console.log(`docs/handbook.html: ${docs.length} chapters, ${(html.length / 1024).toFixed(0)} KB`);

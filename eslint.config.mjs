@@ -7,7 +7,7 @@ const config = [
       ".next/**",
       "node_modules/**",
       "docs/**",
-      "scripts/docs-reader/template.html",
+      "scripts/handbook/template.html",
       "playwright-report/**",
       "test-results/**",
     ],

@@ -23,6 +23,7 @@ import { findKeep } from "./keep";
 import { transition } from "./machine";
 import { answerFinished } from "./turnEnd";
 import { previewWords } from "./preview";
+import { shrinkPhoto } from "../ui/photo";
 import { sendTurn } from "./turnStream";
 
 /** How the mic looks, drawn on the orb: ready, live, or dashed when there is no mic access. */
@@ -30,7 +31,13 @@ export type MicLook = "ready" | "live" | "blocked";
 
 export type ChatSummary = { id: string; title: string; updatedAt: string; pinned: boolean };
 /** One line of the chat on screen, for the small transcript above the caption. */
-export type ChatLine = { role: "user" | "assistant"; text: string; lang: Lang };
+export type ChatLine = {
+  role: "user" | "assistant";
+  text: string;
+  lang: Lang;
+  /** A picture sent with this line (an object URL, for this visit only). */
+  image?: string;
+};
 
 /** How many earlier lines show above the caption. */
 const EARLIER = 3;
@@ -41,10 +48,14 @@ export type Profile = {
   avatar: AvatarChoice;
   /** Your own picture as a data URL, when avatar is "upload". */
   avatarImage: string | null;
+  /** Sarjy's voice in each language. */
+  voices: Record<Lang, string>;
 };
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
 type Turn = {
+  /** The picture sent with this turn, shown in your bubble. */
+  image?: string;
   segments: PlayedSegment[];
   /** Pieces of audio received from the server (segments, and a spoken error). */
   received: number;
@@ -118,6 +129,9 @@ export function useSarjy(lang: Lang) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [timings, setTimings] = useState<Timings | null>(null);
   const [micLook, setMicLook] = useState<MicLook>("ready");
+  /** A picture waiting to be sent with the next turn (dropped, pasted, or taken). */
+  const [picture, setPicture] = useState<{ blob: Blob; url: string } | null>(null);
+  const pictureRef = useRef<{ blob: Blob; url: string } | null>(null);
   /** The chat on screen (null: a new one, not yet started), and what the stage says about it. */
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chatNote, setChatNote] = useState<"fresh" | "continuing" | null>(null);
@@ -203,7 +217,7 @@ export function useSarjy(lang: Lang) {
       switch (event.type) {
         case "transcript":
           t.lang = event.lang;
-          setLines((l) => [...l, { role: "user", text: event.text, lang: event.lang }]);
+          setLines((l) => [...l, { role: "user", text: event.text, lang: event.lang, image: t.image }]);
           setCaption({
             speaker: "user",
             lang: event.lang,
@@ -259,6 +273,10 @@ export function useSarjy(lang: Lang) {
   /** Sends a typed (or, from M4, spoken) turn. */
   const send = useCallback(
     async (input: { text?: string; audio?: Blob; fakeTranscript?: string }) => {
+      // A picture waiting in the text box goes with this turn, typed or spoken.
+      const attached = pictureRef.current;
+      pictureRef.current = null;
+      setPicture(null);
       abort.current?.abort();
       getPlayer().stop();
       getPlayer().unlock();
@@ -271,10 +289,12 @@ export function useSarjy(lang: Lang) {
         changedMemory: false,
         saved: null,
         shown: 0,
+        image: attached?.url,
       };
       turn.current = t;
       abort.current = new AbortController();
       setChip(null);
+      setTimings(null);
       setFreshId(null);
       setChatNote(null);
       if (input.text) conversing.current = false; // typing steps out of hands-free
@@ -284,7 +304,13 @@ export function useSarjy(lang: Lang) {
       dispatch({ type: "SEND" });
       try {
         await sendTurn(
-          { ...input, conversationId: conversationId.current, lang, signal: abort.current.signal },
+          {
+            ...input,
+            image: attached?.blob,
+            conversationId: conversationId.current,
+            lang,
+            signal: abort.current.signal,
+          },
           (e) => turn.current === t && handle(e, t),
         );
       } catch (error) {
@@ -482,6 +508,7 @@ export function useSarjy(lang: Lang) {
     setActiveChatId(null);
     setCaption(null);
     setChip(null);
+    setTimings(null);
     setLines([]);
     setChatNote("fresh");
   }, [stop]);
@@ -499,6 +526,7 @@ export function useSarjy(lang: Lang) {
       conversationId.current = chat.id;
       setActiveChatId(chat.id);
       setChip(null);
+      setTimings(null);
       setChatNote("continuing");
       const last = [...chat.messages].reverse().find((m) => m.role === "assistant");
       setCaption(
@@ -566,6 +594,36 @@ export function useSarjy(lang: Lang) {
     await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ avatar }) });
   }, []);
 
+  /** Shrinks a picture and holds it for the next turn. Returns false if it can't be used. */
+  const attachPicture = useCallback(async (file: File): Promise<boolean> => {
+    const blob = await shrinkPhoto(file);
+    if (!blob) return false;
+    const next = { blob, url: URL.createObjectURL(blob) };
+    pictureRef.current = next;
+    setPicture(next);
+    return true;
+  }, []);
+  const clearPicture = useCallback(() => {
+    if (pictureRef.current) URL.revokeObjectURL(pictureRef.current.url);
+    pictureRef.current = null;
+    setPicture(null);
+  }, []);
+
+  /** Skip the intro: Sarjy won't ask your name. */
+  const skipIntro = useCallback(async () => {
+    setProfile((p) => (p ? { ...p, onboardingStep: "done" } : p));
+    await fetch("/api/profile", { method: "PATCH", body: JSON.stringify({ onboarding: "done" }) });
+  }, []);
+
+  /** Sarjy's voice in one language: used from the next answer on. */
+  const setVoice = useCallback(async (voiceLang: Lang, id: string) => {
+    setProfile((p) => (p ? { ...p, voices: { ...p.voices, [voiceLang]: id } } : p));
+    await fetch("/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ voice: { lang: voiceLang, id } }),
+    });
+  }, []);
+
   /** Your own picture (already shrunk in the browser): shown at once, then saved. */
   const uploadAvatar = useCallback(async (image: string) => {
     setProfile((p) => (p ? { ...p, avatar: "upload", avatarImage: image } : p));
@@ -609,6 +667,12 @@ export function useSarjy(lang: Lang) {
     openChat,
     setAvatar,
     uploadAvatar,
+    setVoice,
+    skipIntro,
+    lines,
+    picture: picture?.url ?? null,
+    attachPicture,
+    clearPicture,
     setName,
     forgetEverything,
     renameChat,

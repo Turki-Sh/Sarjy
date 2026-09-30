@@ -64,3 +64,16 @@
   width: 18px;
   height: 18px;
 }
+
+/* The sheet button shows only on narrow screens; the desktop sidebar buttons only on wide ones. */
+.narrowOnly {
+  display: none;
+}
+@media (max-width: 900px) {
+  .narrowOnly {
+    display: grid;
+  }
+  .actions > .bare:not(.narrowOnly) {
+    display: none;
+  }
+}

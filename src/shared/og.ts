@@ -14,7 +14,7 @@ export type CardKind =
   | "chat" // any other shared moment
   | "image" // a moment with a picture in it
   | "majlis" // an invite to a Majlis (multiplayer room)
-  | "notes"; // the build notes
+  | "handbook"; // the Sarjy Handbook (the build notes)
 
 export type Card = {
   file: string;
@@ -52,7 +52,7 @@ export const CARDS: Card[] = [
   {
     file: "notes-from-building.png",
     alt: "Small things, made to matter. Notes from building Sarjy.",
-    kinds: ["notes"],
+    kinds: ["handbook"],
     lang: "en",
   },
   {

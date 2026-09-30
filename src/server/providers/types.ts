@@ -17,7 +17,8 @@ export interface TextToSpeech {
   synthesize(text: string, lang: Lang): Promise<ArrayBuffer | null>;
 }
 
-export type ModelChoice = { id: string; model: LanguageModel };
+/** A model the turn may use; `vision` marks the ones that can read a picture. */
+export type ModelChoice = { id: string; model: LanguageModel; vision?: boolean };
 
 /**
  * The models a turn may use, best first. The first is the main model (fast, reliable tool

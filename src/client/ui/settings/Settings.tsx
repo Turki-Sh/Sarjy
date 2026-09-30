@@ -17,13 +17,15 @@ import { General } from "./General";
 import { MemoryList } from "./MemoryList";
 import { MENU_ESCAPE } from "./Picker";
 import { Profile } from "./Profile";
+import { Voice } from "./Voice";
 import styles from "./Settings.module.css";
 
-export type SettingsSection = "general" | "appearance" | "profile" | "memory";
+export type SettingsSection = "general" | "appearance" | "voice" | "profile" | "memory";
 
 const SECTIONS: { id: SettingsSection; icon: IconName }[] = [
   { id: "general", icon: "globe" },
   { id: "appearance", icon: "palette" },
+  { id: "voice", icon: "mic" },
   { id: "profile", icon: "user" },
   { id: "memory", icon: "stitch" },
 ];
@@ -40,6 +42,8 @@ type Props = {
   avatar: AvatarChoice | null;
   avatarImage: string | null;
   memories: Memory[];
+  voices: Record<Lang, string>;
+  onVoice: (lang: Lang, id: string) => void;
   onSection: (section: SettingsSection) => void;
   onClose: () => void;
   onLangChoice: (choice: LangChoice) => void;
@@ -133,6 +137,7 @@ export function Settings(props: Props) {
               onGlass={props.onGlass}
             />
           )}
+          {open && section === "voice" && <Voice lang={lang} voices={props.voices} onVoice={props.onVoice} />}
           {open && section === "profile" && (
             <Profile
               lang={lang}

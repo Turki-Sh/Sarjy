@@ -42,6 +42,23 @@ type Strings = {
   changePicture: string;
   rename: string;
   savedCard: string;
+  welcome: { line: string; skip: string };
+  wholeChat: (n: number) => string;
+  lessChat: string;
+  picture: { add: string; remove: string; bad: string; sent: string };
+  details: {
+    open: string;
+    title: string;
+    heard: string;
+    firstWord: string;
+    firstSound: string;
+    tools: string;
+    done: string;
+    model: string;
+    tokens: string;
+    cost: string;
+    perThousand: string;
+  };
   chatMenu: {
     more: string;
     pin: string;
@@ -60,6 +77,11 @@ type Strings = {
     appearance: string;
     profile: string;
     memory: string;
+    voice: string;
+    voiceHint: string;
+    voiceEn: string;
+    voiceAr: string;
+    listen: string;
     language: string;
     languageHint: string;
     auto: string;
@@ -147,6 +169,31 @@ export const STRINGS: Record<Lang, Strings> = {
     changePicture: "Change your picture",
     rename: "Rename",
     savedCard: "Saved",
+    welcome: {
+      line: "Hey, I'm Sarjy. Tap me and say hi, or type below. Tell me things and I'll remember them.",
+      skip: "Skip the intro",
+    },
+    wholeChat: (n) => `Show the whole chat (${n})`,
+    lessChat: "Show less",
+    picture: {
+      add: "Add a picture",
+      remove: "Remove the picture",
+      bad: "That picture couldn't be used. Try a JPG or PNG.",
+      sent: "Your picture",
+    },
+    details: {
+      open: "How this answer was made",
+      title: "How this answer was made",
+      heard: "Heard you",
+      firstWord: "First word",
+      firstSound: "First sound",
+      tools: "Tools",
+      done: "Done",
+      model: "Model",
+      tokens: "Tokens in, out",
+      cost: "Cost",
+      perThousand: "per 1,000 answers like this",
+    },
     chatMenu: {
       more: "More options",
       pin: "Pin",
@@ -164,6 +211,12 @@ export const STRINGS: Record<Lang, Strings> = {
       appearance: "Appearance",
       profile: "Profile",
       memory: "Memory",
+      voice: "Voice",
+      voiceHint:
+        "Sarjy answers in the language you speak, in the voice you pick for it. Pick one to hear it.",
+      voiceEn: "English",
+      voiceAr: "Arabic",
+      listen: "Listen",
       language: "Language",
       languageHint: "The language of the app. Sarjy always answers in the language you speak.",
       auto: "Auto detect",
@@ -251,6 +304,31 @@ export const STRINGS: Record<Lang, Strings> = {
     changePicture: "غيّر صورتك",
     rename: "غيّر الاسم",
     savedCard: "انحفظ",
+    welcome: {
+      line: "هلا، أنا سرجي. اضغط علي وسلّم، أو اكتب تحت. قل لي أشياء وأتذكرها لك.",
+      skip: "تخطّ التعريف",
+    },
+    wholeChat: (n) => `اعرض السالفة كاملة (${n.toLocaleString("ar-SA")})`,
+    lessChat: "اعرض أقل",
+    picture: {
+      add: "أضف صورة",
+      remove: "شيل الصورة",
+      bad: "ما قدرت أستخدم هالصورة. جرّب JPG أو PNG.",
+      sent: "صورتك",
+    },
+    details: {
+      open: "كيف انصنع هالرد",
+      title: "كيف انصنع هالرد",
+      heard: "سمعتك",
+      firstWord: "أول كلمة",
+      firstSound: "أول صوت",
+      tools: "الأدوات",
+      done: "خلص",
+      model: "النموذج",
+      tokens: "التوكنز داخل، طالع",
+      cost: "التكلفة",
+      perThousand: "لكل ١٬٠٠٠ رد مثله",
+    },
     chatMenu: {
       more: "خيارات أكثر",
       pin: "ثبّت",
@@ -268,6 +346,11 @@ export const STRINGS: Record<Lang, Strings> = {
       appearance: "المظهر",
       profile: "ملفك",
       memory: "الذاكرة",
+      voice: "الصوت",
+      voiceHint: "سرجي يرد باللغة اللي تتكلم فيها، بالصوت اللي تختاره لها. اختر صوت وتسمعه.",
+      voiceEn: "الإنجليزي",
+      voiceAr: "العربي",
+      listen: "اسمع",
       language: "اللغة",
       languageHint: "لغة التطبيق. سرجي دايم يرد باللغة اللي تتكلم فيها.",
       auto: "تلقائي",

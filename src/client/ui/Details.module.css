@@ -1,0 +1,91 @@
+/* The details card: a waterfall of the turn's timings, then the facts. */
+
+/* It floats above the text box instead of joining the bubbles, so opening it never squeezes them. */
+.details {
+  position: fixed;
+  z-index: 20;
+  inset-inline: 0;
+  inset-block-end: 104px;
+  margin-inline: auto;
+  width: min(420px, calc(100% - 32px));
+  padding: 14px 16px;
+  border-radius: var(--r-m);
+  font: 400 13px/1.4 var(--font-ui);
+  animation: rise var(--t-base) var(--ease-rein) both;
+}
+.title {
+  margin: 0 0 10px;
+  font: 600 13px/1.3 var(--font-ui);
+}
+.waterfall {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.waterfall li {
+  display: grid;
+  grid-template-columns: 90px 1fr 56px;
+  align-items: center;
+  gap: 10px;
+}
+.label {
+  color: var(--text-2);
+}
+.track {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  overflow: hidden;
+}
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: grow var(--t-slow) var(--ease-rein) both;
+}
+.value {
+  font-family: var(--font-data);
+  font-size: 12px;
+  text-align: end;
+}
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 12px 0 0;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--line);
+}
+.facts dt {
+  color: var(--text-2);
+}
+.facts dd {
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.aside {
+  color: var(--text-2);
+}
+
+@keyframes grow {
+  from {
+    inline-size: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .details,
+  .bar {
+    animation: none;
+  }
+}

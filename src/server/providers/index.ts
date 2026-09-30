@@ -10,18 +10,23 @@ import { createGroqProviders } from "./groq";
 import type { Providers } from "./types";
 
 export function getProviders(
-  options: { scriptedTranscript?: string | null; slowRestMs?: number } = {},
+  options: {
+    scriptedTranscript?: string | null;
+    slowRestMs?: number;
+    /** The voices this person chose (Settings, Voice). */
+    voices?: Record<"en" | "ar", string>;
+  } = {},
 ): Providers {
   if (env.providers === "live") {
     if (!env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is not set.");
-    return createGroqProviders(env.GROQ_API_KEY);
+    return createGroqProviders(env.GROQ_API_KEY, options.voices);
   }
   return {
     stt: createFakeStt(options.scriptedTranscript ?? null),
     tts: createFakeTts(options.slowRestMs),
     models: [
       { id: "fake-main", model: createFakeModel("fake-main") },
-      { id: "fake-fallback", model: createFakeModel("fake-fallback") },
+      { id: "fake-fallback", model: createFakeModel("fake-fallback"), vision: true },
     ],
     fetch: fakeFetch,
   };

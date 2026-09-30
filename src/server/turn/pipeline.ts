@@ -20,12 +20,15 @@ import { memoryTools } from "../tools/memory";
 import { weatherTool, type Units } from "../tools/weather";
 import { isStep, nextStep } from "./onboarding";
 import { buildSystemPrompt } from "./prompt";
+import { turnCost, wavSeconds } from "./cost";
 import { SpeechChunker, tidy } from "./sentences";
 
 export type TurnInput = {
   user: User;
   audio: Blob | null;
   text: string | null;
+  /** A picture sent with the turn (JPEG, resized in the browser): only models that see get it. */
+  image?: Blob | null;
   conversationId: string | null;
   uiLang: Lang;
   timeZone: string;
@@ -39,6 +42,9 @@ const SAY: Record<"not_understood" | "model_unavailable" | "internal", Record<La
   },
   internal: { en: "Something went wrong on my side. Try again?", ar: "صار خلل عندي. تجرب مرة ثانية؟" },
 };
+
+/** What a picture sent without words is taken to ask. */
+const LOOK: Record<Lang, string> = { en: "What's in this picture?", ar: "وش في هالصورة؟" };
 
 const detectLang = (text: string, fallback: Lang): Lang =>
   /[؀-ۿ]/.test(text) ? "ar" : /[a-z]/i.test(text) ? "en" : fallback;
@@ -83,6 +89,8 @@ export async function runTurn(
     }
     timings.sttMs = since();
   }
+  // A picture with no words asks the obvious question.
+  if (!heard && input.image) heard = LOOK[input.uiLang];
   if (!heard) {
     emit({ type: "error", code: "not_understood", say: SAY.not_understood[input.uiLang] });
     return;
@@ -106,9 +114,18 @@ export async function runTurn(
     userTurns: history.filter((m) => m.role === "user").length,
     replyLang: lang,
   });
+  const image = input.image ? new Uint8Array(await input.image.arrayBuffer()) : null;
   const messages: ModelMessage[] = [
     ...history.map((m) => ({ role: m.role, content: m.text }) as ModelMessage),
-    { role: "user", content: heard },
+    image
+      ? {
+          role: "user",
+          content: [
+            { type: "text", text: heard },
+            { type: "image", image, mediaType: input.image!.type || "image/jpeg" },
+          ],
+        }
+      : { role: "user", content: heard },
   ];
 
   // 3. Think, with tools. Each tool reports its start and end, so the chip shows live timing.
@@ -162,12 +179,14 @@ export async function runTurn(
   const chunker = new SpeechChunker();
   let segmentIndex = 0;
   let sending = Promise.resolve();
+  const voiced = { en: 0, ar: 0 };
   const speak = (raw: string) => {
     const text = tidy(raw);
     if (!text) return;
     const index = segmentIndex++;
     // Normally the user's language; if the model slipped into the other one, the matching voice reads it.
     const voice = writtenIn(text, lang);
+    voiced[voice] += text.length;
     const audio = providers.tts.synthesize(text, voice);
     sending = sending.then(async () => {
       const wav = await audio;
@@ -205,14 +224,20 @@ export async function runTurn(
         throw part.error;
       }
     }
+    const usage = await result.totalUsage;
+    tokens.input += usage.inputTokens ?? 0;
+    tokens.output += usage.outputTokens ?? 0;
     return text;
   };
+  const tokens = { input: 0, output: 0 };
 
   // Down the chain: a model that is rate limited or fails before saying anything hands the turn
   // to the next. Once Sarjy has started speaking, switching voices mid-answer would be worse than
   // stopping, so a failure after the first sentence ends the turn.
   let answer: string | null = null;
-  for (const { id, model } of providers.models) {
+  // A turn with a picture goes only to models that can see (on Groq, Qwen); the others would fail.
+  const chain = image ? providers.models.filter((m) => m.vision) : providers.models;
+  for (const { id, model } of chain) {
     try {
       answer = await attempt(model, id);
       timings.model = id;
@@ -250,11 +275,26 @@ export async function runTurn(
     tools: toolLog,
     timings,
   });
+  const model = String(timings.model ?? "");
+  const costUsd = turnCost({
+    model,
+    inputTokens: tokens.input,
+    outputTokens: tokens.output,
+    audioSeconds: input.audio ? wavSeconds(input.audio.size) : 0,
+    voiced,
+  });
   emit({
     type: "done",
     messageId,
     conversationId: conversation.id,
     text: answer.trim(),
-    timings: { ...(timings as Record<string, number>), totalMs: since(), model: String(timings.model ?? "") },
+    timings: {
+      ...(timings as Record<string, number>),
+      totalMs: since(),
+      model,
+      inputTokens: tokens.input,
+      outputTokens: tokens.output,
+      costUsd,
+    },
   });
 }

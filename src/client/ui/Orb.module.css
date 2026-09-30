@@ -2,7 +2,8 @@
 
 .wrap {
   position: relative;
-  width: min(300px, 62vw);
+  /* Narrower on short windows, so the orb and the conversation always fit together. */
+  width: min(300px, 62vw, 34dvh);
   aspect-ratio: 1;
   display: grid;
   place-items: center;

@@ -10,14 +10,25 @@ type Props = {
   lang: Lang;
   /** Present when the sidebar is closed. */
   onOpenSidebar?: () => void;
+  /** Opens the sidebar as a sheet on a narrow screen (its button only shows there). */
+  onOpenSheet: () => void;
   onNewChat: () => void;
 };
 
-export function TopBar({ lang, onOpenSidebar, onNewChat }: Props) {
+export function TopBar({ lang, onOpenSidebar, onOpenSheet, onNewChat }: Props) {
   const s = t(lang);
   return (
     <header className={styles.top}>
       <div className={styles.actions}>
+        <button
+          type="button"
+          className={`${styles.bare} ${styles.narrowOnly}`}
+          onClick={onOpenSheet}
+          aria-label={s.openSidebar}
+          title={s.openSidebar}
+        >
+          <Icon name="menu" />
+        </button>
         {onOpenSidebar && (
           <>
             <button

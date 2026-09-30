@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "node scripts/vad/copy-assets.mjs && node node_modules/next/dist/bin/next dev",
-    "build": "node scripts/vad/copy-assets.mjs && node scripts/docs-reader/build.mjs && node node_modules/next/dist/bin/next build",
+    "build": "node scripts/vad/copy-assets.mjs && node scripts/handbook/build.mjs && node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "preview": "pnpm build && node node_modules/next/dist/bin/next start",
     "typecheck": "tsc --noEmit",
@@ -21,10 +21,10 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
-    "docs:reader": "node scripts/docs-reader/build.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "vercel-build": "pnpm db:migrate && pnpm build"
+    "vercel-build": "pnpm db:migrate && pnpm build",
+    "handbook": "node scripts/handbook/build.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

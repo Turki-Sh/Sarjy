@@ -33,6 +33,7 @@ export const ICONS = {
   upload: '<path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/>',
   more: '<path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="2.6"/>',
   pin: '<path d="M9.5 4.5h5l-.8 5.2 3.3 3.3H7l3.3-3.3zM12 13v6.5"/>',
+  play: '<path d="M8 5.5v13l10.5-6.5z"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   sidebar: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/>',
 } as const;

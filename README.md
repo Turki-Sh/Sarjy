@@ -22,7 +22,7 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 | 06 | [Brief coverage](docs/06-BRIEF-COVERAGE.md) | Every requirement in the brief, and how and where we meet it |
 | | [Brand](docs/brand/) | The brand book and visual identity: the design source of truth |
 
-Prefer a single styled page? Run `pnpm install && pnpm docs:reader` and open `docs/reader.html`.
+Prefer one styled page? The **Sarjy Handbook** puts every doc below in a single searchable page: run `pnpm install && pnpm handbook` and open `docs/handbook.html`, or visit `/handbook` on the running app.
 
 ## Run it on your machine
 

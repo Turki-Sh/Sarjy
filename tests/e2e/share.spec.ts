@@ -32,9 +32,12 @@ test("an unknown shared link is a 404", async ({ request }) => {
   expect((await request.get("/s/aaaaaaaaaaaa")).status()).toBe(404);
 });
 
-test("the build notes are served at /notes with their own card", async ({ page }) => {
+test("the Sarjy Handbook is served at /handbook with its own card, and /notes forwards to it", async ({
+  page,
+}) => {
   await page.goto("/notes");
-  await expect(page).toHaveTitle(/Product Documents/);
+  await expect(page).toHaveURL(/\/handbook$/);
+  await expect(page).toHaveTitle("Sarjy Handbook");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
     /notes-from-building\.png$/,

@@ -9,12 +9,14 @@ import { allowTurn } from "@/server/rateLimit";
 import { runTurn } from "@/server/turn/pipeline";
 import { safeTimeZone } from "@/shared/hijri";
 import { encodeEvent, type TurnEvent } from "@/shared/protocol";
+import { voiceFor } from "@/shared/voices";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const MAX_AUDIO_BYTES = 1_500_000; // about 45 seconds of 16 kHz mono
 const MAX_TEXT = 600;
+const MAX_IMAGE_BYTES = 1_500_000; // the browser sends at most 1280 px JPEG, well under this
 
 const LIMIT_SAY = {
   en: "I've reached my limit for now. Try again in a minute.",
@@ -39,8 +41,13 @@ export async function POST(request: Request) {
   if (audio instanceof Blob && audio.size > MAX_AUDIO_BYTES) {
     return new Response("That recording is too long.", { status: 413 });
   }
-  if (!(audio instanceof Blob) && !text.trim()) {
-    return new Response("Send audio or text.", { status: 400 });
+  const image = form.get("image");
+  const picture = image instanceof Blob && /^image\/(jpeg|png|webp)$/.test(image.type) ? image : null;
+  if (image instanceof Blob && (!picture || image.size > MAX_IMAGE_BYTES)) {
+    return new Response("That picture can't be used.", { status: 413 });
+  }
+  if (!(audio instanceof Blob) && !text.trim() && !picture) {
+    return new Response("Send audio, text or a picture.", { status: 400 });
   }
 
   const { db, user } = await currentUser(uiLang);
@@ -57,6 +64,7 @@ export async function POST(request: Request) {
   const providers = getProviders({
     scriptedTranscript: scripted ? decodeURIComponent(scripted) : null,
     slowRestMs: Math.min(Math.max(slow, 0), 5000) || 0,
+    voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
   });
 
   const stream = new ReadableStream<Uint8Array>({
@@ -74,7 +82,15 @@ export async function POST(request: Request) {
       };
       try {
         await runTurn(
-          { user, audio: audio instanceof Blob ? audio : null, text, conversationId, uiLang, timeZone },
+          {
+            user,
+            audio: audio instanceof Blob ? audio : null,
+            text,
+            image: picture,
+            conversationId,
+            uiLang,
+            timeZone,
+          },
           { db, providers, signal: request.signal },
           emit,
         );

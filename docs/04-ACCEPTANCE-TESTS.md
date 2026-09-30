@@ -117,7 +117,7 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 
 | AT-106 | A shared weather answer about tomorrow | We fetch `/s/{code}` | The page shows the question, the answer and the tool; `og:image` is `tomorrow-at-a-glance.png`; `robots` is `noindex` | P8, P9 | Must | Int, E2E |
 | AT-107 | Any card kind, either language | The card is picked twice for the same link | The same card both times; across many links of one kind, more than one card appears | P8 | Must | Unit |
-| AT-108 | Production | We fetch `/notes` | The docs reader loads, with the "Notes from building Sarjy" card as its preview | P10 | Should | E2E |
+| AT-108 | Production | We fetch `/handbook` (or the old `/notes`) | The Sarjy Handbook loads, with the "Notes from building Sarjy" card as its preview | P10 | Should | E2E |
 
 ## Turki's touches
 

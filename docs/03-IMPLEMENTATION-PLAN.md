@@ -79,8 +79,8 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Live Open-Meteo (geocoding in Arabic and English, forecast, 4 s timeout)
 - [ ] Guardrails: topic policy, `gpt-oss-safeguard-20b` check in parallel with the main model, persona lock in the prompt
 - [ ] Red-team suite (`scripts/redteam.ts`), 25 prompts, wired into CI with fakes
-- [ ] Image turns route to `qwen/qwen3.8-27b`
-- [ ] Cost per turn (`server/turn/cost.ts`) in the `done` event
+- [x] Image turns route to `qwen/qwen3.8-27b` (the only model in the chain marked `vision`; checked live on Day 2)
+- [x] Cost per turn (`server/turn/cost.ts`) in the `done` event: model tokens, seconds heard, characters voiced per language, priced from one table with its sources
 - [x] Rate limits (per user, per IP) and input caps
 - [ ] Structured timing logs per turn
 
@@ -116,9 +116,9 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ## Day 3 · Thursday: the interface, then multiplayer
 
 ### M5 · The interface deep dive (morning)
-- [ ] Orb driven by real audio: mic level while listening, output level while speaking; light, rotation and grain per the brand
+- [x] Orb driven by real audio: mic level while listening, output level while speaking; smoothed and calm (Turki's review)
 - [x] Caption word timing from the audio envelope (`shared/wordTiming.ts`), unit tested; unspoken words blurred
-- [x] The stitch: underline on the saved fact, card appears in the sidebar (tick sound comes with the cues in M4)
+- [x] The stitch: underline on the saved fact, the saved card under the orb, and the tick (memory moved to Settings on Turki's direction)
 - [x] Memory cards with Edit and Forget; Forget everything (in Settings)
 - [x] Tool chip with label and timing
 - [x] Settings as a popup like Claude's (sections beside content), opened from your name at the bottom of the sidebar (Turki's review, Day 2):
@@ -127,14 +127,14 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
   - [x] Profile: your picture (one of the three paintings, or your own photo, shrunk to 192 px in the browser) and your name
   - [x] Memory: every fact with Edit and Forget; Forget everything with one confirmation. The sidebar's Memory list folds
   - [x] The language and theme buttons left the top bar
-  - [ ] Voice: one per language, with a preview; the sliders button in the control bar opens it
-- [ ] Onboarding in the interface (pre-rendered greeting, Skip)
+  - [x] Voice: one per language (six English, six Saudi Arabic Orpheus voices), with a cached preview; the control bar is gone, so it lives in Settings
+- [x] Onboarding in the interface: a quiet welcome bubble on a first visit (no chats, no name), with Skip the intro; never spoken uninvited, never forced
 - [x] Recent chats and New chat: New chat clears the stage and says so; a past chat reopens with its last answer; the one on screen is highlighted; search filters chats and memories
 - [x] Collapsible sidebar, remembered across visits
-- [ ] A full transcript view of the open chat (the stage shows the last three lines)
-- [ ] Details panel: latency waterfall and cost per turn
-- [ ] Images: drop, paste or photograph; resized in the browser; thumbnail in the transcript
-- [ ] Below 900 px: sidebar becomes a sheet; reduced motion and reduced transparency
+- [x] The whole chat: "Show the whole chat (n)" opens every line above the latest bubbles, scrolling
+- [x] Details panel: the ⓘ on Sarjy's answer opens a timing waterfall (heard you, first word, first sound, done), the model, tokens, and cost (and per 1,000 answers)
+- [x] Images: the picture button (the camera on phones), paste, or drop anywhere; shrunk to 1280 px JPEG in the browser; thumbnail in your bubble; only a model that sees (Qwen) takes a picture turn
+- [x] Below 900 px: the sidebar is a sheet from the reading start, over a dimmed page; reduced motion and reduced transparency respected throughout
 
 ### M6 · Multiplayer: the Majlis (afternoon and evening)
 - [ ] Tables: `rooms`, `room_members`, `room_segments`; `messages.speaker_id`
@@ -171,7 +171,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ### Added on Day 2 (Turki's requests)
 - [x] Link-preview card system: twelve illustrated cards, picked per link by kind and language
 - [x] Share a moment (`/s/{code}`), with its own card
-- [x] Build notes served at `/notes`
+- [x] Build notes served at `/notes` (now the Sarjy Handbook at `/handbook`; `/notes` forwards)
 - [x] Brand art added (`docs/brand/art/`)
 - [x] CI test summary on every run, Playwright report kept, README badge
 - [x] Sarjy's voice: a casual Saudi friend, not a formal assistant (prompt, fake replies, PRD section 8)

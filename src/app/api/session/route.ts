@@ -5,6 +5,7 @@
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { avatarFor } from "@/shared/avatars";
+import { voiceFor } from "@/shared/voices";
 import { listConversations } from "@/server/chat/repo";
 import { users } from "@/server/db/schema";
 import { currentUser, json } from "@/server/http";
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
       onboardingStep: user.onboardingStep,
       avatar: avatarFor(user.id, user.avatar, user.avatarImage),
       avatarImage: user.avatar === "upload" ? user.avatarImage : null,
+      voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
     },
     memories,
     chats,

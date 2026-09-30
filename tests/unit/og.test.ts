@@ -10,7 +10,7 @@ const KINDS: CardKind[] = [
   "chat",
   "image",
   "majlis",
-  "notes",
+  "handbook",
 ];
 
 describe("link preview cards", () => {
@@ -35,7 +35,7 @@ describe("link preview cards", () => {
 
   it("matches the card to the link", () => {
     expect(pickCard("weather_tomorrow", "en", "a").file).toBe("tomorrow-at-a-glance.png");
-    expect(pickCard("notes", "en", "a").file).toBe("notes-from-building.png");
+    expect(pickCard("handbook", "en", "a").file).toBe("notes-from-building.png");
     expect(pickCard("majlis", "ar", "a").file).toBe("hafazt-kalamak.png");
     expect(pickCard("majlis", "en", "a").file).toBe("thought-and-reply.png");
     expect(pickCard("image", "en", "a").file).toBe("little-things-big-picture.png");

@@ -139,3 +139,39 @@ describe("a turn", () => {
     expect(user!.name).toBe("Turki");
   });
 });
+
+describe("pictures and cost", () => {
+  it("sends a picture only to a model that can see, and asks what's in it when there are no words", async () => {
+    const id = await newUser();
+    const { users } = await import("@/server/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const events: TurnEvent[] = [];
+    const picture = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: "image/jpeg" });
+    await runTurn(
+      {
+        user: user!,
+        audio: null,
+        text: "",
+        image: picture,
+        conversationId: null,
+        uiLang: "en",
+        timeZone: "Asia/Riyadh",
+      },
+      { db, providers: getProviders() },
+      (e) => events.push(TurnEvent.parse(e)),
+    );
+    const heard = events.find((e) => e.type === "transcript");
+    expect(heard && heard.type === "transcript" && heard.text).toBe("What's in this picture?");
+    const done = events.find((e) => e.type === "done");
+    expect(done && done.type === "done" && done.text).toBe("I can see your picture. Nice one.");
+    // The main stand-in can't see; the one marked `vision` took the turn.
+    expect(done && done.type === "done" && done.timings.model).toBe("fake-fallback");
+  });
+
+  it("reports tokens and cost with every answer", async () => {
+    const id = await newUser();
+    const { done } = await turn(id, "What's the weather in Riyadh tomorrow?");
+    expect(done && done.type === "done" && done.timings.costUsd).toBeGreaterThan(0);
+  });
+});
