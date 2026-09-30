@@ -13,6 +13,8 @@ export function getProviders(
   options: {
     scriptedTranscript?: string | null;
     slowRestMs?: number;
+    /** Fake mode: the voice returns nothing, as past Groq's daily limit. */
+    voiceOut?: boolean;
     /** The voices this person chose (Settings, Voice). */
     voices?: Record<"en" | "ar", string>;
   } = {},
@@ -23,7 +25,7 @@ export function getProviders(
   }
   return {
     stt: createFakeStt(options.scriptedTranscript ?? null),
-    tts: createFakeTts(options.slowRestMs),
+    tts: createFakeTts(options.slowRestMs, options.voiceOut),
     models: [
       { id: "fake-main", model: createFakeModel("fake-main") },
       { id: "fake-fallback", model: createFakeModel("fake-fallback"), vision: true },

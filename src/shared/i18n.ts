@@ -33,6 +33,8 @@ type Strings = {
   linkCopied: string;
   /** Shown when the mic can't be used; the text box takes over. */
   micBlocked: string;
+  /** Said once when the browser's voice stands in for Sarjy's (Groq's daily limit, or an error). */
+  voiceResting: string;
   /** Under the orb after New chat, and after opening a past chat. */
   /** Under the orb after New chat: one of these, at random (Turki's lines, Day 2). */
   freshChat: string[];
@@ -152,6 +154,7 @@ export const STRINGS: Record<Lang, Strings> = {
     share: "Share this moment",
     linkCopied: "Link copied",
     micBlocked: "No mic access. You can type instead.",
+    voiceResting: "My voice is taking a break, so your browser is reading for me for now.",
     freshChat: [
       "What's on your mind? I'm all ears.",
       "No need to find the perfect words. Just talk.",
@@ -288,6 +291,7 @@ export const STRINGS: Record<Lang, Strings> = {
     share: "شارك هاللحظة",
     linkCopied: "تم نسخ الرابط",
     micBlocked: "ما فيه وصول للمايك. تقدر تكتب بدلها.",
+    voiceResting: "صوتي ماخذ استراحة، فالمتصفح بيقرأ عني شوي.",
     freshChat: [
       "سمّ، وش بخاطرك؟",
       "ما يحتاج ترتّب كلامك، بس احكِ.",

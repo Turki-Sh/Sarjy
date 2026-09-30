@@ -3,7 +3,8 @@
 .wrap {
   position: relative;
   /* Narrower on short windows, so the orb and the conversation always fit together. */
-  width: min(300px, 62vw, 34dvh);
+  width: var(--orb-size, min(300px, 62vw, 30dvh));
+  transition: width var(--t-slow) var(--ease-rein);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -94,4 +95,10 @@
 }
 .wrap[data-state="thinking"] .trace {
   opacity: 0.95;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    transition: none;
+  }
 }

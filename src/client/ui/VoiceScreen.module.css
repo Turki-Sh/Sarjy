@@ -58,8 +58,8 @@
   grid-column: 1;
   grid-row: 1 / -1;
   align-self: stretch;
-  /* Equal room above and below: the dock (text box) is the taller of the two ends. */
-  padding-block: 96px;
+  /* Room for the top bar above and the dock (text box, the taller end) below. */
+  padding-block: 80px 96px;
   min-height: 0;
   animation: stage-in var(--t-slow) var(--ease-rein) both;
   display: flex;
@@ -69,6 +69,17 @@
   gap: 10px;
   width: 100%;
   max-width: 640px;
+  /* The orb's size (smaller on short windows, so the conversation fits under it), and the height
+     left for the conversation: the window, less the screen's padding (44 px) and the stage's
+     (176 px), the orb, and about 90 px for the gaps, "Show the whole chat" and the line under the
+     bubbles. The bubbles never run into the text box. */
+  --orb-size: min(300px, 62vw, 30dvh);
+  --stage-room: calc(100dvh - 220px - var(--orb-size) - 90px);
+}
+/* With the whole chat open, the chat is what you are reading: the orb steps back to a small size
+   and the list takes the room (Turki's review, Day 2: it ran under the text box on a short window). */
+.stage:has([data-whole]) {
+  --orb-size: min(140px, 18dvh);
 }
 
 /* The orb as a button: no chrome of its own, a gentle lift on hover, a press on tap. */

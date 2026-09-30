@@ -26,11 +26,25 @@ const SELF_TALK = [
 export const isSelfTalk = (sentence: string) => SELF_TALK.some((p) => p.test(sentence.trim()));
 
 /**
+ * Markdown the model sometimes writes despite the prompt (Turki's review, Day 2: "*Horizon
+ * Forbidden West*" on screen). It would show as symbols and be read out, so only the words stay:
+ * emphasis marks, code ticks, headings, bullets and numbered list marks, and link targets.
+ */
+export const plain = (text: string) =>
+  text
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/^\s*(#{1,6}|[-*+•]|\d+[.)])\s+/gm, "")
+    .replace(/[*`]+/g, "")
+    .replace(/(^|[\s(])_{1,2}(?=\S)|(?<=\S)_{1,2}(?=[\s).,!?؟،]|$)/g, "$1")
+    .replace(/[ \t]{2,}/g, " ");
+
+/**
  * Last fixes to what Sarjy is about to say, for slips a prompt can't fully prevent:
- * leaked planning, glued sentences, long dashes (a comma reads and sounds the same), "on today".
+ * markdown, leaked planning, glued sentences, long dashes (a comma reads and sounds the same),
+ * "on today".
  */
 export function tidy(text: string): string {
-  const cleaned = unglue(text)
+  const cleaned = unglue(plain(text))
     .replace(/\s*[\u2014\u2013]\s*/g, ", ")
     .replace(/\bon (today|yesterday)\b/gi, "$1");
   const { sentences, rest } = splitSentences(cleaned);

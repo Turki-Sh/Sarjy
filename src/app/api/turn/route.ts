@@ -61,9 +61,12 @@ export async function POST(request: Request) {
   const scripted = env.providers === "fake" ? request.headers.get("x-sarjy-fake-transcript") : null;
   // ...and may slow the voice down, to reproduce a slow live voice.
   const slow = env.providers === "fake" ? Number(request.headers.get("x-sarjy-fake-slow-voice") ?? 0) : 0;
+  // ...or switch the voice off, as past Groq's daily limit.
+  const voiceOut = env.providers === "fake" && request.headers.get("x-sarjy-fake-voice-out") === "1";
   const providers = getProviders({
     scriptedTranscript: scripted ? decodeURIComponent(scripted) : null,
     slowRestMs: Math.min(Math.max(slow, 0), 5000) || 0,
+    voiceOut,
     voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
   });
 

@@ -192,6 +192,7 @@ export function Sidebar({
       </ul>
 
       {/* You, at the bottom: your picture and name. Tap to open settings. */}
+      <div className={styles.rule} aria-hidden="true" />
       <button type="button" className={styles.me} onClick={onOpenSettings} aria-label={s.settings.open}>
         <span className={styles.avatar}>
           {avatarSrc ? (

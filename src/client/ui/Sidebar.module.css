@@ -132,15 +132,22 @@
   line-height: 1.5;
   color: var(--text-2);
 }
+/* The line above you: its own element, so the row's highlight is a plain rounded box like every
+   other row's (it was the row's top border, which put a square box with a line on top). */
+.rule {
+  margin-block: auto 6px;
+  margin-inline: 6px;
+  border-block-start: 1px solid var(--line);
+}
 .me {
-  margin-block-start: auto;
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 6px;
+  padding: 8px;
   border: 0;
-  border-block-start: 1px solid var(--line);
+  /* Concentric with the panel: its 22 px corner less its 14 px padding, like the chat rows. */
+  border-radius: 8px;
   background: transparent;
   color: var(--text);
   font: inherit;

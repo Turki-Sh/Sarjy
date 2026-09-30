@@ -129,7 +129,7 @@ function earlierLines(lines: ChatLine[], caption: CaptionModel | null): ChatLine
   return captionIsLast ? lines.slice(-EARLIER - 1, -1) : lines.slice(-EARLIER);
 }
 
-export function useSarjy(lang: Lang) {
+export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}) {
   const [state, dispatch] = useReducer(transition, "idle" as VoiceState);
   const [caption, setCaption] = useState<CaptionModel | null>(null);
   const [chip, setChip] = useState<ToolChipModel | null>(null);
@@ -163,6 +163,12 @@ export function useSarjy(lang: Lang) {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+  /** Whether the screen has said, this visit, that the browser's voice is standing in. */
+  const backupNoted = useRef(false);
+  const onBackupVoice = useRef(events.onBackupVoice);
+  useEffect(() => {
+    onBackupVoice.current = events.onBackupVoice;
+  });
 
   const getPlayer = () => (player.current ??= new Player());
 
@@ -256,6 +262,12 @@ export function useSarjy(lang: Lang) {
           return;
         case "segment":
           t.received++;
+          // No audio: Sarjy's voice is out (usually Groq's daily limit), and the browser reads
+          // instead. Said once, so the change of voice doesn't sound like something broke.
+          if (!event.audio && !backupNoted.current) {
+            backupNoted.current = true;
+            onBackupVoice.current?.();
+          }
           void getPlayer()
             .play(event)
             .then((seg) => addSegment(seg, t));

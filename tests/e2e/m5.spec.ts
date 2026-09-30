@@ -121,3 +121,42 @@ test("the whole chat opens above the latest bubbles", async ({ page }) => {
   await page.getByRole("button", { name: "Show less" }).click();
   await expect(page.locator("main section ol li")).toHaveCount(3);
 });
+
+// On a short window (Turki's review, Day 2): no bubble is ever cut by the edge of the list, and the
+// whole chat stays above the text box, with the orb stepping back to make room.
+test("on a short window, bubbles are never cut and the whole chat stays above the text box", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+  for (const t of [
+    "My favorite color is green.",
+    "My favorite food is kabsa.",
+    "What's my favorite color?",
+    "What's the weather in Riyadh tomorrow?",
+  ]) {
+    await say(page, t);
+    await idle(page);
+  }
+  const list = page.locator("main section div:has(> ol)");
+  const cut = () =>
+    list.evaluate((box) => {
+      const edge = box.getBoundingClientRect().top + parseFloat(getComputedStyle(box).paddingTop);
+      return [...box.querySelectorAll("li")].filter(
+        (li) => getComputedStyle(li).visibility !== "hidden" && li.getBoundingClientRect().top < edge - 1,
+      ).length;
+    });
+  expect(await cut()).toBe(0);
+
+  const orb = page.getByRole("button", { name: "Talk to Sarjy" });
+  const before = (await orb.boundingBox())!.width;
+  await page.getByRole("button", { name: /Show the whole chat/ }).click();
+  await expect.poll(async () => (await orb.boundingBox())!.width).toBeLessThan(before * 0.7);
+  await expect
+    .poll(async () => {
+      const bottom = (await list.boundingBox())!;
+      const dock = (await page.getByRole("textbox", { name: "Type to Sarjy…" }).boundingBox())!;
+      return bottom.y + bottom.height <= dock.y;
+    })
+    .toBe(true);
+});

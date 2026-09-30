@@ -54,13 +54,13 @@ export function VoiceScreen({
   const [section, setSection] = useState<SettingsSection>("general");
   /** Bumped when you switch chats, to replay the stage's fade (only on your click, never mid-answer). */
   const [switches, setSwitches] = useState(0);
-  const sarjy = useSarjy(lang);
+  const sarjy = useSarjy(lang, { onBackupVoice: () => flash(s.voiceResting, 5000) });
   const composer = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const flash = (message: string) => {
+  const flash = (message: string, ms = 2200) => {
     setToast(message);
-    window.setTimeout(() => setToast(null), 2200);
+    window.setTimeout(() => setToast(null), ms);
   };
 
   // Share a chat's latest answer: the phone's share sheet when there is one, otherwise copy the link.

@@ -234,6 +234,13 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] The hard rectangle around the bubbles: the transcript clipped their shadows. Its box now reaches past the bubbles by the shadows' size; older bubbles show at most three lines, so the list rarely overflows
 - [x] The sidebar sat 20 px from the top and flush with the bottom (a sticky offset turned into a plain shift). It now floats with the same 10 px gap above and below
 
+### Fixed from Turki's seventh review (Day 2, after M5)
+- [x] The robotic English voice: Groq's free tier gives Orpheus 100 requests a day per language, and past that the browser reads. The backup now picks the browser's most natural voice (Edge's Natural voices, Safari's Premium, Chrome's Google voices; unit tested), says once why the voice changed, and never leaves Sarjy on "Speaking" when a browser never reports the end. The Dev tier removes the limit
+- [x] Markdown the model slips in (`*Horizon Forbidden West*`) is removed before it is shown or spoken
+- [x] Scrollbars are Sarjy's own: a thin rounded thumb, no track, no arrows, everywhere
+- [x] The whole chat opens at its newest line, the orb steps back to a small size, the list ends above the text box, and its edges fade instead of cutting. On a short window the recent bubbles fit the room under the orb (a slightly smaller orb, small picture thumbnails), and one that can't fully show is hidden rather than cut
+- [x] The profile row's highlight is a rounded box like every other row; the line above it is its own element
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

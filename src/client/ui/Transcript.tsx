@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
 import type { Timings } from "@/shared/protocol";
@@ -32,6 +32,31 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
   const open = !!timings && openFor === timings;
   const [whole, setWhole] = useState(false);
   const info = useRef<HTMLButtonElement>(null);
+  // The whole chat opens at its newest line, where you were; older lines are a scroll up.
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (whole && list.current) list.current.scrollTop = list.current.scrollHeight;
+  }, [whole]);
+  // On a short window the box can't hold every recent bubble. One that would be cut by the box's
+  // top is hidden whole instead (the newest stay anchored at the bottom, so nothing moves).
+  useLayoutEffect(() => {
+    const box = list.current;
+    if (!box) return;
+    if (whole) {
+      // The whole chat scrolls, so every bubble shows.
+      box.querySelectorAll("li[data-cut]").forEach((bubble) => bubble.removeAttribute("data-cut"));
+      return;
+    }
+    const fit = () => {
+      const edge = box.getBoundingClientRect().top + parseFloat(getComputedStyle(box).paddingTop);
+      for (const bubble of box.querySelectorAll("li")) {
+        bubble.toggleAttribute("data-cut", bubble.getBoundingClientRect().top < edge - 1);
+      }
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  });
   const close = useCallback(() => setOpenFor(null), []);
   const s = t(lang);
   if (!recent.length && !caption) {
@@ -63,7 +88,7 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
           {whole ? s.lessChat : s.wholeChat(all.length)}
         </button>
       )}
-      <div className={styles.transcript} data-whole={whole || undefined}>
+      <div ref={list} className={styles.transcript} data-whole={whole || undefined}>
         {earlier.length > 0 && (
           <ol className={styles.earlier} aria-hidden="true" data-whole={whole || undefined}>
             {earlier.map((line, i) => (

@@ -63,3 +63,29 @@ test("the whole answer plays even when the rest of it arrives after the first se
   await expect(screen(page)).toHaveAttribute("data-state", "saving", { timeout: 15_000 });
   await expect(caption(page)).toHaveText("Saved. Your favorite color is green.");
 });
+
+// Past Groq's daily limit the voice returns nothing and the browser reads instead (Turki's review,
+// Day 2: "the English suddenly turned robotic"). The answer still shows, and Sarjy says once why
+// its voice changed.
+test("when Sarjy's voice is out, the answer still comes, and the screen says why once", async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-sarjy-fake-voice-out": "1" });
+  await page.goto("/");
+  const box = page.getByRole("textbox", { name: "Type to Sarjy…" });
+  const note = page.getByRole("status").filter({ hasText: "My voice is taking a break" });
+  await box.fill("What's the weather in Riyadh tomorrow?");
+  await box.press("Enter");
+  await expect(note).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator("main section p[lang]")).toHaveText(/Riyadh/, { timeout: 15_000 });
+  // And it comes to rest, even where the browser never says its voice has finished (this headless
+  // browser has no voices at all): Sarjy never stays on "Speaking".
+  await expect(page.locator("[data-state]").first()).toHaveAttribute("data-state", "idle", {
+    timeout: 20_000,
+  });
+
+  // Only once a visit.
+  await expect(note).toHaveCount(0, { timeout: 8_000 });
+  await box.fill("What's the weather in Jeddah tomorrow?");
+  await box.press("Enter");
+  await expect(page.locator("main section p[lang]")).toHaveText(/Jeddah/, { timeout: 15_000 });
+  await expect(note).toHaveCount(0);
+});

@@ -55,6 +55,20 @@ describe("unglue", () => {
 });
 
 describe("tidy", () => {
+  it("drops markdown the model slipped in, keeping the words (Turki's review, Day 2)", () => {
+    expect(tidy("Try *Horizon Forbidden West* or **DOOM Eternal**.")).toBe(
+      "Try Horizon Forbidden West or DOOM Eternal.",
+    );
+    expect(tidy("جرب *Valorant* و *Among Us*.")).toBe("جرب Valorant و Among Us.");
+    expect(tidy("- Kabsa is great.")).toBe("Kabsa is great.");
+    expect(tidy("See [the forecast](https://example.com) and `code`.")).toBe("See the forecast and code.");
+    expect(tidy("It's _really_ hot.")).toBe("It's really hot.");
+    // Words with underscores and ordinary numbers are left alone.
+    expect(tidy("Your favorite_color key is set. It's 41.5 today.")).toBe(
+      "Your favorite_color key is set. It's 41.5 today.",
+    );
+  });
+
   it("fixes the slips a model makes when speaking", () => {
     const dash = String.fromCharCode(0x2014);
     expect(tidy(`All set, Turki${dash}what's next?`)).toBe("All set, Turki, what's next?");

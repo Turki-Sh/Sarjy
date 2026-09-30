@@ -5,7 +5,7 @@
      pulled back by the same amount (the negative margins). It has to clip (see below), and when
      it hugged the bubbles it cut their shadows off in a hard rectangle (Turki's report, Day 2). */
   --reach-inline: 36px;
-  --reach-start: 20px;
+  --reach-start: 28px;
   --reach-end: 44px;
   width: min(560px + 2 * var(--reach-inline), 100% + 2 * var(--reach-inline));
   padding-inline: var(--reach-inline);
@@ -18,9 +18,13 @@
   gap: 8px;
   /* Bounded, so a very long answer never pushes the orb off center (at most four bubbles show),
      and never squeezed by its neighbours (the orb scales with the window instead). */
-  max-height: calc(42vh + var(--reach-start) + var(--reach-end));
+  max-height: calc(min(42vh, var(--stage-room, 42vh)) + var(--reach-start) + var(--reach-end));
   overflow: hidden;
   flex-shrink: 0;
+  /* On a short window the oldest bubble can meet the top of the box: it fades out there instead of
+     being cut by a line. The fade lies within the top reach, so with room to spare it touches nothing. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--reach-start));
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--reach-start));
 }
 .earlier {
   display: flex;
@@ -65,6 +69,9 @@
 
 /* "Show the whole chat": a quiet link above the bubbles. With the whole chat open, the list scrolls. */
 .more {
+  /* Above the list, whose top reach (room for shadows and the fade) overlaps it. */
+  position: relative;
+  z-index: 1;
   align-self: center;
   padding: 4px 10px;
   border: 0;
@@ -78,10 +85,33 @@
   color: var(--text);
   background: var(--sunken);
 }
+/* The whole chat scrolls. The box ends where the bubbles end (no reach below, which let bubbles
+   scroll under "Listening" and the text box), and its top and bottom edges fade instead of cutting.
+   The scrollbar is the app's own (styles/globals.css). */
 .transcript[data-whole] {
   overflow-y: auto;
   justify-content: flex-start;
   overscroll-behavior: contain;
+  --reach-start: 40px;
+  --reach-end: 16px;
+  /* Starts under "Show less" (not pulled up behind it), so the top fade happens below the button. */
+  margin-block: 0;
+  max-height: calc(var(--stage-room, 42vh) + var(--reach-start) + var(--reach-end));
+  scroll-padding-block: 16px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--reach-start),
+    #000 calc(100% - 16px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--reach-start),
+    #000 calc(100% - 16px),
+    transparent
+  );
 }
 
 /* A picture you sent, above your words. */
@@ -130,6 +160,18 @@
 }
 .now.user {
   font-size: 16px;
+}
+
+/* In the recent lines a picture is a small thumbnail, so the bubble fits under the orb; the whole
+   chat shows it larger. */
+.earlier:not([data-whole]) .picture {
+  max-width: 110px;
+  max-height: 72px;
+}
+
+/* An earlier bubble the box can't fully show (Transcript.tsx marks it) is hidden, not cut. */
+.earlier [data-cut] {
+  visibility: hidden;
 }
 
 /* Earlier lines fade with age, and a long one shows its first three lines: they are a reminder,
