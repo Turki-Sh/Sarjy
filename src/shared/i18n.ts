@@ -137,6 +137,7 @@ type Strings = {
     you: string;
     guest: (seat: number) => string;
     holding: (name: string) => string;
+    answering: (name: string) => string;
     busy: (name: string) => string;
     tapToTalk: string;
     leave: string;
@@ -311,6 +312,7 @@ export const STRINGS: Record<Lang, Strings> = {
       you: "You",
       guest: (seat) => `Guest ${seat + 1}`,
       holding: (name) => `${name} has the mic`,
+      answering: (name) => `Sarjy is answering ${name}`,
       busy: (name) => `${name} has the mic. Give them a sec.`,
       tapToTalk: "Tap the finjan to talk",
       leave: "Leave",
@@ -482,6 +484,7 @@ export const STRINGS: Record<Lang, Strings> = {
       you: "أنت",
       guest: (seat) => `ضيف ${(seat + 1).toLocaleString("ar-SA")}`,
       holding: (name) => `المايك مع ${name}`,
+      answering: (name) => `سرجي يرد على ${name}`,
       busy: (name) => `المايك مع ${name}. لحظة لين يخلص.`,
       tapToTalk: "اضغط الفنجال وتكلم",
       leave: "اطلع",

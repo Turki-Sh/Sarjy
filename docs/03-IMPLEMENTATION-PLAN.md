@@ -269,6 +269,8 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [x] The finjan replaces the wave inside the orb in a Majlis; its steam rises with the voice
 - [x] The door asks a newcomer's name; members (and the host) go straight in
 - [x] Menus open on the page's body, so a menu inside glass is placed right
+- [x] Turki's review: everyone sits around the finjan in their own profile picture; whoever has the mic comes in beside the cup with their name and a breathing ring, and the screen says who Sarjy is answering; the bar keeps only the name, count, Invite and the way out
+- [x] Turki's review: the finjan has a look for every state, and the Sarjy wave is now the coffee's surface, moving with the voice
 - [ ] Live check on the deployed site with two phones (the container's Ably key is a placeholder, so tokens can only be tried on Vercel)
 
 ### Turki's touches (after every Must, in this order)

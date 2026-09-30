@@ -12,6 +12,7 @@ import { isVoice } from "@/shared/voices";
 import { users } from "@/server/db/schema";
 import { currentUser, json } from "@/server/http";
 import { upsertMemory } from "@/server/memory/repo";
+import { announceMembers } from "@/server/rooms/access";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export async function PATCH(request: Request) {
 
   if ("avatar" in body) {
     await db.update(users).set({ avatar: body.avatar, avatarImage: null }).where(eq(users.id, user.id));
+    await announceMembers(db, user.id);
     return json({ avatar: body.avatar });
   }
   if ("onboarding" in body) {
@@ -48,6 +50,7 @@ export async function PATCH(request: Request) {
   }
   if ("image" in body) {
     await db.update(users).set({ avatar: "upload", avatarImage: body.image }).where(eq(users.id, user.id));
+    await announceMembers(db, user.id);
     return json({ avatar: "upload" });
   }
   // Your name lives in two places on purpose: on the profile (the sidebar) and as a memory
@@ -64,5 +67,6 @@ export async function PATCH(request: Request) {
     .update(users)
     .set({ name: memory.value, ...(user.onboardingStep === "name" ? { onboardingStep: "home_city" } : {}) })
     .where(eq(users.id, user.id));
+  await announceMembers(db, user.id);
   return json({ name: memory.value, memory });
 }

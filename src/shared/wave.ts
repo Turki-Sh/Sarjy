@@ -38,3 +38,16 @@ export function easeToward(current: WaveShape, target: WaveShape, k: number): Wa
 export function isAtRest({ a1, a2, s }: WaveShape): boolean {
   return Math.abs(a1 - 1) < 0.01 && Math.abs(a2 - 1) < 0.01 && Math.abs(s - 1) < 0.02;
 }
+
+/**
+ * The same wave as the surface of the coffee in the Majlis finjan: squeezed into the cup's mouth
+ * (half as wide, a seventh as tall) and set a little below the rim, so the brand's line still
+ * moves with every voice. A Bezier curve maps exactly under this scaling, so each point is simply
+ * moved. At rest the pommel and cantle are gentle ripples; at their tallest they reach the rim.
+ */
+export function surfacePath(shape: WaveShape): string {
+  return wavePath(shape).replace(
+    /(-?[\d.]+) (-?[\d.]+)/g,
+    (_, x: string, y: string) => `${round(56 + Number(x) * 0.5)} ${round(67 + Number(y) * 0.14)}`,
+  );
+}

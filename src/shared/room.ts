@@ -25,6 +25,8 @@ export const Member = z.object({
     .min(0)
     .max(SEATS - 1),
   host: z.boolean(),
+  /** Their profile picture: one of the paintings, or their own upload by URL (members only). */
+  avatar: z.string(),
 });
 export type Member = z.infer<typeof Member>;
 

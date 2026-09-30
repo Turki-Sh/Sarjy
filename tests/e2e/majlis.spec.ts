@@ -45,7 +45,19 @@ test("two people in one Majlis see every turn, each in their own color (AT-90, A
   // The finjan sits in the orb instead of the wave.
   await expect(host.locator("[data-majlis] svg path").first()).toBeAttached();
 
+  // Everyone sits around the finjan in their own profile picture.
+  const seats = host.getByRole("list", { name: "Who's here" }).getByRole("listitem");
+  await expect(seats).toHaveCount(2);
+  await expect(seats.first().locator("img")).toHaveAttribute("src", /^\/avatars\/[a-z-]+\.webp$/);
+
+  // Sara's answer is slowed down, so there is time to see whose turn it is on Turki's screen.
+  await guest.route("**/api/turn", (route) =>
+    route.continue({ headers: { ...route.request().headers(), "x-sarjy-fake-slow-voice": "2500" } }),
+  );
   await say(guest, "Hello from Sara");
+  // While Sarjy answers her, she sits beside the cup with her name over her, and the screen says so.
+  await expect(host.locator("main section li[data-active]")).toContainText("Sara", { timeout: 10_000 });
+  await expect(host.getByText("Sarjy is answering Sara")).toBeVisible();
   // Both screens show Sara's words and Sarjy's answer.
   await expect(screen(guest)).toHaveAttribute("data-state", "speaking", { timeout: 10_000 });
   await expect(screen(guest)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
@@ -109,7 +121,7 @@ test("a picture that fails the guard is never shown to the room (AT-99b)", async
   await expect(caption(guest)).toHaveText("I didn't share that picture with the Majlis.", {
     timeout: 10_000,
   });
-  await expect(host.locator("main section img")).toHaveCount(0);
+  await expect(host.locator('main section img[class*="picture"]')).toHaveCount(0);
   await expect(host.locator("main section li").filter({ hasText: "Look at this" })).toHaveCount(0);
 });
 

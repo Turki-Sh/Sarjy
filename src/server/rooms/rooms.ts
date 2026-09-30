@@ -5,6 +5,8 @@ import "server-only";
 
 import { randomInt } from "node:crypto";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { avatarFor, avatarUrl } from "@/shared/avatars";
+import { hash } from "@/shared/og";
 import { CODE_ALPHABET, SEATS, type Member } from "@/shared/room";
 import type { Db } from "../db/client";
 import { conversations, roomMembers, rooms, users, type RoomRow } from "../db/schema";
@@ -36,15 +38,35 @@ export async function findRoom(db: Db, code: string): Promise<RoomRow | null> {
   return room ?? null;
 }
 
-/** Everyone who has joined, in seat order, with the names they go by. */
+/** Where a member's own uploaded picture is served, to the room only; the version changes with it. */
+export const memberPictureUrl = (code: string, userId: string, image: string) =>
+  `/api/rooms/${code}/people/${userId}/picture?v=${hash(image).toString(36)}`;
+
+/** Everyone who has joined, in seat order, with the names and pictures they go by. */
 export async function listMembers(db: Db, room: RoomRow): Promise<Member[]> {
   const rows = await db
-    .select({ id: roomMembers.userId, seat: roomMembers.seat, name: users.name })
+    .select({
+      id: roomMembers.userId,
+      seat: roomMembers.seat,
+      name: users.name,
+      avatar: users.avatar,
+      image: users.avatarImage,
+    })
     .from(roomMembers)
     .innerJoin(users, eq(users.id, roomMembers.userId))
     .where(eq(roomMembers.roomId, room.id))
     .orderBy(asc(roomMembers.seat));
-  return rows.map((r) => ({ id: r.id, name: r.name, seat: r.seat, host: r.id === room.hostId }));
+  return rows.map((r) => {
+    const choice = avatarFor(r.id, r.avatar, r.image);
+    return {
+      id: r.id,
+      name: r.name,
+      seat: r.seat,
+      host: r.id === room.hostId,
+      // An upload is a data URL of up to 80 KB: too big to send to everyone in every room event.
+      avatar: choice === "upload" ? memberPictureUrl(room.code, r.id, r.image!) : avatarUrl(choice),
+    };
+  });
 }
 
 export async function isMember(db: Db, roomId: string, userId: string): Promise<boolean> {

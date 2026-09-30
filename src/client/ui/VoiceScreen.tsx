@@ -15,6 +15,7 @@ import { useRoom, type RoomPhase } from "../room/useRoom";
 import { chatLines, useSarjy, type FetchedChat, type RoomLinkForVoice } from "../voice/useSarjy";
 import { MajlisBar } from "./majlis/MajlisBar";
 import { MajlisDoor } from "./majlis/MajlisDoor";
+import { MajlisSeats } from "./majlis/MajlisSeats";
 import { SavedCard } from "./SavedCard";
 import { Settings, type SettingsSection } from "./settings/Settings";
 import { Orb } from "./Orb";
@@ -304,7 +305,10 @@ export function VoiceScreen({
         ? holder
           ? s.majlis.holding(holder)
           : s.majlis.tapToTalk
-        : s.status[sarjy.state];
+        : // Someone else's turn: say whose, so it's clear who Sarjy is talking to.
+          room && sarjy.asker && sarjy.asker !== me && sarjy.state !== "listening"
+          ? s.majlis.answering(nameOf(sarjy.asker)?.name ?? "…")
+          : s.status[sarjy.state];
 
   return (
     <div
@@ -385,7 +389,6 @@ export function VoiceScreen({
                 hostName={majlis.room?.hostName ?? room.hostName}
                 members={majlis.members}
                 online={majlis.online}
-                floor={majlis.floor}
                 me={me!}
                 reconnecting={majlis.status === "reconnecting"}
                 onInvite={() => void invite()}
@@ -399,22 +402,35 @@ export function VoiceScreen({
         {/* Switching chats replays the stage's fade, so the change is felt. */}
         <section key={switches} className={styles.stage} aria-label={s.talk}>
           {/* The orb is the mic: tap it to talk, tap it again when you're done, or over Sarjy to interrupt. */}
-          <button
-            type="button"
-            className={styles.orbButton}
-            data-look={sarjy.micLook}
-            aria-label={sarjy.state === "listening" ? s.stop : s.talk}
-            aria-pressed={sarjy.state === "listening"}
-            onClick={() => void onMic()}
-            disabled={!!room && !inRoom}
-          >
-            <Orb
-              state={sarjy.state}
-              inputLevel={sarjy.inputLevel}
-              outputLevel={sarjy.outputLevel}
-              majlis={!!room}
-            />
-          </button>
+          {/* In a Majlis, everyone sits around the finjan. */}
+          <div className={styles.orbSeat}>
+            <button
+              type="button"
+              className={styles.orbButton}
+              data-look={sarjy.micLook}
+              aria-label={sarjy.state === "listening" ? s.stop : s.talk}
+              aria-pressed={sarjy.state === "listening"}
+              onClick={() => void onMic()}
+              disabled={!!room && !inRoom}
+            >
+              <Orb
+                state={sarjy.state}
+                inputLevel={sarjy.inputLevel}
+                outputLevel={sarjy.outputLevel}
+                majlis={!!room}
+              />
+            </button>
+            {room && inRoom && (
+              <MajlisSeats
+                lang={lang}
+                members={majlis.members}
+                online={majlis.online}
+                me={me!}
+                floor={majlis.floor}
+                asker={sarjy.asker}
+              />
+            )}
+          </div>
           <ToolChip chip={showChip ? sarjy.chip : null} />
           <SavedCard
             lang={lang}

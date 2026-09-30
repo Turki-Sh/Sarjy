@@ -195,6 +195,8 @@ export function useSarjy(
   const [chatNote, setChatNote] = useState<"fresh" | "continuing" | null>(null);
   /** Every line of the chat on screen, oldest first. */
   const [lines, setLines] = useState<ChatLine[]>([]);
+  /** In a Majlis: whose turn is on screen (they asked; Sarjy is answering them), by user id. */
+  const [asker, setAsker] = useState<string | null>(null);
 
   const player = useRef<Player | null>(null);
   const turn = useRef<Turn | null>(null);
@@ -269,6 +271,7 @@ export function useSarjy(
     abort.current?.abort();
     player.current?.stop();
     turn.current = null;
+    setAsker(null);
     dispatch({ type: "CANCEL" });
   }, [closeEar]);
 
@@ -364,6 +367,7 @@ export function useSarjy(
       getPlayer().unlock();
       const room = roomRef.current;
       const t = newTurn(lang, { image: attached?.url, speaker: room?.who(room.me) });
+      setAsker(room?.me ?? null);
       turn.current = t;
       abort.current = new AbortController();
       setChip(null);
@@ -563,6 +567,7 @@ export function useSarjy(
         });
         if (finished && stateRef.current === "speaking") {
           turn.current = null;
+          setAsker(null);
           const keep = t.saved ? findKeep(t.words, t.saved) : undefined;
           setCaption((c) => (c ? { ...c, shown: c.words.length, keep } : c));
           dispatch({ type: "PLAYED", saved: t.changedMemory });
@@ -607,6 +612,7 @@ export function useSarjy(
           image: event.type === "transcript" ? event.image : undefined,
         });
         turn.current = t;
+        setAsker(speakerId);
         setChip(null);
         setTimings(null);
         setFreshId(null);
@@ -627,6 +633,7 @@ export function useSarjy(
     // Nothing was ever said: rest now, rather than wait for audio that will never come.
     if (!t.received) {
       turn.current = null;
+      setAsker(null);
       dispatch({ type: "CANCEL" });
     }
   }, []);
@@ -876,6 +883,7 @@ export function useSarjy(
     enterRoom,
     refreshSession,
     whenReady,
+    asker,
   };
 }
 

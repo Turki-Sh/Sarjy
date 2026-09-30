@@ -119,6 +119,13 @@
   --orb-size: min(140px, 18dvh);
 }
 
+/* The orb and, in a Majlis, the people seated around it (they are placed from its middle). */
+.orbSeat {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
 /* The orb as a button: no chrome of its own, a gentle lift on hover, a press on tap. */
 .orbButton {
   display: grid;

@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, type RefObject } from "react";
 import type { VoiceState } from "@/shared/states";
-import { REST, easeToward, isAtRest, wavePath, type WaveShape } from "@/shared/wave";
+import { REST, easeToward, isAtRest, surfacePath, wavePath, type WaveShape } from "@/shared/wave";
 
 /** Loudness from 0 to 1, or null when there is no live audio (then the motion is synthetic). */
 export type LevelSource = () => number | null;
@@ -18,6 +18,9 @@ type Refs = {
   moving: RefObject<SVGPathElement | null>;
   trace: RefObject<SVGPathElement | null>;
   waveBox: RefObject<HTMLElement | null>;
+  /** In a Majlis: the coffee's surface in the finjan, the same wave, and its thinking trace. */
+  surface?: RefObject<SVGPathElement | null>;
+  surfaceTrace?: RefObject<SVGPathElement | null>;
 };
 
 /**
@@ -155,7 +158,9 @@ export function useOrbMotion(
           root.style.setProperty("--rot", `${angle.toFixed(2)}deg`);
           if (current === "thinking") {
             // A Dusk segment travels the line, 1.2 s per loop.
-            trace.setAttribute("stroke-dashoffset", String(100 - ((e / 1.2) % 1) * 114));
+            const offset = String(100 - ((e / 1.2) % 1) * 114);
+            trace.setAttribute("stroke-dashoffset", offset);
+            refs.surfaceTrace?.current?.setAttribute("stroke-dashoffset", offset);
           }
         }
 
@@ -163,6 +168,12 @@ export function useOrbMotion(
         const d = wavePath(shape);
         moving.setAttribute("d", d);
         trace.setAttribute("d", d);
+        const surface = refs.surface?.current;
+        if (surface) {
+          const coffee = surfacePath(shape);
+          surface.setAttribute("d", coffee);
+          refs.surfaceTrace?.current?.setAttribute("d", coffee);
+        }
         // At rest the orb crossfades back to the master symbol, which the single line can't match exactly.
         const rest = (current === "idle" || current === "saving") && isAtRest(shape);
         box.dataset.rest = String(rest);
@@ -172,5 +183,5 @@ export function useOrbMotion(
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [refs.root, refs.moving, refs.trace, refs.waveBox]);
+  }, [refs.root, refs.moving, refs.trace, refs.waveBox, refs.surface, refs.surfaceTrace]);
 }
