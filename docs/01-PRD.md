@@ -204,9 +204,9 @@ Rafeeq (رفيق) is Arabic for a companion on the road. Sarjy is the saddle; Ra
 
 | ID | Feature | Priority |
 |---|---|---|
-| A1 | Off by default. In Settings, pick one of four companions (Rider, Keeper, Scout, Drifter), inspired by the dunes and the culture, with a cute cat-like mouth; it replaces the orb in your own chats (not in a Majlis) and is the mic the same way | Should |
+| A1 | Off by default. In Settings, pick one of eight companions: the plush Rafeeqs from Turki's reference (Rider, Keeper, Scout, Drifter) or the first four (Dune, Lantern, Fennec, Breeze), all from the dunes and the culture, with a cute cat-like mouth; it replaces the orb in your own chats (not in a Majlis) and is the mic the same way | Should |
 | A2 | It feels alive: it breathes, blinks, follows your pointer, reads along as you type, follows every state, reacts to saves and failures, can be petted, falls asleep and wakes | Should |
-| A3 | A little gamified: a bond that grows with use (within daily caps) through five levels, each unlocking something (a greeting, purring, its own trick, a gold star), shown at the top with a progress bar | Should |
+| A3 | A little gamified: a bond with each companion on its own (Pokémon style) that grows with use (within daily caps) through five levels, each unlocking something (a greeting, purring, its own trick, a gold star), shown on each card and at the top with a progress bar | Should |
 
 ## 6. Out of scope
 

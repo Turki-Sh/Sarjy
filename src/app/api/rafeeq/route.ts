@@ -1,8 +1,8 @@
 // Your Rafeeq (shared/rafeeq.ts).
 // PATCH { rafeeq: "scout" | null }: pick one, or go back to the orb. Also remembered in a cookie,
 //   so the first paint of the page already shows it.
-// POST { event: "visit" | "turn" | "save" | "pet" }: a moment that grows your bond, within a
-//   daily cap. Returns the bond after it.
+// POST { event: "visit" | "turn" | "save" | "pet" }: a moment that grows your bond with the Rafeeq
+//   you have now, within a daily cap. Returns which one, and its bond after it.
 
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";

@@ -71,6 +71,13 @@
       "when": 1790790832750,
       "tag": "0009_cynical_exiles",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790797248180,
+      "tag": "0010_panoramic_big_bertha",
+      "breakpoints": true
     }
   ]
 }

@@ -285,6 +285,9 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [x] Turki's design (Day 3): four companions, Rider, Keeper, Scout and Drifter, with one cat-mouthed face; off by default, picked in Settings (with live previews), replacing the orb in your own chats, never in a Majlis
 - [x] Alive: breathing, blinking, eyes on your pointer and on the text box as you type, glances, every state as a pose, the mouth moving with Sarjy's voice, a happy save, a droop on a failure, petting, sleep and waking
 - [x] Gamified: a bond from visits, answers, saves and petting within daily caps; five levels unlocking a greeting, purring with hearts, a trick each, and a gold star; a pill with "+2" and a level-up chime
+- [x] Turki's review: eight companions. The plush Rafeeqs from his reference sheet (Rider, Keeper, Scout, Drifter: felt, leather, brass, Sadu, bead eyes on a felt face) take the names; the first four become Dune, Lantern, Fennec and Breeze, refined, and Breeze is redrawn as wind (the old Drifter read wrong). Existing picks and bonds move to the renamed looks
+- [x] One bond per companion (Pokémon style), `rafeeq_bonds`; each card shows its own level
+- [x] More alive: a head-turn on plush faces, the body leaning toward you, tassels, hoods and ribbons swaying, fidgets between turns (hop, twitch, tilt, yawn, look), a trick each; the art lab (`scripts/rafeeq/lab.mjs`) draws every companion in every pose
 - [ ] Live look on a phone with real audio (the mouth follows the voice level, which headless tests can't hear)
 
 ---

@@ -1,13 +1,30 @@
 // Rafeeq (رفيق), a companion on the road (PRD, section Rafeeq; Turki's design, Day 3). Off by
-// default; when you pick one it takes the orb's place in your own chats (never in a Majlis). Four
-// companions, all from the desert and its people, with the same round eyes and cat mouth:
-//   rider    a sand dune in a red shemagh and agal: bold and cheerful
-//   keeper   keeper of what you tell Sarjy, in memory's Dusk, with a lantern that lights on a save
-//   scout    a fennec with big ears, perking up for every search
-//   drifter  a wisp of wind-blown sand that floats beside you
-// Your bond with it grows as you use Sarjy together, in five levels, each unlocking something.
+// default; when you pick one it takes the orb's place in your own chats (never in a Majlis).
+// Eight companions from the desert and its people, all with the same cat-mouthed face.
+// The Rafeeqs, plush travellers in felt, leather, brass and woven Sadu (Turki's reference):
+//   rider    the core Rafeeq: a saddle on its back, a strap and a medallion. Steady, attentive
+//   keeper   carries what matters: a woven blanket, a rope, a satchel. Gentle, generous
+//   scout    a tall hooded one, a little further ahead. Curious, alert
+//   drifter  a suede wanderer in a floppy hood and scarf. Relaxed, dreamy
+// And the first four:
+//   dune     a sand dune in a red shemagh and agal: bold and cheerful
+//   lantern  in memory's Dusk, with a brass fanous that lights on a save
+//   fennec   the desert fox, ears up for every search
+//   breeze   a puff of desert wind with ribbons of breeze around it
+// Your bond grows with each one separately (like raising each of your companions on its own),
+// in five levels, each unlocking something.
 
-export const RAFEEQS = ["rider", "keeper", "scout", "drifter"] as const;
+/** The plush Rafeeqs first: they lead the picker. */
+export const RAFEEQS = [
+  "rider",
+  "keeper",
+  "scout",
+  "drifter",
+  "dune",
+  "lantern",
+  "fennec",
+  "breeze",
+] as const;
 export type RafeeqId = (typeof RAFEEQS)[number];
 export const isRafeeq = (value: unknown): value is RafeeqId => RAFEEQS.includes(value as RafeeqId);
 

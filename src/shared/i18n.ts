@@ -130,6 +130,10 @@ type Strings = {
     noneLine: string;
     names: Record<RafeeqId, string>;
     lines: Record<RafeeqId, string>;
+    /** Two families in the picker: the plush Rafeeqs, and the first four. */
+    groups: { plush: string; classic: string };
+    /** A short level badge on each companion's card ("Lv 3"). */
+    short: (n: number) => string;
     /** The five bond levels, 1 to 5. */
     levels: readonly string[];
     level: (n: number) => string;
@@ -328,13 +332,28 @@ export const STRINGS: Record<Lang, Strings> = {
         "A companion for your chats, in place of the orb. It reacts to everything you and Sarjy do, and the more you talk, the closer you get.",
       none: "No Rafeeq",
       noneLine: "Just the orb.",
-      names: { rider: "Rider", keeper: "Keeper", scout: "Scout", drifter: "Drifter" },
-      lines: {
-        rider: "A sand dune in a shemagh. Bold and cheerful.",
-        keeper: "Keeps what you tell Sarjy, and lights its lantern for every memory.",
-        scout: "A fennec with big ears. Perks up for every search.",
-        drifter: "A wisp of desert wind. Dreamy, always floating by.",
+      names: {
+        rider: "Rider",
+        keeper: "Keeper",
+        scout: "Scout",
+        drifter: "Drifter",
+        dune: "Dune",
+        lantern: "Lantern",
+        fennec: "Fennec",
+        breeze: "Breeze",
       },
+      lines: {
+        rider: "The core Rafeeq. Steady, attentive, always by your side.",
+        keeper: "Carries what matters, so the journey feels easier.",
+        scout: "Notices what others miss, always a little further ahead.",
+        drifter: "Finds beauty in the in-between, and turns detours into stories.",
+        dune: "A sand dune in a shemagh. Bold and cheerful.",
+        lantern: "Lights its brass lantern for every memory.",
+        fennec: "The desert fox. Ears up for every search.",
+        breeze: "A puff of desert wind. Dreamy, always drifting by.",
+      },
+      groups: { plush: "The Rafeeqs", classic: "The first four" },
+      short: (n) => `Lv ${n}`,
       levels: ["New friend", "Getting close", "Friend", "Close friend", "Rafeeq"],
       level: (n) => `Level ${n}`,
       toNext: (points) => `${points} more to the next level`,
@@ -531,13 +550,28 @@ export const STRINGS: Record<Lang, Strings> = {
       intro: "رفيق لسوالفك بدال الكرة. يتفاعل مع كل شي تسويه أنت وسرجي، وكل ما سولفت أكثر صرتوا أقرب.",
       none: "بدون رفيق",
       noneLine: "الكرة بس.",
-      names: { rider: "خيّال", keeper: "حافظ", scout: "كشّاف", drifter: "رحّال" },
-      lines: {
-        rider: "كثيب رمل لابس شماغ. جريء ومستانس.",
-        keeper: "يحفظ اللي تقوله لسرجي، ويولّع فانوسه مع كل ذكرى.",
-        scout: "فنك آذانه كبار. ينتبه مع كل بحث.",
-        drifter: "نسمة من هوا البر. سرحان ودايم يطفو.",
+      names: {
+        rider: "خيّال",
+        keeper: "حافظ",
+        scout: "كشّاف",
+        drifter: "رحّال",
+        dune: "كثيب",
+        lantern: "فانوس",
+        fennec: "فنك",
+        breeze: "نسيم",
       },
+      lines: {
+        rider: "الرفيق الأساسي. ثابت ومنتبه ودايم جنبك.",
+        keeper: "يشيل اللي يهمك عشان يخف عليك المشوار.",
+        scout: "ينتبه للي يفوت غيره، ودايم سابقك بخطوة.",
+        drifter: "يلقى الحلا في الطريق، ويحوّل كل لفّة لسالفة.",
+        dune: "كثيب رمل لابس شماغ. جريء ومستانس.",
+        lantern: "يولّع فانوسه النحاسي مع كل ذكرى.",
+        fennec: "ثعلب الصحرا، آذانه فوق مع كل بحث.",
+        breeze: "نسمة من هوا البر. سرحانة ودايم تطفو.",
+      },
+      groups: { plush: "الرفاق", classic: "الأربعة الأوائل" },
+      short: (n) => `مستوى ${n.toLocaleString("ar-SA")}`,
       levels: ["ضيف", "معرفة", "صاحب", "خوي", "رفيق"],
       level: (n) => `المستوى ${n.toLocaleString("ar-SA")}`,
       toNext: (points) => `باقي ${points.toLocaleString("ar-SA")} للمستوى الجاي`,

@@ -145,7 +145,9 @@ export function VoiceScreen({
     setRafeeq(profileRafeeq);
   }
   const companion = room ? null : rafeeq;
-  const bond = sarjy.profile?.bond ?? 0;
+  const bonds = sarjy.profile?.bonds ?? {};
+  /** Your bond with the companion you have now: each has its own. */
+  const bond = (companion && bonds[companion]) || 0;
   const [cue, setCue] = useState<RafeeqCue | null>(null);
   const [gain, setGain] = useState<{ n: number; at: number } | null>(null);
   const [leveledUp, setLeveledUp] = useState(false);
@@ -165,11 +167,11 @@ export function VoiceScreen({
         window.setTimeout(() => setLeveledUp(false), 2600);
         playCue("level");
         const words = t(lang).rafeeq;
-        setToast(words.levelUp(rafeeq ? words.names[rafeeq] : "", words.levels[after - 1]!));
+        setToast(words.levelUp(words.names[result.rafeeq], words.levels[after - 1]!));
         window.setTimeout(() => setToast(null), 3200);
       }
     },
-    [growBond, lang, playCue, rafeeq],
+    [growBond, lang, playCue],
   );
   const chooseRafeeq = (choice: RafeeqId | null) => {
     setRafeeq(choice);
@@ -618,7 +620,7 @@ export function VoiceScreen({
           avatarImage={sarjy.profile?.avatarImage ?? null}
           memories={sarjy.memories}
           rafeeq={rafeeq}
-          bond={bond}
+          bonds={bonds}
           onRafeeq={chooseRafeeq}
           voices={sarjy.profile?.voices ?? { en: "troy", ar: "abdullah" }}
           onVoice={(voiceLang, id) => void sarjy.setVoice(voiceLang, id)}

@@ -14,16 +14,18 @@ import { SESSION_COOKIE } from "@/server/session";
 import { wallpaperVersion } from "@/server/wallpaper/repo";
 import { COOKIE } from "@/shared/preferences";
 import { isRafeeq } from "@/shared/rafeeq";
+import { bondsOf } from "@/server/rafeeq/bond";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { lang?: string };
   const { db, user } = await currentUser(body.lang === "ar" ? "ar" : "en");
-  const [memories, chats, wallpaper] = await Promise.all([
+  const [memories, chats, wallpaper, bonds] = await Promise.all([
     listMemories(db, user.id),
     listConversations(db, user.id),
     wallpaperVersion(db, user.id),
+    bondsOf(db, user.id),
   ]);
   return json({
     user: {
@@ -35,9 +37,9 @@ export async function POST(request: Request) {
       voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
       /** The version of your own wallpaper, if you uploaded one (Settings shows it as a choice). */
       wallpaper,
-      /** Your Rafeeq, if you picked one, and how far your bond with it has grown. */
+      /** Your Rafeeq, if you picked one, and your bond with each companion. */
       rafeeq: isRafeeq(user.rafeeq) ? user.rafeeq : null,
-      bond: user.rafeeqBond,
+      bonds,
     },
     memories,
     chats,

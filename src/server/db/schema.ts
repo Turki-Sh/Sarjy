@@ -32,8 +32,6 @@ export const users = pgTable("users", {
   avatarImage: text("avatar_image"),
   /** Your Rafeeq (shared/rafeeq.ts), if you picked one; empty means the orb. */
   rafeeq: text("rafeeq"),
-  /** How far your bond with it has grown (shared/rafeeq.ts, bondOf). */
-  rafeeqBond: integer("rafeeq_bond").notNull().default(0),
   createdAt,
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -222,6 +220,23 @@ export const roomMedia = pgTable(
     createdAt,
   },
   (t) => [index("room_media_created").on(t.createdAt)],
+);
+
+/**
+ * Your bond with each Rafeeq, separately (Turki, Day 3: level up with each one on its own).
+ * A row appears the first time a companion's bond grows.
+ */
+export const rafeeqBonds = pgTable(
+  "rafeeq_bonds",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rafeeq: text("rafeeq").notNull(),
+    points: integer("points").notNull().default(0),
+    updatedAt,
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.rafeeq] })],
 );
 
 /** Fixed-window counters for rate limits: key is e.g. "user:<id>:minute" or "ip:<hash>:day". */

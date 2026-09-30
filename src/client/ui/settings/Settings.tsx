@@ -52,9 +52,9 @@ type Props = {
   avatar: AvatarChoice | null;
   avatarImage: string | null;
   memories: Memory[];
-  /** Your Rafeeq (none: the orb), and your bond with it. */
+  /** Your Rafeeq (none: the orb), and your bond with each companion. */
   rafeeq: RafeeqId | null;
-  bond: number;
+  bonds: Partial<Record<RafeeqId, number>>;
   onRafeeq: (choice: RafeeqId | null) => void;
   voices: Record<Lang, string>;
   onVoice: (lang: Lang, id: string) => void;
@@ -156,7 +156,7 @@ export function Settings(props: Props) {
             />
           )}
           {open && section === "rafeeq" && (
-            <RafeeqPicker lang={lang} choice={props.rafeeq} bond={props.bond} onChoice={props.onRafeeq} />
+            <RafeeqPicker lang={lang} choice={props.rafeeq} bonds={props.bonds} onChoice={props.onRafeeq} />
           )}
           {open && section === "voice" && <Voice lang={lang} voices={props.voices} onVoice={props.onVoice} />}
           {open && section === "profile" && (

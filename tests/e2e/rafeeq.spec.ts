@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Rafeeq, the companion (Turki, Day 3): off by default; picked in Settings, it takes the orb's
 // place in your own chats, follows every state, reacts to saves and petting, and grows a bond.
-// Never in a Majlis. Acceptance tests AT-110 to AT-114.
+// Never in a Majlis. Acceptance tests AT-110 to AT-115.
 
 const say = async (page: Page, text: string) => {
   await page.getByRole("textbox", { name: "Type to Sarjy…" }).fill(text);
@@ -93,4 +93,21 @@ test("a Majlis keeps the finjan, even with a Rafeeq picked (AT-113)", async ({ p
   await expect(page.getByRole("group", { name: /Majlis/ })).toBeVisible();
   await expect(rafeeq(page)).toHaveCount(0);
   await expect(page.locator("main [data-majlis] svg")).toBeVisible();
+});
+
+test("each companion has its own bond, kept when you switch (AT-115)", async ({ page }) => {
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  await pick(page, /^Scout/);
+  await say(page, "My favorite color is green.");
+  await expect(rafeeq(page)).toHaveAttribute("data-mood", "happy", { timeout: 10_000 });
+
+  const progress = () => page.getByRole("dialog").getByRole("progressbar");
+  await page.getByRole("button", { name: /^Your Rafeeq/ }).click();
+  await expect(progress()).not.toHaveAttribute("aria-valuenow", "0");
+  // Keeper starts fresh...
+  await page.getByRole("radio", { name: /^Keeper/ }).click();
+  await expect(progress()).toHaveAttribute("aria-valuenow", "0");
+  // ...and Scout's bond was kept.
+  await page.getByRole("radio", { name: /^Scout/ }).click();
+  await expect(progress()).not.toHaveAttribute("aria-valuenow", "0");
 });

@@ -8,6 +8,7 @@
 //   - it thinks (dots over its head), works a tool, beams on a save, droops when a tool fails
 //   - stroke it and it's happy (from bond level 3 it purrs, blushes and shows hearts)
 //   - leave it be and it falls asleep, and wakes with a start when you come back
+//   - between turns it fidgets: a little hop, an ear twitch, a head tilt, a yawn, a look around
 //   - it greets you when you arrive (level 2), does its own trick now and then (level 4), and
 //     wears a gold star (level 5)
 // The moods live here; the poses live in Rafeeq.module.css, keyed on data-state and data-mood.
@@ -17,11 +18,15 @@ import type { RafeeqId } from "@/shared/rafeeq";
 import { UNLOCKS } from "@/shared/rafeeq";
 import type { VoiceState } from "@/shared/states";
 import type { LevelSource } from "../../voice/useOrbMotion";
-import { Character } from "./characters";
+import { ART } from "./art";
 import styles from "./Rafeeq.module.css";
 import { useRafeeqMotion } from "./useRafeeqMotion";
 
 type Mood = "none" | "sleepy" | "waking" | "happy" | "petted" | "droop" | "greet" | "trick" | "celebrate";
+
+/** The small things it does on its own while it waits, one at a time. */
+const FIDGETS = ["hop", "twitch", "tilt", "yawn", "look"] as const;
+type Fidget = (typeof FIDGETS)[number];
 
 /** Something that just happened that it reacts to. `at` makes each one new. */
 export type RafeeqCue = { kind: "saved" | "failed" | "levelup"; at: number };
@@ -152,6 +157,27 @@ export function Rafeeq({
     return () => window.clearTimeout(t);
   }, [preview, level]);
 
+  // Fidgeting while it waits: every 6 to 13 seconds, one small thing, for a moment.
+  const [fidget, setFidget] = useState<Fidget | null>(null);
+  useEffect(() => {
+    if (preview) return;
+    let t = 0;
+    const next = () => {
+      t = window.setTimeout(
+        () => {
+          if (stateRef.current === "idle" && moodRef.current === "none") {
+            setFidget(FIDGETS[Math.floor(Math.random() * FIDGETS.length)]!);
+            window.setTimeout(() => setFidget(null), 1400);
+          }
+          next();
+        },
+        6000 + Math.random() * 7000,
+      );
+    };
+    next();
+    return () => window.clearTimeout(t);
+  }, [preview]);
+
   // Petting: a stroke back and forth across it.
   const stroke = useRef({ px: 0, since: 0, x: 0, y: 0, lastPet: -Infinity });
   const onPointerMove = (e: React.PointerEvent) => {
@@ -181,6 +207,7 @@ export function Rafeeq({
       data-rafeeq={id}
       data-state={state}
       data-mood={mood}
+      data-fidget={mood === "none" && state === "idle" ? (fidget ?? undefined) : undefined}
       data-purr={level >= UNLOCKS.purr || undefined}
       data-star={level >= UNLOCKS.star || undefined}
       data-preview={preview || undefined}
@@ -190,10 +217,8 @@ export function Rafeeq({
     >
       <div className={styles.aura} />
       <svg className={styles.svg} viewBox="0 0 200 200">
-        <ellipse className={styles.shadow} cx="100" cy="189" rx="50" ry="6" />
-        <g className={styles.float}>
-          <Character id={id} uid={uid} />
-        </g>
+        {/* The art is fixed markup from art/ (no user content), shared with the art lab. */}
+        <g className={styles.float} dangerouslySetInnerHTML={{ __html: ART[id](uid) }} />
         <g className={styles.thought}>
           <circle cx="84" cy="40" r="5" />
           <circle cx="100" cy="34" r="6" />

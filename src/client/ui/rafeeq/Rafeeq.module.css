@@ -1,9 +1,13 @@
 /* Rafeeq's poses (Rafeeq.tsx). The motion loop writes --breath, --lvl, --mouth and --look-x/y every
-   frame; the state (data-state) and mood (data-mood) pick a pose, and the pose's own values glide
-   (they are registered below, so they can transition). Three layers move separately:
-     .float  the whole companion: hops, bounces, tricks, the Drifter's float
-     .body   breathing, leaning in, squashing down (it stands on its bottom edge)
-     .face   where it looks                                                                        */
+   frame; the state (data-state), mood (data-mood) and fidget (data-fidget) pick a pose, and the
+   pose's own values glide (they are registered below, so they can transition).
+   Layers that move separately:
+     .float      the whole companion: hops, bounces, tricks, floating
+     r-body      breathing, leaning toward you, leaning in, squashing down (it stands on y = 186)
+     r-face      where it looks; on a plush companion the felt face turns a little and the eyes a
+                 little more (r-features), like a head turning
+     r-tassel, r-hood-tip, r-ribbon, r-ear, r-tail, r-lantern ...  the parts that sway on their own
+   The art (art/*.ts) is plain markup, so its parts are reached with :global(.r-*). */
 
 @property --grow {
   syntax: "<number>";
@@ -49,20 +53,26 @@
     --eye var(--t-base) var(--ease-rein),
     --glow var(--t-slow) var(--ease-rein);
 }
-.wrap[data-rafeeq="rider"] {
-  --aura: var(--rider-body);
-}
-.wrap[data-rafeeq="keeper"] {
-  --aura: var(--keeper-body);
-}
-.wrap[data-rafeeq="scout"] {
-  --aura: var(--scout-body);
+/* Each companion's light, in its own color. */
+.wrap:is([data-rafeeq="rider"], [data-rafeeq="keeper"], [data-rafeeq="scout"]) {
+  --aura: var(--plush-cream-shade);
 }
 .wrap[data-rafeeq="drifter"] {
-  --aura: var(--drifter-body);
+  --aura: var(--suede-light);
+}
+.wrap[data-rafeeq="dune"] {
+  --aura: var(--dune-body);
+}
+.wrap[data-rafeeq="lantern"] {
+  --aura: var(--lantern-body);
+}
+.wrap[data-rafeeq="fennec"] {
+  --aura: var(--fennec-body);
+}
+.wrap[data-rafeeq="breeze"] {
+  --aura: var(--breeze-body);
 }
 
-/* A soft glow in its own color behind it: its light, like the orb's. */
 .aura {
   position: absolute;
   inset: 14%;
@@ -77,77 +87,118 @@
   height: auto;
   overflow: visible;
 }
-.shadow {
-  fill: var(--text);
-  opacity: 0.08;
+.wrap :global(.r-ground) {
   transform-box: fill-box;
   transform-origin: center;
   transform: scaleX(calc(1 - var(--breath) * 0.03 + var(--squash) * 0.12));
 }
 
 .float,
-.body {
+.wrap :global(.r-body) {
   transform-box: view-box;
   transform-origin: 100px 184px;
 }
-.body {
-  transform: rotate(var(--tilt))
+/* Breathing, leaning toward where you are, leaning in, squashing down. */
+.wrap :global(.r-body) {
+  transform: rotate(calc(var(--tilt) + var(--look-x) * 2.5deg))
     scale(
       calc(1 - var(--breath) * 0.012 + var(--grow) * 0.6 + var(--lvl) * 0.03 + var(--squash) * 0.1),
       calc(1 + var(--breath) * 0.025 + var(--grow) + var(--lvl) * 0.06 - var(--squash) * 0.12)
     );
 }
-.face {
+.wrap :global(.r-face) {
   transform: translate(
     calc(var(--look-x) * 6px + var(--face-x, 0px)),
     calc(var(--look-y) * 4px + var(--face-y, 0px))
   );
 }
+/* The plush face turns less, its eyes and mouth more: a head turning, not a sticker sliding. */
+.wrap :global(.r-plush-face) {
+  transform: translate(
+    calc(var(--look-x) * 3.5px + var(--face-x, 0px)),
+    calc(var(--look-y) * 2.5px + var(--face-y, 0px))
+  );
+}
+.wrap :global(.r-plush-face .r-features) {
+  transform: translate(calc(var(--look-x) * 3.5px), calc(var(--look-y) * 2px));
+}
 
 /* Eyes: open (blinking, widening), happy ^ ^, or closed ‿ ‿. */
-.open {
+.wrap :global(.r-open) {
   transform-box: fill-box;
   transform-origin: center;
   transform: scale(var(--eye));
 }
-.eye {
+.wrap :global(.r-eye) {
   transform-box: view-box;
   transition: transform 90ms ease-out;
 }
-.wrap[data-blink] .eye {
+.wrap[data-blink] :global(.r-eye) {
   transform: scaleY(0.12);
 }
-.happy,
-.closed {
-  fill: none;
-  stroke: var(--rafeeq-ink);
-  stroke-width: 4.5;
-  stroke-linecap: round;
+.wrap :global(:is(.r-happy, .r-closed)) {
   opacity: 0;
 }
-.blush {
+.wrap :global(.r-blush) {
   fill: var(--rafeeq-blush);
   opacity: 0.38;
   transition: opacity var(--t-slow) var(--ease-rein);
 }
-.mouth {
-  fill: none;
-  stroke: var(--rafeeq-ink);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.wrap :global(.r-blush-soft) {
+  fill: var(--plush-blush);
+  opacity: 0.42;
 }
-/* The open mouth under the ω: only while Sarjy speaks, as wide as the voice. */
-.talk {
+/* The open mouth under the ω: only while Sarjy speaks (or it yawns), as wide as the voice. */
+.wrap :global(.r-talk) {
   transform-box: view-box;
   transform: scale(calc(0.6 + var(--mouth) * 0.4), var(--mouth));
   opacity: 0;
 }
-.wrap[data-state="speaking"] .talk {
+.wrap[data-state="speaking"] :global(.r-talk) {
   opacity: 1;
 }
 
-/* Overlays, hidden until a moment calls for them. */
+/* Parts that sway on their own, always a little: they make it feel soft and alive. */
+.wrap :global(.r-tassel) {
+  rotate: calc(var(--look-x) * -10deg);
+  animation: dangle 2.8s ease-in-out infinite;
+}
+@keyframes dangle {
+  50% {
+    transform: rotate(7deg);
+  }
+}
+.wrap :global(.r-hood-tip) {
+  animation: flop 3.4s ease-in-out infinite;
+}
+@keyframes flop {
+  50% {
+    transform: rotate(-6deg);
+  }
+}
+.wrap :global(.r-ribbon) {
+  animation: breeze 9s linear infinite;
+}
+.wrap :global(.r-ribbon-back) {
+  animation-duration: 13s;
+  animation-direction: reverse;
+}
+@keyframes breeze {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.wrap :global(.r-grain) {
+  animation: twinkle 2.2s ease-in-out infinite;
+}
+.wrap :global(.r-grain:nth-of-type(2)) {
+  animation-delay: 0.7s;
+}
+.wrap :global(.r-grain:nth-of-type(3)) {
+  animation-delay: 1.4s;
+}
+
+/* Overlays (drawn by Rafeeq.tsx), hidden until a moment calls for them. */
 .thought,
 .zzz,
 .hearts,
@@ -210,12 +261,15 @@
     transform: translateY(-6px);
   }
 }
-/* A tool: looking around for the answer. */
+/* A tool: looking around for the answer; tassels and hoods swing with it. */
 .wrap[data-state="tool"] {
   --glow: 0.32;
 }
 .wrap[data-state="tool"] .float {
   animation: search 1.6s ease-in-out infinite;
+}
+.wrap[data-state="tool"] :global(:is(.r-tassel, .r-hood-tip)) {
+  animation-duration: 0.8s;
 }
 @keyframes search {
   25% {
@@ -229,26 +283,32 @@
 .wrap[data-state="speaking"] {
   --glow: 0.3;
 }
-.wrap[data-state="speaking"] .body {
+.wrap[data-state="speaking"] :global(.r-body) {
   translate: 0 calc(var(--lvl) * -5px);
 }
 
 /* ---- Moods ---- */
 
-.wrap:is([data-mood="happy"], [data-mood="petted"], [data-mood="greet"], [data-mood="celebrate"]) .open,
-.wrap[data-mood="sleepy"] .open {
+.wrap:is([data-mood="happy"], [data-mood="petted"], [data-mood="greet"], [data-mood="celebrate"])
+  :global(.r-open),
+.wrap:is([data-mood="sleepy"], [data-fidget="yawn"]) :global(.r-open) {
   opacity: 0;
 }
-.wrap:is([data-mood="happy"], [data-mood="petted"], [data-mood="greet"], [data-mood="celebrate"]) .happy {
+.wrap:is([data-mood="happy"], [data-mood="petted"], [data-mood="greet"], [data-mood="celebrate"])
+  :global(.r-happy) {
   opacity: 1;
 }
-.wrap[data-mood="sleepy"] .closed {
+.wrap:is([data-mood="sleepy"], [data-fidget="yawn"]) :global(.r-closed) {
   opacity: 1;
 }
 
-/* Happy (a save): two bounces and a few sparkles. */
+/* Happy (a save): two bounces, sparkles, and everything that dangles swings. */
 .wrap[data-mood="happy"] .float {
   animation: bounce 0.8s var(--ease-rein) 2;
+}
+.wrap:is([data-mood="happy"], [data-mood="celebrate"], [data-mood="greet"], [data-mood="petted"])
+  :global(:is(.r-tassel, .r-hood-tip)) {
+  animation-duration: 0.6s;
 }
 .wrap:is([data-mood="happy"], [data-mood="celebrate"]) .sparkles {
   opacity: 1;
@@ -289,7 +349,7 @@
 .wrap[data-mood="petted"] .float {
   animation: wiggle 0.45s ease-in-out 3;
 }
-.wrap[data-mood="petted"][data-purr] .blush {
+.wrap[data-mood="petted"][data-purr] :global(.r-blush) {
   opacity: 0.85;
 }
 .wrap[data-mood="petted"][data-purr] .hearts {
@@ -410,10 +470,83 @@
   --aura: var(--rafeeq-gold);
 }
 
+/* ---- Fidgets: the small things it does on its own while it waits ---- */
+
+.wrap[data-fidget="hop"] .float {
+  animation: hop 0.7s var(--ease-rein) both;
+}
+@keyframes hop {
+  40% {
+    transform: translateY(-10px) scale(0.98, 1.03);
+  }
+  80% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+}
+.wrap[data-fidget="tilt"] {
+  --tilt: 6deg;
+  --face-x: -3px;
+}
+.wrap[data-fidget="look"] .float {
+  animation: search 1.3s ease-in-out both;
+}
+.wrap[data-fidget="yawn"] :global(.r-talk) {
+  opacity: 1;
+  animation: yawn 1.3s ease-in-out both;
+}
+@keyframes yawn {
+  0%,
+  100% {
+    transform: scale(0.6, 0);
+  }
+  40%,
+  70% {
+    transform: scale(0.95, 1.1);
+  }
+}
+.wrap[data-fidget="yawn"] {
+  --grow: 0.03;
+}
+.wrap[data-fidget="twitch"] :global(:is(.r-ear, .r-hood-tip, .r-tuft, .r-tail)) {
+  animation: twitch 0.35s ease-in-out 3;
+}
+.wrap[data-fidget="twitch"] :global(.r-tassel) {
+  animation-duration: 0.5s;
+}
+
 /* ---- Each companion's own life ---- */
 
+/* Ears perk up when you talk, fold down when drooping or asleep, and twitch now and then. */
+.wrap :global(.r-ear) {
+  transform-box: fill-box;
+  transition: transform var(--t-base) var(--ease-rein);
+}
+.wrap :global(.r-ear-l) {
+  transform-origin: 80% 100%;
+}
+.wrap :global(.r-ear-r) {
+  transform-origin: 20% 100%;
+}
+.wrap[data-state="listening"] :global(.r-ear-l) {
+  transform: rotate(-8deg) scale(1.06);
+}
+.wrap[data-state="listening"] :global(.r-ear-r) {
+  transform: rotate(8deg) scale(1.06);
+}
+.wrap:is([data-mood="droop"], [data-mood="sleepy"]) :global(.r-ear-l) {
+  transform: rotate(-22deg);
+}
+.wrap:is([data-mood="droop"], [data-mood="sleepy"]) :global(.r-ear-r) {
+  transform: rotate(22deg);
+}
+@keyframes twitch {
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
 /* Rider: its trick is a little gallop. */
-.wrap[data-rafeeq="rider"][data-mood="trick"] .float {
+.wrap:is([data-rafeeq="rider"], [data-rafeeq="dune"])[data-mood="trick"] .float {
   animation: gallop 1.1s ease-in-out 2;
 }
 @keyframes gallop {
@@ -436,13 +569,80 @@
   }
 }
 
-/* Keeper: the lantern sways, and lights up on a save; its trick is swinging it round. */
-.lantern {
+/* Keeper: its satchel bumps on every hop; its trick is a proud little shake of its load. */
+.wrap :global(.r-bag) {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+.wrap:is([data-mood="happy"], [data-fidget="hop"], [data-mood="greet"]) :global(.r-bag) {
+  animation: bump 0.4s ease-in-out 2;
+}
+.wrap[data-rafeeq="keeper"][data-mood="trick"] .float {
+  animation: wiggle 0.5s ease-in-out 4;
+}
+.wrap[data-rafeeq="keeper"][data-mood="trick"] :global(.r-bag) {
+  animation: bump 0.5s ease-in-out 4;
+}
+@keyframes bump {
+  50% {
+    transform: rotate(-6deg) translateY(-2px);
+  }
+}
+
+/* Scout: its arms flap when it's happy; its trick is standing tall and looking far ahead. */
+.wrap :global(.r-arm) {
+  transform-box: fill-box;
+}
+.wrap :global(.r-arm-l) {
+  transform-origin: 90% 10%;
+}
+.wrap :global(.r-arm-r) {
+  transform-origin: 10% 10%;
+}
+.wrap:is([data-mood="happy"], [data-mood="greet"], [data-mood="celebrate"]) :global(.r-arm-l) {
+  animation: flap-l 0.35s ease-in-out 4;
+}
+.wrap:is([data-mood="happy"], [data-mood="greet"], [data-mood="celebrate"]) :global(.r-arm-r) {
+  animation: flap-r 0.35s ease-in-out 4;
+}
+@keyframes flap-l {
+  50% {
+    transform: rotate(18deg);
+  }
+}
+@keyframes flap-r {
+  50% {
+    transform: rotate(-18deg);
+  }
+}
+.wrap[data-rafeeq="scout"][data-mood="trick"] {
+  --grow: 0.06;
+  --face-y: -5px;
+}
+.wrap[data-rafeeq="scout"][data-mood="trick"] .float {
+  animation: search 1.1s ease-in-out 2;
+}
+
+/* Drifter: it breathes slower, and its trick is a long, happy stretch. */
+.wrap[data-rafeeq="drifter"] :global(.r-body) {
+  transform-origin: 110px 184px;
+}
+.wrap[data-rafeeq="drifter"][data-mood="trick"] .float {
+  animation: stretch 2s var(--ease-rein) both;
+}
+@keyframes stretch {
+  40%,
+  60% {
+    transform: scale(1.1, 0.9);
+  }
+}
+
+/* Lantern: the fanous sways and flickers, lights up on a save; its trick is swinging it round. */
+.wrap :global(.r-lantern) {
   transform-box: view-box;
-  transform-origin: 166px 82px;
   animation: sway 3.2s ease-in-out infinite;
 }
-.flame {
+.wrap :global(.r-flame) {
   opacity: 0.45;
   transform-box: fill-box;
   transform-origin: center;
@@ -450,19 +650,30 @@
     opacity var(--t-slow) var(--ease-rein),
     transform var(--t-slow) var(--ease-rein);
 }
-.wrap:is([data-mood="happy"], [data-mood="celebrate"], [data-state="saving"]) .flame {
+.wrap :global(.r-flame-core) {
+  transform-box: view-box;
+  animation: flicker 0.9s ease-in-out infinite;
+}
+@keyframes flicker {
+  30% {
+    transform: scale(0.85, 1.1);
+  }
+  60% {
+    transform: scale(1.05, 0.9);
+  }
+}
+.wrap:is([data-mood="happy"], [data-mood="celebrate"], [data-state="saving"]) :global(.r-flame) {
   opacity: 1;
   transform: scale(1.5);
 }
-.wrap[data-rafeeq="keeper"][data-mood="trick"] .lantern {
+.wrap[data-rafeeq="lantern"][data-mood="trick"] :global(.r-lantern) {
   animation: swing 1.1s ease-in-out 2;
 }
-.wrap[data-rafeeq="keeper"][data-mood="trick"] .flame {
+.wrap[data-rafeeq="lantern"][data-mood="trick"] :global(.r-flame) {
   opacity: 1;
 }
-.tuft {
-  transform-box: fill-box;
-  transform-origin: 30% 100%;
+.wrap :global(.r-tuft) {
+  transform-box: view-box;
   animation: sway 2.6s ease-in-out infinite;
 }
 @keyframes sway {
@@ -478,57 +689,37 @@
     transform: rotate(35deg);
   }
 }
-/* Keeper's eyes are sleepy-soft at rest; they open when you talk to it. */
-.wrap[data-rafeeq="keeper"][data-state="idle"][data-mood="none"] .open {
+/* Lantern's eyes are sleepy-soft at rest; they open when you talk to it. */
+.wrap[data-rafeeq="lantern"][data-state="idle"][data-mood="none"] :global(.r-open) {
   --eye: 0.85;
 }
 
-/* Scout: ears that perk up when you talk, swivel while it searches, twitch as its trick; a tail
-   that never stops. */
-.ear {
-  transform-box: fill-box;
-  transition: transform var(--t-base) var(--ease-rein);
-}
-.earLeft {
-  transform-origin: 80% 100%;
-}
-.earRight {
-  transform-origin: 20% 100%;
-}
-.wrap[data-state="listening"] .earLeft {
-  transform: rotate(-8deg) scale(1.06);
-}
-.wrap[data-state="listening"] .earRight {
-  transform: rotate(8deg) scale(1.06);
-}
-.wrap[data-mood="droop"] .earLeft,
-.wrap[data-mood="sleepy"] .earLeft {
-  transform: rotate(-22deg);
-}
-.wrap[data-mood="droop"] .earRight,
-.wrap[data-mood="sleepy"] .earRight {
-  transform: rotate(22deg);
-}
-.wrap[data-rafeeq="scout"]:is([data-state="tool"], [data-mood="trick"]) .ear {
+/* Fennec: ears swivel while it searches and twitch as its trick; a tail that never stops. */
+.wrap[data-rafeeq="fennec"]:is([data-state="tool"], [data-mood="trick"]) :global(.r-ear) {
   animation: twitch 0.7s ease-in-out infinite;
 }
-.wrap[data-rafeeq="scout"] .earRight {
+.wrap[data-rafeeq="fennec"] :global(.r-ear-r) {
   animation-delay: 0.2s;
 }
-@keyframes twitch {
-  50% {
-    transform: rotate(10deg);
-  }
-}
-.tail {
-  transform-box: fill-box;
-  transform-origin: 0% 100%;
+.wrap :global(.r-tail) {
+  transform-box: view-box;
   animation: sway 2.2s ease-in-out infinite;
 }
 
-/* Drifter: always floating; its star twinkles; its trick is a loop in the air. */
-.wrap[data-rafeeq="drifter"][data-mood="none"] .float,
-.wrap[data-rafeeq="drifter"][data-mood="sleepy"] .float {
+/* Dune: its shemagh flutters a little in the wind. */
+.wrap :global(.r-cloth) {
+  transform-box: view-box;
+  transform-origin: 100px 70px;
+  animation: flutter 4s ease-in-out infinite;
+}
+@keyframes flutter {
+  50% {
+    transform: scaleX(1.015) skewX(-1deg);
+  }
+}
+
+/* Breeze: always drifting; its trick is a loop in the air. */
+.wrap[data-rafeeq="breeze"]:is([data-mood="none"], [data-mood="sleepy"]):not([data-fidget]) .float {
   animation: drift 3.6s ease-in-out infinite;
 }
 @keyframes drift {
@@ -536,18 +727,13 @@
     transform: translateY(-9px);
   }
 }
-.star {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: twinkle 2.4s ease-in-out infinite;
-}
 @keyframes twinkle {
   50% {
-    transform: scale(0.7) rotate(20deg);
-    opacity: 0.7;
+    transform: scale(0.6);
+    opacity: 0.5;
   }
 }
-.wrap[data-rafeeq="drifter"][data-mood="trick"] .float {
+.wrap[data-rafeeq="breeze"][data-mood="trick"] .float {
   transform-origin: 100px 124px;
   animation: loop 1.6s var(--ease-rein) both;
 }

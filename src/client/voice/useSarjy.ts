@@ -80,9 +80,9 @@ export type Profile = {
   voices: Record<Lang, string>;
   /** The version of your own wallpaper, if you uploaded one. */
   wallpaper: number | null;
-  /** Your Rafeeq (none: the orb), and how far your bond with it has grown. */
+  /** Your Rafeeq (none: the orb), and your bond with each companion. */
   rafeeq: RafeeqId | null;
-  bond: number;
+  bonds: Partial<Record<RafeeqId, number>>;
 };
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
@@ -883,14 +883,22 @@ export function useSarjy(
     await fetch("/api/rafeeq", { method: "PATCH", body: JSON.stringify({ rafeeq }) });
   }, []);
 
-  /** A moment that grows your bond with your Rafeeq: the bond before and after (equal past today's cap). */
+  /**
+   * A moment that grows your bond with the Rafeeq you have now: which one, and its bond before and
+   * after (equal past today's cap).
+   */
   const growBond = useCallback(
-    async (event: BondEvent): Promise<{ before: number; after: number } | null> => {
+    async (event: BondEvent): Promise<{ rafeeq: RafeeqId; before: number; after: number } | null> => {
       const res = await fetch("/api/rafeeq", { method: "POST", body: JSON.stringify({ event }) });
       if (!res.ok) return null;
-      const { points, gained } = (await res.json()) as { points: number; gained: number };
-      setProfile((p) => (p ? { ...p, bond: points } : p));
-      return { before: points - gained, after: points };
+      const { rafeeq, points, gained } = (await res.json()) as {
+        rafeeq: RafeeqId | null;
+        points: number;
+        gained: number;
+      };
+      if (!rafeeq) return null;
+      setProfile((p) => (p ? { ...p, bonds: { ...p.bonds, [rafeeq]: points } } : p));
+      return { rafeeq, before: points - gained, after: points };
     },
     [],
   );
