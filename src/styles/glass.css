@@ -16,21 +16,28 @@
 
 :root {
   --liquid: 0.6;
-  /* The working copy; the accessibility settings below can force it to 0. */
-  --lq: var(--liquid);
+  /* The working copies; the accessibility settings below can force them to 0.
+     --lq    0 (solid) to 1 (clear): the original scale, unchanged.
+     --pure  0 at Clear to 1 at Pure (--liquid 1 to 1.5), the stretch added on Turki's direction
+             (Day 2: "the highest level is just 100% pure glass"). Along it the tint and the
+             frosting fade to nothing, the edge light brightens, and the bend grows (layout.tsx). */
+  --lq: min(var(--liquid), 1);
+  --pure: clamp(0, (var(--liquid) - 1) * 2, 1);
 
-  /* Frosting: 18 px at 0 (as before), a little more in the middle, thin at the clear end. */
-  --glass-blur: calc(18px + sin(var(--lq) * 180deg) * 6px - var(--lq) * 14px);
+  /* Frosting: 18 px at 0 (as before), a little more in the middle, thin at Clear, none at Pure. */
+  --glass-blur: calc((18px + sin(var(--lq) * 180deg) * 6px - var(--lq) * 14px) * (1 - var(--pure)));
   --glass-sat: calc(180% + var(--lq) * 40%);
-  /* How much of the tint stays: all of it at 0, 15% at 1. */
-  --glass-keep: calc((1 - var(--lq) * 0.85) * 100%);
-  /* The panels' own frosting: none at 0, strongest in the middle, light at the clear end. */
-  --panel-blur: calc(sin(var(--lq) * 180deg) * 26px + var(--lq) * 6px);
-  --panel-keep: calc((1 - var(--lq) * 0.82) * 100%);
-  /* The edge light: the specular rim and inner glow that make glass read as glass. */
-  --rim: calc(var(--lq) * 90%);
-  --rim-soft: calc(var(--lq) * 40%);
-  --depth: calc(var(--lq) * 18%);
+  /* How much of the tint stays: all of it at 0, 15% at Clear, none at Pure. */
+  --glass-keep: calc((1 - var(--lq) * 0.85 - var(--pure) * 0.15) * 100%);
+  /* The panels' own frosting: none at 0, strongest in the middle, light at Clear, none at Pure. */
+  --panel-blur: calc((sin(var(--lq) * 180deg) * 26px + var(--lq) * 6px) * (1 - var(--pure)));
+  --panel-keep: calc((1 - var(--lq) * 0.82 - var(--pure) * 0.18) * 100%);
+  /* The edge light: the specular rim and inner glow that make glass read as glass. With nothing
+     else left at Pure, it is what draws the shape, so it brightens a little. */
+  --rim: calc(var(--lq) * 90% + var(--pure) * 10%);
+  --rim-soft: calc(var(--lq) * 40% + var(--pure) * 15%);
+  /* Shadow: clear glass casts a lighter one. */
+  --depth: calc(var(--lq) * 18% - var(--pure) * 8%);
 }
 /* "Reduce transparency" or "Increase contrast" on the device starts Sarjy at Solid. Only a start:
    once you move the Glass slider (html[data-glass="set"]), your choice wins. On Windows, turning
@@ -38,6 +45,7 @@
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   html:not([data-glass="set"]) {
     --lq: 0;
+    --pure: 0;
   }
 }
 
@@ -55,13 +63,15 @@
     /* Light falls from above: a bright inner top edge and glow, a little shade low down. */ inset 0 1px 0
       color-mix(in srgb, var(--white) calc(var(--lq) * 55%), transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--ink) calc(var(--lq) * 8%), transparent),
-    inset 0 10px 22px -14px color-mix(in srgb, var(--white) calc(var(--lq) * 40%), transparent),
+    inset 0 10px 22px -14px
+      color-mix(in srgb, var(--white) calc(var(--lq) * 40% - var(--pure) * 25%), transparent),
     inset 0 -12px 22px -16px color-mix(in srgb, var(--ink) calc(var(--lq) * 12%), transparent),
     0 10px 30px color-mix(in srgb, var(--ink) var(--depth), transparent),
     var(--glass-shadow);
 }
-/* The sheen across the face. */
+/* The sheen across the face. Toward Pure it thins, so the face is clear and the edge carries the shape. */
 .glass::before {
+  opacity: calc(1 - var(--pure) * 0.7);
   content: "";
   position: absolute;
   inset: 0;
@@ -122,8 +132,14 @@
 }
 /* Glass with words on it keeps more tint, so the words stay easy to read at any level. */
 .glass.text {
-  background: color-mix(in srgb, var(--glass-text) calc((1 - var(--lq) * 0.45) * 100%), transparent);
+  background: color-mix(
+    in srgb,
+    var(--glass-text) calc((1 - var(--lq) * 0.45 - var(--pure) * 0.55) * 100%),
+    transparent
+  );
   color: var(--text);
+  /* At Pure there is no tint behind the words, so a soft halo in the page color keeps them clear. */
+  text-shadow: 0 0 calc(var(--pure) * 4px) color-mix(in srgb, var(--bg) calc(var(--pure) * 60%), transparent);
 }
 
 /* Surfaces you read: solid at 0, turning to glass as --liquid rises. */

@@ -13,8 +13,10 @@
 }
 .dialog::backdrop {
   background: color-mix(in srgb, var(--scrim) calc((1 - var(--lq) * 0.55) * 100%), transparent);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
+  /* Toward Pure the panel itself turns fully clear, so the page behind softens more instead
+     (like what's behind iOS's Control Center), keeping settings easy to read. */
+  -webkit-backdrop-filter: blur(calc(3px + var(--pure) * 16px));
+  backdrop-filter: blur(calc(3px + var(--pure) * 16px));
 }
 .dialog[open] {
   animation: pop var(--t-base) var(--ease-rein) both;
@@ -347,11 +349,18 @@
   outline: 2px solid var(--focus);
   outline-offset: 4px;
 }
+/* Each stop's name sits under the thumb's center at that value (the thumb is 22 px wide, so its
+   center runs from 11 px to the width less 11 px). The two end names align to the ends. */
 .stops {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 18px;
 }
 .stops button {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(11px + (100% - 22px) * var(--at));
+  translate: -50%;
+  white-space: nowrap;
   padding: 2px 0;
   border: 0;
   background: none;
@@ -359,8 +368,21 @@
   color: var(--text-2);
   cursor: pointer;
 }
-.stops button:hover {
+.stops button:hover,
+.stops button[data-on] {
   color: var(--text);
+}
+:dir(rtl) .stops button {
+  translate: 50%;
+}
+.stops button[data-edge="start"] {
+  inset-inline-start: 0;
+  translate: none;
+}
+.stops button[data-edge="end"] {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  translate: none;
 }
 
 /* Voices: a pill per voice, with its own play button. */

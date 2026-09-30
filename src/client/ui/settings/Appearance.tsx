@@ -2,17 +2,26 @@
 // drawn in that scheme (the .scheme-light and .scheme-dark token classes), not a sun and a moon.
 
 import { t, type Lang } from "@/shared/i18n";
-import type { ThemeChoice } from "@/shared/preferences";
+import { GLASS_STOPS, MAX_GLASS, type ThemeChoice } from "@/shared/preferences";
 import styles from "./Settings.module.css";
 
 type Props = {
   lang: Lang;
   choice: ThemeChoice;
   onChoice: (choice: ThemeChoice) => void;
-  /** Liquid glass, 0 (solid) to 100 (clear). */
+  /** Liquid glass, 0 (solid) to 100 (clear) to 150 (pure). */
   glass: number;
   onGlass: (glass: number) => void;
 };
+
+/** The index of the stop nearest a glass level, for its name. */
+function nearestStop(glass: number): number {
+  let best = 0;
+  GLASS_STOPS.forEach((value, i) => {
+    if (Math.abs(value - glass) < Math.abs(GLASS_STOPS[best]! - glass)) best = i;
+  });
+  return best;
+}
 
 /** A miniature voice screen: sidebar lines, the orb, the text box. */
 function Mini({ scheme }: { scheme: "light" | "dark" }) {
@@ -87,22 +96,26 @@ export function Appearance({ lang, choice, onChoice, glass, onGlass }: Props) {
             id="settings-glass"
             type="range"
             min={0}
-            max={100}
+            max={MAX_GLASS}
             step={1}
             value={glass}
-            aria-valuetext={`${glass}%, ${s.glassStops[Math.min(3, Math.floor(glass / 25))]}`}
+            aria-valuetext={`${s.glassStops[nearestStop(glass)]}, ${glass}`}
             onChange={(e) => onGlass(Number(e.target.value))}
-            style={{ ["--fill" as string]: `${glass}%` }}
+            style={{ ["--fill" as string]: `${(glass / MAX_GLASS) * 100}%` }}
           />
+          {/* Each name sits under the point it sets (Clear is two thirds along; Pure is the end). */}
           <div className={styles.stops} aria-hidden="true">
-            {s.glassStops.map((stop, i) => (
+            {GLASS_STOPS.map((value, i) => (
               <button
-                key={stop}
+                key={value}
                 type="button"
                 tabIndex={-1}
-                onClick={() => onGlass(Math.round((i / 3) * 100))}
+                data-edge={i === 0 ? "start" : i === GLASS_STOPS.length - 1 ? "end" : undefined}
+                data-on={nearestStop(glass) === i || undefined}
+                style={{ ["--at" as string]: String(value / MAX_GLASS) }}
+                onClick={() => onGlass(value)}
               >
-                {stop}
+                {s.glassStops[i]}
               </button>
             ))}
           </div>

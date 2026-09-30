@@ -91,7 +91,7 @@ type Strings = {
     mode: string;
     glass: string;
     glassHint: string;
-    glassStops: [string, string, string, string];
+    glassStops: [string, string, string, string, string];
     glassSystem: string;
     system: string;
     light: string;
@@ -227,8 +227,9 @@ export const STRINGS: Record<Lang, Strings> = {
       auto: "Auto detect",
       mode: "Mode",
       glass: "Glass",
-      glassHint: "From solid to fully clear. In between, frosted glass that bends the light behind it.",
-      glassStops: ["Solid", "Frosted", "Liquid", "Clear"],
+      glassHint:
+        "From solid to pure glass, with only its edges showing. In between, frosted glass that bends the light behind it.",
+      glassStops: ["Solid", "Frosted", "Liquid", "Clear", "Pure"],
       glassSystem:
         "Your device asks for less transparency (on Windows: Transparency effects is off), so Sarjy started Solid. Move the slider to choose for yourself.",
       system: "System",
@@ -363,8 +364,8 @@ export const STRINGS: Record<Lang, Strings> = {
       auto: "تلقائي",
       mode: "الوضع",
       glass: "الزجاج",
-      glassHint: "من سادة إلى شفاف تمامًا. وبينهم زجاج مصنفر يكسر الضوء اللي وراه.",
-      glassStops: ["سادة", "مصنفر", "سائل", "شفاف"],
+      glassHint: "من سادة إلى زجاج صافي ما يبان منه إلا أطرافه. وبينهم زجاج مصنفر يكسر الضوء اللي وراه.",
+      glassStops: ["سادة", "مصنفر", "سائل", "شفاف", "صافي"],
       glassSystem:
         "جهازك طالب شفافية أقل (في ويندوز: تأثيرات الشفافية مقفلة)، عشان كذا بدأ سرجي سادة. حرّك المؤشر واختر بنفسك.",
       system: "حسب الجهاز",

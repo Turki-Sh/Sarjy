@@ -241,6 +241,9 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] The whole chat opens at its newest line, the orb steps back to a small size, the list ends above the text box, and its edges fade instead of cutting. On a short window the recent bubbles fit the room under the orb (a slightly smaller orb, small picture thumbnails), and one that can't fully show is hidden rather than cut
 - [x] The profile row's highlight is a rounded box like every other row; the line above it is its own element
 
+### Pure glass (Turki's direction, Day 2)
+- [x] The Glass slider goes past Clear to Pure: every level up to Clear looks as before, and from Clear to Pure the tint and frosting fade to nothing, the sheen thins, the edge light brightens and the bend grows, until only the edges draw each surface (like Apple's camera mode pill). Words on pure glass keep a soft halo in the page color; Settings stays readable because the page behind it blurs more. Stops sit under their real points (Solid, Frosted, Liquid, Clear, Pure)
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

@@ -68,8 +68,20 @@ test("Glass goes from solid to clear, live, and is remembered", async ({ page })
   await page.getByRole("dialog").getByText("Clear", { exact: true }).click();
   expect(await liquid()).toBe("1");
   await expect(ambient).not.toHaveCSS("opacity", "0");
+  // Clear looks as it always did: the sidebar keeps a trace of tint (18%) and some frosting.
+  const sidebar = page.getByRole("complementary");
+  const alpha = () =>
+    sidebar.evaluate((el) => Number(getComputedStyle(el).backgroundColor.match(/[\d.]+(?=\))/)?.[0] ?? 1));
+  expect(await alpha()).toBeCloseTo(0.18, 2);
+  await expect(sidebar).toHaveCSS("backdrop-filter", /blur\(6px\)/);
+
+  // Past Clear, Pure (Turki's direction, Day 2): no tint and no frosting at all, only the edge.
+  await page.getByRole("dialog").getByText("Pure", { exact: true }).click();
+  expect(await liquid()).toBe("1.5");
+  expect(await alpha()).toBe(0);
+  await expect(sidebar).toHaveCSS("backdrop-filter", /blur\(0px\)/);
   await page.reload();
-  expect(await liquid()).toBe("1");
+  expect(await liquid()).toBe("1.5");
 });
 
 test("the language menu works from the keyboard, and Escape closes only the menu", async ({ page }) => {

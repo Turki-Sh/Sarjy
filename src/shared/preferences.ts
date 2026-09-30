@@ -18,12 +18,19 @@ export const COOKIE = {
   glass: "sarjy_glass",
 } as const;
 
-/** How much liquid glass, 0 (solid) to 100 (clear). The default shows it off without going all the way. */
+/**
+ * How much liquid glass: 0 (solid) to 100 (clear), the original scale, then on to 150 (pure: no
+ * tint, no frosting, only the edge light and the bend; Turki's direction, Day 2). Every level up
+ * to 100 looks as it always did. The default shows it off without going all the way.
+ */
 export const DEFAULT_GLASS = 60;
+export const MAX_GLASS = 150;
+/** The named stops on the slider: Solid, Frosted, Liquid, Clear, Pure. */
+export const GLASS_STOPS = [0, 33, 67, 100, 150] as const;
 export const readGlass = (value: string | undefined): number => {
   const n = Number(value);
   return value !== undefined && Number.isFinite(n)
-    ? Math.min(100, Math.max(0, Math.round(n)))
+    ? Math.min(MAX_GLASS, Math.max(0, Math.round(n)))
     : DEFAULT_GLASS;
 };
 
