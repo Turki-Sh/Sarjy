@@ -28,6 +28,9 @@ const screen = (page: Page) => page.locator("[data-state]").first();
 test("everyone hears the speaker; Sarjy answers only when asked; the seats settle (AT-99e, AT-99g)", async ({
   browser,
 }) => {
+  // Two people, several full turns and the floor settling each time: about 25 s alone, more when
+  // the suite runs in parallel, so the default 30 s is too tight.
+  test.setTimeout(60_000);
   const context = { permissions: ["microphone"] };
   const host = await (await browser.newContext(context)).newPage();
   const guest = await (await browser.newContext(context)).newPage();
