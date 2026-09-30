@@ -4,14 +4,11 @@
 // It owns the interface choices (theme, language); everything about the conversation comes
 // from useSarjy, and the pieces below only render it.
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { avatarUrl } from "@/shared/avatars";
 import { dir, t, type Lang } from "@/shared/i18n";
 import { COOKIE, refractScale, type LangChoice, type ThemeChoice } from "@/shared/preferences";
 import { useSarjy } from "../voice/useSarjy";
-import { Caption } from "./Caption";
-import { ControlBar } from "./ControlBar";
-import { Earlier } from "./Earlier";
 import { SavedCard } from "./SavedCard";
 import { Settings, type SettingsSection } from "./settings/Settings";
 import { Orb } from "./Orb";
@@ -19,6 +16,7 @@ import { Sidebar } from "./Sidebar";
 import { TextComposer } from "./TextComposer";
 import { ToolChip } from "./ToolChip";
 import { TopBar } from "./TopBar";
+import { Transcript } from "./Transcript";
 import styles from "./VoiceScreen.module.css";
 
 const YEAR = 60 * 60 * 24 * 365;
@@ -62,9 +60,9 @@ export function VoiceScreen({
     window.setTimeout(() => setToast(null), 2200);
   };
 
-  // Share the last exchange: the phone's share sheet when there is one, otherwise copy the link.
-  const share = async () => {
-    const url = await sarjy.shareLast();
+  // Share a chat's latest answer: the phone's share sheet when there is one, otherwise copy the link.
+  const shareChat = async (id: string) => {
+    const url = await sarjy.shareChat(id);
     if (!url) return;
     if (navigator.share) {
       await navigator.share({ title: s.sharedMoment, url }).catch(() => {});
@@ -85,8 +83,15 @@ export function VoiceScreen({
     setThemeChoice(choice);
   };
 
+  /** Which of the new-chat lines to show; a new one, at random, each time you start a chat. */
+  const [freshLine, setFreshLine] = useState(0);
   const newChat = () => {
     sarjy.newChat();
+    setFreshLine((i) => {
+      // Never the same line twice in a row.
+      const n = s.freshChat.length;
+      return (i + 1 + Math.floor(Math.random() * (n - 1))) % n;
+    });
     setSwitches((n) => n + 1);
   };
   const openChat = async (id: string) => {
@@ -133,13 +138,23 @@ export function VoiceScreen({
     composer.current?.focus();
     flash(s.micBlocked);
   };
+  // Escape stops whatever Sarjy is doing (listening, thinking or speaking), and leaves hands-free.
+  // The End button is gone: tapping the orb covers it, and this covers the keyboard.
+  const { stop } = sarjy;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !settingsOpen) stop();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [settingsOpen, stop]);
+
   const showChip = sarjy.state === "tool" || sarjy.state === "speaking" || sarjy.state === "thinking";
-  const busy = sarjy.state !== "idle" && sarjy.state !== "saving";
   // At rest, the line under the orb says where you are: a new chat, or one picked back up.
   const note =
     sarjy.state === "idle" && sarjy.chatNote
       ? sarjy.chatNote === "fresh"
-        ? s.freshChat
+        ? s.freshChat[freshLine % s.freshChat.length]
         : s.continuing
       : s.status[sarjy.state];
 
@@ -171,6 +186,9 @@ export function VoiceScreen({
           onNewChat={newChat}
           onOpenChat={(id) => void openChat(id)}
           onRenameChat={(id, title) => void sarjy.renameChat(id, title)}
+          onPinChat={(id, pinned) => void sarjy.pinChat(id, pinned)}
+          onShareChat={(id) => void shareChat(id)}
+          onDeleteChat={(id) => void sarjy.deleteChat(id)}
           onClose={() => setSidebar(false)}
         />
       )}
@@ -178,7 +196,6 @@ export function VoiceScreen({
       <main className={styles.main}>
         <TopBar
           lang={lang}
-          onShare={sarjy.canShare && sarjy.state === "idle" ? () => void share() : undefined}
           onOpenSidebar={sidebarOpen ? undefined : () => setSidebar(true)}
           onNewChat={newChat}
         />
@@ -202,8 +219,7 @@ export function VoiceScreen({
             memory={sarjy.freshId ? (sarjy.memories.find((m) => m.id === sarjy.freshId) ?? null) : null}
             onOpen={() => openSettings("memory")}
           />
-          <Earlier lines={sarjy.earlier} />
-          <Caption caption={sarjy.caption} />
+          <Transcript earlier={sarjy.earlier} caption={sarjy.caption} />
           <p className={styles.status}>{note}</p>
         </section>
 
@@ -213,10 +229,6 @@ export function VoiceScreen({
             placeholder={s.typePlaceholder}
             sendLabel={s.send}
             onSend={(text) => void sarjy.send({ text })}
-          />
-          <ControlBar
-            labels={{ end: s.end, settings: s.voiceSettings }}
-            onEnd={busy ? sarjy.stop : undefined}
           />
         </div>
 

@@ -18,7 +18,6 @@ import { Mic, MicError } from "../audio/mic";
 import { Player, type PlayedSegment } from "../audio/player";
 import { listen as detectSpeech, type Listening } from "../audio/vad";
 import type { CaptionModel } from "../ui/Caption";
-import type { MicLook } from "../ui/ControlBar";
 import type { ToolChipModel } from "../ui/ToolChip";
 import { findKeep } from "./keep";
 import { transition } from "./machine";
@@ -26,7 +25,10 @@ import { answerFinished } from "./turnEnd";
 import { previewWords } from "./preview";
 import { sendTurn } from "./turnStream";
 
-export type ChatSummary = { id: string; title: string; updatedAt: string };
+/** How the mic looks, drawn on the orb: ready, live, or dashed when there is no mic access. */
+export type MicLook = "ready" | "live" | "blocked";
+
+export type ChatSummary = { id: string; title: string; updatedAt: string; pinned: boolean };
 /** One line of the chat on screen, for the small transcript above the caption. */
 export type ChatLine = { role: "user" | "assistant"; text: string; lang: Lang };
 
@@ -115,8 +117,6 @@ export function useSarjy(lang: Lang) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [timings, setTimings] = useState<Timings | null>(null);
-  /** Sarjy's last answer, so it can be shared. */
-  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
   const [micLook, setMicLook] = useState<MicLook>("ready");
   /** The chat on screen (null: a new one, not yet started), and what the stage says about it. */
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -249,7 +249,6 @@ export function useSarjy(lang: Lang) {
           setActiveChatId(event.conversationId);
           if (event.text) setLines((l) => [...l, { role: "assistant", text: event.text, lang: t.lang }]);
           setTimings(event.timings);
-          setLastMessageId(event.messageId);
           t.streamDone = true;
           return;
       }
@@ -481,7 +480,6 @@ export function useSarjy(lang: Lang) {
     stop();
     conversationId.current = null;
     setActiveChatId(null);
-    setLastMessageId(null);
     setCaption(null);
     setChip(null);
     setLines([]);
@@ -500,7 +498,6 @@ export function useSarjy(lang: Lang) {
       setLines(chat.messages);
       conversationId.current = chat.id;
       setActiveChatId(chat.id);
-      setLastMessageId(null);
       setChip(null);
       setChatNote("continuing");
       const last = [...chat.messages].reverse().find((m) => m.role === "assistant");
@@ -525,6 +522,42 @@ export function useSarjy(lang: Lang) {
     if (!clean) return;
     setChats((list) => list.map((c) => (c.id === id ? { ...c, title: clean } : c)));
     await fetch(`/api/chats/${id}`, { method: "PATCH", body: JSON.stringify({ title: clean }) });
+  }, []);
+
+  /** Pins or unpins a chat: pinned chats stay at the top of Recent. */
+  const pinChat = useCallback(async (id: string, pinned: boolean) => {
+    setChats((list) => {
+      const next = list.map((c) => (c.id === id ? { ...c, pinned } : c));
+      // Pinned first, then newest, like the server orders them.
+      return next.sort(
+        (a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt),
+      );
+    });
+    await fetch(`/api/chats/${id}`, { method: "PATCH", body: JSON.stringify({ pinned }) });
+  }, []);
+
+  /** Deletes a chat. If it is the one on screen, the screen starts a new chat. */
+  const deleteChat = useCallback(
+    async (id: string) => {
+      setChats((list) => list.filter((c) => c.id !== id));
+      if (conversationId.current === id) {
+        stop();
+        conversationId.current = null;
+        setActiveChatId(null);
+        setCaption(null);
+        setLines([]);
+      }
+      await fetch(`/api/chats/${id}`, { method: "DELETE" });
+    },
+    [stop],
+  );
+
+  /** Makes a share link for a chat's latest answer. Returns the full URL, or null. */
+  const shareChat = useCallback(async (id: string): Promise<string | null> => {
+    const res = await fetch("/api/shares", { method: "POST", body: JSON.stringify({ conversationId: id }) });
+    if (!res.ok) return null;
+    const { path } = (await res.json()) as { path: string };
+    return new URL(path, window.location.origin).toString();
   }, []);
 
   /** Your profile picture, one of the paintings: shown at once, then saved. */
@@ -561,18 +594,6 @@ export function useSarjy(lang: Lang) {
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
   const inputLevel = useCallback(() => ear.current?.mic.level() ?? null, []);
 
-  /** Shares the last exchange as a link. Returns the full URL, or null if it could not be made. */
-  const shareLast = useCallback(async (): Promise<string | null> => {
-    if (!lastMessageId) return null;
-    const res = await fetch("/api/shares", {
-      method: "POST",
-      body: JSON.stringify({ messageId: lastMessageId }),
-    });
-    if (!res.ok) return null;
-    const { path } = (await res.json()) as { path: string };
-    return new URL(path, window.location.origin).toString();
-  }, [lastMessageId]);
-
   return {
     state,
     caption,
@@ -591,6 +612,9 @@ export function useSarjy(lang: Lang) {
     setName,
     forgetEverything,
     renameChat,
+    pinChat,
+    deleteChat,
+    shareChat,
     activeChatId,
     chatNote,
     editMemory,
@@ -601,7 +625,5 @@ export function useSarjy(lang: Lang) {
     earlier: earlierLines(lines, caption),
     listen,
     finishListening,
-    canShare: lastMessageId !== null,
-    shareLast,
   };
 }

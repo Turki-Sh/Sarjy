@@ -36,9 +36,9 @@ test("tap the mic, speak, and Sarjy answers when you stop", async ({ page }) => 
   // "Hello" was heard, and Sarjy introduces itself (a first visit).
   await expect(page.locator("main section p[lang]")).toHaveText(/I'm Sarjy/, { timeout: 10_000 });
 
-  // Hands-free: once Sarjy has answered, it listens again without a tap. End stops the conversation.
+  // Hands-free: once Sarjy has answered, it listens again without a tap. Escape stops the conversation.
   await expect(screen(page)).toHaveAttribute("data-state", "listening", { timeout: 15_000 });
-  await page.getByRole("button", { name: "End", exact: true }).click();
+  await page.keyboard.press("Escape");
   await expect(screen(page)).toHaveAttribute("data-state", "idle");
 });
 

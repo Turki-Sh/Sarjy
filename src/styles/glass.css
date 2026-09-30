@@ -52,9 +52,11 @@
   box-shadow:
     0 0 0 0.5px var(--glass-rim),
     inset 0 1px 0 var(--glass-sheen),
-    inset 1px 1px 1px color-mix(in srgb, var(--white) var(--rim-soft), transparent),
-    inset -1px -1px 1px color-mix(in srgb, var(--white) calc(var(--rim-soft) / 2), transparent),
-    inset 0 0 18px color-mix(in srgb, var(--white) calc(var(--lq) * 14%), transparent),
+    /* Light falls from above: a bright inner top edge and glow, a little shade low down. */ inset 0 1px 0
+      color-mix(in srgb, var(--white) calc(var(--lq) * 55%), transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--ink) calc(var(--lq) * 8%), transparent),
+    inset 0 10px 22px -14px color-mix(in srgb, var(--white) calc(var(--lq) * 40%), transparent),
+    inset 0 -12px 22px -16px color-mix(in srgb, var(--ink) calc(var(--lq) * 12%), transparent),
     0 10px 30px color-mix(in srgb, var(--ink) var(--depth), transparent),
     var(--glass-shadow);
 }
@@ -74,27 +76,46 @@
     color-mix(in srgb, var(--glass-sheen) 45%, transparent)
   );
 }
-/* The rim: a thin ring of light, brightest top-start and bottom-end, like light caught by a lens edge. */
+/* The rim: a thin ring of light, uneven like a real lens edge. The light comes from above and to
+   the reading start: a bright crescent at that corner, a bright top edge, a faint reflection at the
+   opposite corner, and almost nothing along the sides. (It was an even line all round, which read
+   as an outline, not as glass.) */
 .glass::after,
 .glass-panel::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1px;
+  padding: 1.5px;
   pointer-events: none;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--white) var(--rim), transparent),
-    transparent 32%,
-    transparent 64%,
-    color-mix(in srgb, var(--white) calc(var(--rim) * 0.6), transparent)
-  );
+  background:
+    radial-gradient(
+      140px 90px at 0% 0%,
+      color-mix(in srgb, var(--white) var(--rim), transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      110px 70px at 100% 100%,
+      color-mix(in srgb, var(--white) calc(var(--rim) * 0.55), transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--white) calc(var(--rim) * 0.65), transparent) 0%,
+      color-mix(in srgb, var(--white) calc(var(--rim) * 0.1), transparent) 22%,
+      transparent 55%,
+      color-mix(in srgb, var(--white) calc(var(--rim) * 0.16), transparent) 100%
+    );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+}
+:dir(rtl) .glass::after,
+:dir(rtl) .glass-panel::after {
+  /* The light comes from the reading start, so it mirrors in Arabic. */
+  transform: scaleX(-1);
 }
 .glass > * {
   position: relative;
@@ -111,8 +132,9 @@
   -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(calc(100% + var(--lq) * 60%));
   backdrop-filter: blur(var(--panel-blur)) saturate(calc(100% + var(--lq) * 60%));
   box-shadow:
-    inset 1px 1px 1px color-mix(in srgb, var(--white) var(--rim-soft), transparent),
-    inset 0 0 24px color-mix(in srgb, var(--white) calc(var(--lq) * 8%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--white) calc(var(--lq) * 45%), transparent),
+    inset 0 14px 28px -20px color-mix(in srgb, var(--white) calc(var(--lq) * 30%), transparent),
+    inset 0 -16px 28px -22px color-mix(in srgb, var(--ink) calc(var(--lq) * 12%), transparent),
     0 18px 50px color-mix(in srgb, var(--ink) calc(var(--lq) * 14%), transparent);
 }
 

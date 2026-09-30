@@ -1,18 +1,15 @@
-/* The sidebar, from the reference build of the voice screen. Solid surface: it is read, not floated. */
-
-/* Solid at Glass 0 (the original look). As glass rises, the sidebar lifts off the edge into a
-   floating glass panel, like iPadOS: an inset, rounded, see-through sheet. */
+/* The sidebar: a floating panel, inset from the edge and rounded, like iPadOS (Turki's direction,
+   Day 2). The same shape at every Glass level: at Solid it is opaque, and as glass rises it turns
+   to a see-through sheet (the fill thins; styles/glass.css adds the frosting and the edge light). */
 .side {
-  --float: min(1, var(--lq) * 8);
   background: color-mix(in srgb, var(--side) var(--panel-keep), transparent);
-  border: 1px solid color-mix(in srgb, var(--line) calc(var(--float) * 100%), transparent);
-  border-inline-end-color: var(--line);
-  margin: calc(var(--float) * 10px);
+  border: 1px solid var(--line);
+  margin: 10px;
   margin-inline-end: 0;
-  border-radius: calc(var(--float) * var(--r-l));
-  height: calc(100dvh - var(--float) * 20px);
+  border-radius: var(--r-l);
+  height: calc(100dvh - 20px);
   position: sticky;
-  inset-block-start: calc(var(--float) * 10px);
+  inset-block-start: 10px;
   padding: 18px 14px;
   display: flex;
   flex-direction: column;
@@ -215,7 +212,22 @@
   position: relative;
 }
 .chat .item {
-  padding-inline-end: 34px;
+  padding-inline-end: 52px;
+}
+/* A pinned chat shows a small pin; the ⋯ takes its place on hover. */
+.pinned {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 10px;
+  margin-block: auto;
+  width: 13px;
+  height: 13px;
+  color: var(--text-2);
+  pointer-events: none;
+}
+.chat:hover .pinned,
+.chat:focus-within .pinned {
+  opacity: 0;
 }
 .edit {
   position: absolute;
@@ -239,7 +251,8 @@
   height: 14px;
 }
 .chat:hover .edit,
-.edit:focus-visible {
+.edit:focus-visible,
+.edit[aria-expanded="true"] {
   opacity: 1;
 }
 .edit:hover {

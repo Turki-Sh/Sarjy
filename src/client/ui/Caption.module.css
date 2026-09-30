@@ -1,27 +1,10 @@
 /* Captions, from the visual identity, section 6 ("Captions"). */
 
+/* The caption sits in its bubble (Transcript.tsx), which sets its size and side. */
 .caption {
   margin: 0;
-  max-width: 32ch;
-  min-height: 3.2em;
-  text-align: center;
-  color: var(--text);
-}
-
-/* Your words: the interface face. */
-.user {
-  font: 500 19px/1.45 var(--font-ui);
-}
-.user:lang(ar) {
-  font-family: var(--font-ar);
-}
-
-/* Sarjy's words: the voice face, so what was said to you never looks like the app talking. */
-.voice {
-  font: italic 400 23px/1.4 var(--font-voice);
-}
-.voice:lang(ar) {
-  font: 500 24px/1.6 var(--font-ar-voice);
+  color: inherit;
+  font: inherit;
 }
 
 .word {
@@ -53,11 +36,5 @@
 @keyframes stitch {
   from {
     background-size: 0 1.5px;
-  }
-}
-
-@media (max-width: 600px) {
-  .voice {
-    font-size: 20px;
   }
 }

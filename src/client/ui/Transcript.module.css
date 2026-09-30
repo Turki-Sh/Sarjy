@@ -1,0 +1,85 @@
+/* One bubble per message, under the orb. */
+
+.transcript {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-block-start: 6px;
+  /* Bounded, so a very long answer never pushes the orb off center (at most four bubbles show). */
+  max-height: 42vh;
+  overflow: hidden;
+}
+.earlier {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 9px 15px;
+  border-radius: 20px;
+  animation: rise var(--t-base) var(--ease-rein) both;
+}
+/* Yours: on the reading-end side, in the interface face, on a quiet fill. */
+.user {
+  align-self: flex-end;
+  border-end-end-radius: 6px;
+  background: color-mix(in srgb, var(--sunken) calc((1 - var(--lq) * 0.4) * 100%), transparent);
+  color: var(--text);
+  font: 500 15px/1.45 var(--font-ui);
+}
+.user:lang(ar) {
+  font-family: var(--font-ar);
+}
+/* Sarjy's: on the reading-start side, glass, in the voice face. */
+.sarjy {
+  align-self: flex-start;
+  border-end-start-radius: 6px;
+  font: italic 400 17px/1.45 var(--font-voice);
+}
+.sarjy:lang(ar) {
+  font: 500 17px/1.7 var(--font-ar-voice);
+}
+
+/* The line being said now: larger, fully opaque. */
+.now.sarjy {
+  font-size: 20px;
+}
+.now.user {
+  font-size: 16px;
+}
+
+/* Earlier lines fade with age. */
+.earlier .bubble {
+  font-size: 14px;
+}
+.earlier .sarjy {
+  font-size: 15px;
+}
+.earlier [data-age="0"] {
+  opacity: 0.85;
+}
+.earlier [data-age="1"] {
+  opacity: 0.6;
+}
+.earlier [data-age="2"] {
+  opacity: 0.38;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    animation: none;
+  }
+}

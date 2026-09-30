@@ -1,5 +1,5 @@
-// The caption under the orb. Two voices on one screen (visual identity, section 5):
-// your words in the interface face, Sarjy's words in the voice face (Newsreader or Noto Naskh italic).
+// The caption: the words of the message being said now, inside its bubble (Transcript.tsx).
+// Your words are in the interface face, Sarjy's in the voice face (Newsreader or Noto Naskh italic).
 //
 // How words appear depends on `style`:
 //   stream  your words, appearing one by one as you say them
@@ -22,10 +22,11 @@ export type CaptionModel = {
 };
 
 export function Caption({ caption }: { caption: CaptionModel | null }) {
-  if (!caption) return <p className={styles.caption} />;
+  // (Who is speaking decides the bubble around it: Transcript.tsx.)
+  if (!caption) return null;
 
-  const { speaker, lang, words, shown, style, keep } = caption;
-  const className = [styles.caption, speaker === "sarjy" ? styles.voice : styles.user].join(" ");
+  const { lang, words, shown, style, keep } = caption;
+  const className = styles.caption;
 
   const word = (w: string, i: number) => {
     const state = i < shown ? "on" : style === "speak" ? "up" : style === "stream" ? "hidden" : "on";

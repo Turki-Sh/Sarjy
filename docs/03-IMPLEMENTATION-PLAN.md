@@ -217,6 +217,15 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] The language menu is Sarjy's own dropdown (glass list, a check on the choice, arrows, Enter and Escape; Escape closes only the menu)
 - [x] Windows asked "Terminate batch job?" twice on Ctrl+C: the scripts now run Next.js through Node (one prompt fewer); the README explains the last one and how to drop it
 
+### Fixed from Turki's fifth review (Day 2)
+- [x] The End button is gone: tapping the orb stops or interrupts, and Escape stops everything
+- [x] Each chat in Recent has a ⋯ menu (Rename, Pin, Share, Delete with one in-place confirmation); pinned chats stay on top with a small pin. No projects, no archive. The top-bar share button is gone: Share lives in the menu
+- [x] The conversation shows as bubbles (like x.ai's voice mode): yours on one side, Sarjy's in glass in the voice face; the one being said is largest and keeps the word-by-word focus
+- [x] New chats greet with one of Turki's ten lines, at random, in the interface language
+- [x] The sidebar has one shape at every glass level: a floating, rounded panel (opaque at Solid)
+- [x] The orb is centered in the window (the stage spans the full height; the top bar and text box sit over it)
+- [x] Edge light that reads as glass: a bright crescent at the lit corner, a bright top edge, a faint opposite reflection, soft inner shading low down; it mirrors in Arabic
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

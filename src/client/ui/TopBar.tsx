@@ -1,5 +1,5 @@
 // The top of the voice area. With the sidebar closed: buttons to reopen it and start a new chat.
-// On the other side: share, when there is an answer to share. Theme and language live in Settings.
+// Sharing lives in each chat's ⋯ menu; theme and language live in Settings.
 
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
@@ -8,14 +8,12 @@ import styles from "./TopBar.module.css";
 
 type Props = {
   lang: Lang;
-  /** Present when there is an answer to share. */
-  onShare?: () => void;
   /** Present when the sidebar is closed. */
   onOpenSidebar?: () => void;
   onNewChat: () => void;
 };
 
-export function TopBar({ lang, onShare, onOpenSidebar, onNewChat }: Props) {
+export function TopBar({ lang, onOpenSidebar, onNewChat }: Props) {
   const s = t(lang);
   return (
     <header className={styles.top}>
@@ -41,19 +39,6 @@ export function TopBar({ lang, onShare, onOpenSidebar, onNewChat }: Props) {
               <Icon name="plus" />
             </button>
           </>
-        )}
-      </div>
-      <div className={styles.actions}>
-        {onShare && (
-          <button
-            type="button"
-            className={`${styles.icon} glass`}
-            onClick={onShare}
-            aria-label={s.share}
-            title={s.share}
-          >
-            <Icon name="share" />
-          </button>
         )}
       </div>
     </header>

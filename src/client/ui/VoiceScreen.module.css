@@ -16,11 +16,15 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Three rows (top bar, stage, dock), but the stage spans all three with equal room above and below,
+   so the orb is centered in the window, not in the space left between a short top bar and a tall
+   dock. The top bar and dock sit on top of it. */
 .main {
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   justify-items: center;
+  height: 100dvh;
   padding-block: 16px 28px;
   padding-inline: 24px;
   overflow: hidden;
@@ -44,7 +48,19 @@
   mask: linear-gradient(180deg, #000, transparent 72%);
 }
 
+/* All three share the one column; without it, the overlapping stage would get a column of its own. */
+.main > header {
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 2;
+}
 .stage {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  /* Equal room above and below: the dock (text box) is the taller of the two ends. */
+  padding-block: 96px;
+  min-height: 0;
   animation: stage-in var(--t-slow) var(--ease-rein) both;
   display: flex;
   flex-direction: column;
@@ -53,7 +69,6 @@
   gap: 10px;
   width: 100%;
   max-width: 640px;
-  padding-block: 16px;
 }
 
 /* The orb as a button: no chrome of its own, a gentle lift on hover, a press on tap. */
@@ -106,6 +121,9 @@
 }
 
 .dock {
+  grid-column: 1;
+  grid-row: 3;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;

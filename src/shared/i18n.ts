@@ -34,13 +34,23 @@ type Strings = {
   /** Shown when the mic can't be used; the text box takes over. */
   micBlocked: string;
   /** Under the orb after New chat, and after opening a past chat. */
-  freshChat: string;
+  /** Under the orb after New chat: one of these, at random (Turki's lines, Day 2). */
+  freshChat: string[];
   continuing: string;
   noMatches: string;
   openSidebar: string;
   changePicture: string;
   rename: string;
   savedCard: string;
+  chatMenu: {
+    more: string;
+    pin: string;
+    unpin: string;
+    share: string;
+    del: string;
+    confirmDelete: string;
+    pinned: string;
+  };
   /** The settings popup. */
   settings: {
     title: string;
@@ -119,13 +129,33 @@ export const STRINGS: Record<Lang, Strings> = {
     share: "Share this moment",
     linkCopied: "Link copied",
     micBlocked: "No mic access. You can type instead.",
-    freshChat: "A new chat. What's on your mind?",
+    freshChat: [
+      "What's on your mind? I'm all ears.",
+      "No need to find the perfect words. Just talk.",
+      "You're holding the reins. Where to?",
+      "What's the story today?",
+      "Take your time. I'm right here.",
+      "Give me a starting point. We'll figure out the rest together.",
+      "Where shall we take this conversation?",
+      "What would you like to make happen today?",
+      "Tell me what's on your mind. We'll find a way forward.",
+      "Where shall we pick up?",
+    ],
     continuing: "Picking up where you left off",
     noMatches: "Nothing matches",
     openSidebar: "Open sidebar",
     changePicture: "Change your picture",
     rename: "Rename",
     savedCard: "Saved",
+    chatMenu: {
+      more: "More options",
+      pin: "Pin",
+      unpin: "Unpin",
+      share: "Share",
+      del: "Delete",
+      confirmDelete: "Delete for good?",
+      pinned: "Pinned",
+    },
     settings: {
       title: "Settings",
       open: "Open settings",
@@ -203,13 +233,33 @@ export const STRINGS: Record<Lang, Strings> = {
     share: "شارك هاللحظة",
     linkCopied: "تم نسخ الرابط",
     micBlocked: "ما فيه وصول للمايك. تقدر تكتب بدلها.",
-    freshChat: "سالفة جديدة. وش في بالك؟",
+    freshChat: [
+      "سمّ، وش بخاطرك؟",
+      "ما يحتاج ترتّب كلامك، بس احكِ.",
+      "الزمام بيدك، وين نروح؟",
+      "وش الحكاية اليوم؟",
+      "خذ راحتك، أنا معك.",
+      "عطني أول الخيط، ونكملها سوا.",
+      "على وين نوجّه السالفة؟",
+      "وش اللي ودّك يصير اليوم؟",
+      "قل اللي بخاطرك، ونلقى لها طريق.",
+      "من وين نكمل؟",
+    ],
     continuing: "نكمل من حيث وقفنا",
     noMatches: "ما فيه نتائج",
     openSidebar: "افتح القائمة",
     changePicture: "غيّر صورتك",
     rename: "غيّر الاسم",
     savedCard: "انحفظ",
+    chatMenu: {
+      more: "خيارات أكثر",
+      pin: "ثبّت",
+      unpin: "شيل التثبيت",
+      share: "شارك",
+      del: "احذف",
+      confirmDelete: "متأكد تحذفها؟",
+      pinned: "مثبّتة",
+    },
     settings: {
       title: "الإعدادات",
       open: "افتح الإعدادات",

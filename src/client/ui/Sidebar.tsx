@@ -10,9 +10,10 @@ import { t } from "@/shared/i18n";
 import type { Memory } from "@/shared/protocol";
 import { Logo } from "./brand/Logo";
 import { Icon } from "./Icon";
+import { Menu } from "./Menu";
 import styles from "./Sidebar.module.css";
 
-export type ChatItem = { id: string; title: string };
+export type ChatItem = { id: string; title: string; pinned?: boolean };
 
 type Props = {
   lang: Lang;
@@ -30,6 +31,9 @@ type Props = {
   onNewChat: () => void;
   onOpenChat: (id: string) => void;
   onRenameChat: (id: string, title: string) => void;
+  onPinChat: (id: string, pinned: boolean) => void;
+  onShareChat: (id: string) => void;
+  onDeleteChat: (id: string) => void;
   onClose: () => void;
 };
 
@@ -50,6 +54,9 @@ export function Sidebar({
   onNewChat,
   onOpenChat,
   onRenameChat,
+  onPinChat,
+  onShareChat,
+  onDeleteChat,
   onClose,
 }: Props) {
   const s = t(lang);
@@ -155,15 +162,30 @@ export function Sidebar({
                 <Icon name="chat" />
                 <span className={styles.ellipsis}>{c.title}</span>
               </button>
-              <button
-                type="button"
+              {c.pinned && <Icon name="pin" className={styles.pinned} />}
+              {/* Everything you can do to a chat, behind one ⋯ (like ChatGPT): no projects, no archive. */}
+              <Menu
                 className={styles.edit}
-                aria-label={`${s.rename}: ${c.title}`}
-                title={s.rename}
-                onClick={() => setRenaming(c.id)}
-              >
-                <Icon name="pencil" />
-              </button>
+                label={`${s.chatMenu.more}: ${c.title}`}
+                items={[
+                  { id: "rename", label: s.rename, icon: "pencil", onSelect: () => setRenaming(c.id) },
+                  {
+                    id: "pin",
+                    label: c.pinned ? s.chatMenu.unpin : s.chatMenu.pin,
+                    icon: "pin",
+                    onSelect: () => onPinChat(c.id, !c.pinned),
+                  },
+                  { id: "share", label: s.chatMenu.share, icon: "share", onSelect: () => onShareChat(c.id) },
+                  {
+                    id: "delete",
+                    label: s.chatMenu.del,
+                    icon: "trash",
+                    danger: true,
+                    confirm: s.chatMenu.confirmDelete,
+                    onSelect: () => onDeleteChat(c.id),
+                  },
+                ]}
+              />
             </li>
           ),
         )}

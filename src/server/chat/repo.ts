@@ -6,16 +6,22 @@ import { and, desc, eq } from "drizzle-orm";
 import type { Db } from "../db/client";
 import { conversations, messages, type MessageRow } from "../db/schema";
 
-export type ChatSummary = { id: string; title: string; updatedAt: string };
+export type ChatSummary = { id: string; title: string; updatedAt: string; pinned: boolean };
 
-export async function listConversations(db: Db, userId: string, limit = 12): Promise<ChatSummary[]> {
+/** Recent chats: pinned ones first, then the newest. */
+export async function listConversations(db: Db, userId: string, limit = 20): Promise<ChatSummary[]> {
   const rows = await db
     .select()
     .from(conversations)
     .where(eq(conversations.userId, userId))
-    .orderBy(desc(conversations.updatedAt))
+    .orderBy(desc(conversations.pinned), desc(conversations.updatedAt))
     .limit(limit);
-  return rows.map((c) => ({ id: c.id, title: c.title ?? "", updatedAt: c.updatedAt.toISOString() }));
+  return rows.map((c) => ({
+    id: c.id,
+    title: c.title ?? "",
+    updatedAt: c.updatedAt.toISOString(),
+    pinned: c.pinned,
+  }));
 }
 
 /** The conversation to continue: the given one if it is this user's, otherwise a new one. */
@@ -87,7 +93,13 @@ export async function saveTurn(
   return assistant!.id;
 }
 
-export type ChatMessage = { role: "user" | "assistant"; text: string; lang: "en" | "ar"; createdAt: string };
+export type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  lang: "en" | "ar";
+  createdAt: string;
+};
 
 /** One of the user's chats with its messages, oldest first; null if it is not theirs. */
 export async function getConversation(
@@ -106,6 +118,7 @@ export async function getConversation(
     id: found.id,
     title: found.title ?? "",
     messages: rows.map((m) => ({
+      id: m.id,
       role: m.role as "user" | "assistant",
       text: m.text,
       lang: m.lang as "en" | "ar",
@@ -114,17 +127,33 @@ export async function getConversation(
   };
 }
 
-/** Renames one of the user's chats. Returns false if it is not theirs. */
-export async function renameConversation(
+/** Renames or pins one of the user's chats. Returns false if it is not theirs. */
+export async function updateConversation(
   db: Db,
   userId: string,
   id: string,
-  title: string,
+  change: { title?: string; pinned?: boolean },
 ): Promise<boolean> {
   const rows = await db
     .update(conversations)
-    .set({ title })
+    .set(change)
     .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
     .returning({ id: conversations.id });
   return rows.length > 0;
+}
+
+/** Deletes one of the user's chats and its messages (shared links are copies, so they stay). */
+export async function deleteConversation(db: Db, userId: string, id: string): Promise<boolean> {
+  const rows = await db
+    .delete(conversations)
+    .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
+    .returning({ id: conversations.id });
+  return rows.length > 0;
+}
+
+/** The id of Sarjy's latest answer in one of the user's chats, for sharing it from the chat menu. */
+export async function lastAnswerId(db: Db, userId: string, id: string): Promise<string | null> {
+  const chat = await getConversation(db, userId, id);
+  const answer = chat?.messages.findLast((m) => m.role === "assistant");
+  return answer?.id ?? null;
 }

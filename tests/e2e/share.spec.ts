@@ -11,7 +11,9 @@ test("shares a weather answer; the link shows the exchange and a weather card", 
     timeout: 15_000,
   });
 
-  await page.getByRole("button", { name: "Share this moment" }).click();
+  // Share lives in the chat's ⋯ menu in Recent.
+  await page.getByRole("button", { name: "More options: What's the weather in Riyadh tomorrow?" }).click();
+  await page.getByRole("menuitem", { name: "Share" }).click();
   await expect(page.getByRole("status")).toHaveText("Link copied");
   const url = await page.evaluate(() => navigator.clipboard.readText());
   expect(url).toMatch(/\/s\/[a-z0-9]{12}$/);

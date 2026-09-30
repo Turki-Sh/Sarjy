@@ -1,7 +1,17 @@
 // The database tables (architecture, section 17). Deleting a user cascades to everything they own,
 // which is how "Forget everything" really forgets.
 
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 const createdAt = timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
@@ -50,6 +60,8 @@ export const conversations = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     title: text("title"),
+    /** Pinned chats stay at the top of Recent. */
+    pinned: boolean("pinned").notNull().default(false),
     createdAt,
     updatedAt,
   },
