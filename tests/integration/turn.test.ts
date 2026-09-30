@@ -169,6 +169,52 @@ describe("pictures and cost", () => {
     expect(done && done.type === "done" && done.timings.model).toBe("fake-fallback");
   });
 
+  it("keeps a picture with the chat: shown on reopening, and still in view for a follow-up", async () => {
+    const id = await newUser();
+    const { users } = await import("@/server/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const { getConversation, getPicture } = await import("@/server/chat/repo");
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 0xff, 0xd9]);
+    const events: TurnEvent[] = [];
+    await runTurn(
+      {
+        user: user!,
+        audio: null,
+        text: "What's this?",
+        image: new Blob([bytes], { type: "image/jpeg" }),
+        conversationId: null,
+        uiLang: "en",
+        timeZone: "Asia/Riyadh",
+      },
+      { db, providers: getProviders() },
+      (e) => events.push(TurnEvent.parse(e)),
+    );
+    const first = events.find((e) => e.type === "done");
+    const chatId = first && first.type === "done" ? first.conversationId : null;
+    expect(chatId).toBeTruthy();
+
+    // Reopening the chat shows the picture again, from a link only its owner can open.
+    const chat = await getConversation(db, id, chatId!);
+    const url = chat?.messages[0]?.image;
+    expect(url).toMatch(/^\/api\/pictures\/[0-9a-f-]{36}$/);
+    const pictureId = url!.split("/").at(-1)!;
+    const mine = await getPicture(db, id, pictureId);
+    expect(mine && new Uint8Array(mine.bytes)).toEqual(bytes);
+    expect(mine?.mediaType).toBe("image/jpeg");
+    const stranger = await newUser();
+    expect(await getPicture(db, stranger, pictureId)).toBeNull();
+
+    // A later question in the same chat still sees it, so it goes to a model that can see.
+    const follow = await turn(id, "What was in the picture again?", chatId);
+    expect(follow.said).toBe("Yes, I can still see your picture.");
+    expect(follow.done && follow.done.type === "done" && follow.done.timings.model).toBe("fake-fallback");
+
+    // A turn about something else in that chat still works (the picture is only context).
+    const other = await turn(id, "What's the weather in Riyadh tomorrow?", chatId);
+    expect(other.said).toMatch(/Riyadh/);
+  });
+
   it("reports tokens and cost with every answer", async () => {
     const id = await newUser();
     const { done } = await turn(id, "What's the weather in Riyadh tomorrow?");

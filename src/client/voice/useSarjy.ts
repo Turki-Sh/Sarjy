@@ -35,7 +35,7 @@ export type ChatLine = {
   role: "user" | "assistant";
   text: string;
   lang: Lang;
-  /** A picture sent with this line (an object URL, for this visit only). */
+  /** A picture sent with this line: a local object URL just after sending, the saved copy after. */
   image?: string;
 };
 
@@ -78,11 +78,21 @@ const LONGEST_MS = 30_000;
  */
 const QUIET_LEVEL = 0.08;
 const QUIET_MS = 1300;
+/** How long the screen may say "Listening" with the mic closed before it resets itself. */
+const STRANDED_MS = 1500;
 /** Hands-free: after Sarjy answers a spoken question, the mic reopens by itself after this pause. */
 const RELISTEN_MS = 350;
 
 /** The open mic, while listening. */
-type Ear = { mic: Mic; vad: Listening | null; stopPreview: () => void; timers: number[]; sent: boolean };
+type Ear = {
+  mic: Mic;
+  vad: Listening | null;
+  stopPreview: () => void;
+  timers: number[];
+  sent: boolean;
+  /** Ends listening; sends speech in progress with `submit`, else rests. */
+  end: (submit: boolean) => Promise<void>;
+};
 
 /**
  * Warms the browser cache with the speech detector while the page is idle, so the first tap of
@@ -354,7 +364,7 @@ export function useSarjy(lang: Lang) {
       return false;
     }
     setMicLook("live");
-    const e: Ear = { mic, vad: null, stopPreview: () => {}, timers: [], sent: false };
+    const e: Ear = { mic, vad: null, stopPreview: () => {}, timers: [], sent: false, end: async () => {} };
     ear.current = e;
     conversing.current = true;
 
@@ -368,21 +378,46 @@ export function useSarjy(lang: Lang) {
       void send({ audio: new Blob([encodeWav(audio, 16_000)], { type: "audio/wav" }) });
     };
 
+    // Every way listening ends goes through here. With `submit`, speech in progress is sent; when
+    // nothing was (you never spoke, or it was only a cough), the screen rests instead of staying on
+    // "Listening" with the mic already closed.
+    const end = async (submit: boolean) => {
+      if (ear.current !== e) return;
+      await closeEar(submit);
+      if (e.sent) return;
+      conversing.current = false;
+      setMicLook("ready");
+      getPlayer().cue("close");
+      dispatch({ type: "CANCEL" });
+    };
+    e.end = end;
+
+    // Waiting for you to start: if you say nothing for a while, the conversation rests.
+    const waitForSpeech = () => {
+      e.timers.forEach((id) => window.clearTimeout(id));
+      e.timers = [window.setTimeout(() => void end(false), SILENT_MS)];
+    };
+
     try {
       e.vad = await detectSpeech(mic, {
         onSpeechStart: () => {
+          if (ear.current !== e) return;
           // Heard something: the "nothing said" timer is replaced by the "too long" one,
           // and the loudness backstop starts watching for the end of your sentence.
           e.timers.forEach((id) => window.clearTimeout(id));
           let loudAt = performance.now();
           const watch = window.setInterval(() => {
             if (mic.level() > QUIET_LEVEL) loudAt = performance.now();
-            else if (performance.now() - loudAt > QUIET_MS) void closeEar(true);
+            else if (performance.now() - loudAt > QUIET_MS) void end(true);
           }, 100);
           // (clearTimeout also clears an interval: both share one list of ids.)
-          e.timers = [window.setTimeout(() => void closeEar(true), LONGEST_MS), watch];
+          e.timers = [window.setTimeout(() => void end(true), LONGEST_MS), watch];
         },
         onSpeechEnd: (audio) => void finish(audio),
+        // Too short to be a turn: back to waiting, with the "nothing said" timer running again.
+        onMisfire: () => {
+          if (ear.current === e) waitForSpeech();
+        },
       });
     } catch {
       // The speech detector failed to load: without it we can't tell when you're done.
@@ -401,16 +436,8 @@ export function useSarjy(lang: Lang) {
     e.stopPreview = previewWords(lang, (text) =>
       setCaption({ speaker: "user", lang, words: text.split(/\s+/), shown: Infinity, style: "dim" }),
     );
-    e.timers.push(
-      window.setTimeout(() => {
-        if (ear.current !== e) return;
-        conversing.current = false; // nothing said: the conversation rests
-        void closeEar(false);
-        setMicLook("ready");
-        getPlayer().cue("close");
-        dispatch({ type: "CANCEL" });
-      }, SILENT_MS),
-    );
+    // Speech may have started while the detector was loading: its timers are already set.
+    if (!e.timers.length) waitForSpeech();
     return true;
   }, [closeEar, lang, send]);
   useEffect(() => {
@@ -419,22 +446,25 @@ export function useSarjy(lang: Lang) {
 
   /** Tap while listening: "I'm done". Sends what was said so far, or closes quietly if nothing was. */
   const finishListening = useCallback(async () => {
-    const e = ear.current;
-    if (!e) return;
-    // If speech is in progress the VAD hands it to `finish` above; otherwise nothing comes back.
-    await closeEar(true);
-    setMicLook("ready");
-    if (!e.sent) {
-      conversing.current = false;
-      getPlayer().cue("close");
-      dispatch({ type: "CANCEL" });
-    }
-  }, [closeEar]);
+    await ear.current?.end(true);
+  }, []);
 
   // Once per frame while Sarjy talks: which word is being said, and is the turn over?
   useEffect(() => {
     let raf = 0;
+    let strandedAt = 0;
     const tick = () => {
+      // A last guard: "Listening" with no open mic is never right. Every exit above resets the
+      // screen, but if one is ever missed the screen recovers by itself instead of waiting for you.
+      if (stateRef.current === "listening" && !ear.current) {
+        strandedAt ||= performance.now();
+        if (performance.now() - strandedAt > STRANDED_MS) {
+          strandedAt = 0;
+          conversing.current = false;
+          setMicLook("ready");
+          dispatch({ type: "CANCEL" });
+        }
+      } else strandedAt = 0;
       const t = turn.current;
       const p = player.current;
       if (t && p && t.segments.length) {

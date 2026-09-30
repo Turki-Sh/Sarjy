@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 // The real mic path in a real browser: Chromium's fake microphone plays a recorded sentence
 // (tests/fixtures/hello-sarjy.wav, then silence). The speech detector hears it start and end,
 // the recording goes to /api/turn as a WAV, and the fake speech to text returns "Hello".
-// Acceptance tests AT-01 (a voice turn), AT-02 (the turn ends on its own), AT-03 (tap to close),
-// AT-07 (hands-free: the next turn needs no tap).
+// Acceptance tests AT-01 (a voice turn), AT-02 (the turn ends on its own), AT-07 (hands-free: the
+// next turn needs no tap). AT-03 (tap to close) is in mic-cough.spec.ts, on a silent start.
 
 const speech = fileURLToPath(new URL("../fixtures/hello-sarjy.wav", import.meta.url));
 
@@ -40,12 +40,4 @@ test("tap the mic, speak, and Sarjy answers when you stop", async ({ page }) => 
   await expect(screen(page)).toHaveAttribute("data-state", "listening", { timeout: 15_000 });
   await page.keyboard.press("Escape");
   await expect(screen(page)).toHaveAttribute("data-state", "idle");
-});
-
-test("tapping the mic while listening, before speaking, closes it quietly", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Talk to Sarjy" }).click();
-  await expect(screen(page)).toHaveAttribute("data-state", "listening", { timeout: 15_000 });
-  await page.getByRole("button", { name: /stop/i }).click();
-  await expect(screen(page)).toHaveAttribute("data-state", /idle|thinking/);
 });

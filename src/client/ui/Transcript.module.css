@@ -1,15 +1,24 @@
 /* One bubble per message, under the orb. */
 
 .transcript {
-  width: min(560px, 100%);
+  /* The box is wider and taller than the bubbles by the reach of their shadows (the padding), and
+     pulled back by the same amount (the negative margins). It has to clip (see below), and when
+     it hugged the bubbles it cut their shadows off in a hard rectangle (Turki's report, Day 2). */
+  --reach-inline: 36px;
+  --reach-start: 20px;
+  --reach-end: 44px;
+  width: min(560px + 2 * var(--reach-inline), 100% + 2 * var(--reach-inline));
+  padding-inline: var(--reach-inline);
+  padding-block: var(--reach-start) var(--reach-end);
+  margin-inline: calc(-1 * var(--reach-inline));
+  margin-block: calc(6px - var(--reach-start)) calc(-1 * var(--reach-end));
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: 8px;
-  margin-block-start: 6px;
   /* Bounded, so a very long answer never pushes the orb off center (at most four bubbles show),
      and never squeezed by its neighbours (the orb scales with the window instead). */
-  max-height: 42vh;
+  max-height: calc(42vh + var(--reach-start) + var(--reach-end));
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -123,9 +132,17 @@
   font-size: 16px;
 }
 
-/* Earlier lines fade with age. */
+/* Earlier lines fade with age, and a long one shows its first three lines: they are a reminder,
+   and keeping them short keeps the list inside its box. */
 .earlier .bubble {
   font-size: 14px;
+}
+.earlier:not([data-whole]) .words {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 .earlier .sarjy {
   font-size: 15px;

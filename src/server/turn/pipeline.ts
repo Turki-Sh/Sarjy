@@ -11,7 +11,7 @@ import "server-only";
 import { isStepCount, streamText, type ModelMessage } from "ai";
 import { eq } from "drizzle-orm";
 import type { Memory, TurnEvent } from "@/shared/protocol";
-import { openConversation, recentMessages, saveTurn } from "../chat/repo";
+import { openConversation, pictureBytes, picturesOf, recentMessages, saveTurn } from "../chat/repo";
 import type { Db } from "../db/client";
 import { users, type User } from "../db/schema";
 import { listMemories } from "../memory/repo";
@@ -43,6 +43,9 @@ const SAY: Record<"not_understood" | "model_unavailable" | "internal", Record<La
   internal: { en: "Something went wrong on my side. Try again?", ar: "صار خلل عندي. تجرب مرة ثانية؟" },
 };
 
+/** How an earlier picture appears to a model that can't see it, or once a newer one is in view. */
+const PICTURE_NOTE = "(A picture was sent with this message. Your reply after it says what was in it.)";
+
 /** What a picture sent without words is taken to ask. */
 const LOOK: Record<Lang, string> = { en: "What's in this picture?", ar: "وش في هالصورة؟" };
 
@@ -57,6 +60,15 @@ const writtenIn = (text: string, fallback: Lang): Lang => {
 };
 
 const toBase64 = (buf: ArrayBuffer) => Buffer.from(buf).toString("base64");
+
+/**
+ * The most a model without reasoning (Qwen) may write in one step. An answer is a sentence or two
+ * (under 100 tokens), so this never cuts one short. Without it Groq assumes a large request, and
+ * on the free tier (1,000 output tokens a minute for Qwen) refused picture turns outright. The
+ * gpt-oss models get no cap: their hidden reasoning comes out of the same budget, and cutting it
+ * would cut the answer.
+ */
+const PLAIN_MAX_OUTPUT = 500;
 
 // Per-model settings: keep reasoning short (it delays the first word) and never stream it as speech.
 const modelOptions = (modelId: string) => ({
@@ -115,17 +127,31 @@ export async function runTurn(
     replyLang: lang,
   });
   const image = input.image ? new Uint8Array(await input.image.arrayBuffer()) : null;
-  const messages: ModelMessage[] = [
-    ...history.map((m) => ({ role: m.role, content: m.text }) as ModelMessage),
-    image
-      ? {
-          role: "user",
-          content: [
-            { type: "text", text: heard },
-            { type: "image", image, mediaType: input.image!.type || "image/jpeg" },
-          ],
-        }
-      : { role: "user", content: heard },
+  const mediaType = input.image?.type || "image/jpeg";
+  // Pictures stay with the chat (Day 2). The model sees the latest earlier one again, so a
+  // follow-up ("and the horse?") still works; older ones are named in words, which keeps the
+  // turn small. A picture sent now replaces them all.
+  const pictured = await picturesOf(
+    db,
+    history.filter((m) => m.role === "user").map((m) => m.id),
+  );
+  const lastPictured = image ? undefined : history.findLast((m) => pictured.has(m.id));
+  const earlier = lastPictured ? await pictureBytes(db, pictured.get(lastPictured.id)!) : null;
+  const withPicture = (text: string, bytes: Uint8Array, type: string): ModelMessage => ({
+    role: "user",
+    content: [
+      { type: "text", text },
+      { type: "file", data: bytes, mediaType: type },
+    ],
+  });
+  /** The conversation for one model: pictures as pictures if it can see, else as a note. */
+  const messagesFor = (sees: boolean): ModelMessage[] => [
+    ...history.map((m): ModelMessage => {
+      if (!pictured.has(m.id)) return { role: m.role, content: m.text } as ModelMessage;
+      if (sees && earlier && m === lastPictured) return withPicture(m.text, earlier.bytes, earlier.mediaType);
+      return { role: "user", content: `${m.text}\n${PICTURE_NOTE}` };
+    }),
+    image ? withPicture(heard, image, mediaType) : { role: "user", content: heard },
   ];
 
   // 3. Think, with tools. Each tool reports its start and end, so the chip shows live timing.
@@ -195,7 +221,11 @@ export async function runTurn(
     });
   };
 
-  const attempt = async (model: Providers["models"][number]["model"], modelId: string) => {
+  const attempt = async (
+    model: Providers["models"][number]["model"],
+    modelId: string,
+    messages: ModelMessage[],
+  ) => {
     const result = streamText({
       model,
       system,
@@ -209,6 +239,7 @@ export async function runTurn(
       // don't run a tool whose result no one will hear, so nothing is ever saved unannounced.
       abortSignal: signal,
       providerOptions: modelOptions(modelId),
+      maxOutputTokens: modelId.startsWith("openai/gpt-oss") ? undefined : PLAIN_MAX_OUTPUT,
     });
     let text = "";
     for await (const part of result.fullStream) {
@@ -236,10 +267,17 @@ export async function runTurn(
   // stopping, so a failure after the first sentence ends the turn.
   let answer: string | null = null;
   // A turn with a picture goes only to models that can see (on Groq, Qwen); the others would fail.
-  const chain = image ? providers.models.filter((m) => m.vision) : providers.models;
-  for (const { id, model } of chain) {
+  // With an earlier picture in the chat, the models that see go first, and the rest still answer
+  // from the words (the picture becomes a note) rather than the turn failing.
+  const seeing = providers.models.filter((m) => m.vision);
+  const chain = image
+    ? seeing
+    : earlier
+      ? [...seeing, ...providers.models.filter((m) => !m.vision)]
+      : providers.models;
+  for (const { id, model, vision } of chain) {
     try {
-      answer = await attempt(model, id);
+      answer = await attempt(model, id, messagesFor(!!vision));
       timings.model = id;
       break;
     } catch {
@@ -274,6 +312,7 @@ export async function runTurn(
     assistantText: answer.trim(),
     tools: toolLog,
     timings,
+    picture: image ? { bytes: image, mediaType } : null,
   });
   const model = String(timings.model ?? "");
   const costUsd = turnCost({

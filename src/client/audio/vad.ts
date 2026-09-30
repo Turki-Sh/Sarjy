@@ -26,6 +26,8 @@ export type SpeechEvents = {
   onSpeechStart: () => void;
   /** You finished: your speech as 16 kHz samples, ready to become a WAV. */
   onSpeechEnd: (audio: Float32Array) => void;
+  /** What started as speech was too short to be a turn (a cough, a click): still listening. */
+  onMisfire: () => void;
 };
 
 export type Listening = {
@@ -52,6 +54,9 @@ export async function listen(mic: Mic, events: SpeechEvents): Promise<Listening>
     onSpeechStart: events.onSpeechStart,
     onSpeechEnd: (audio) => {
       if (submitting) events.onSpeechEnd(audio);
+    },
+    onVADMisfire: () => {
+      if (submitting) events.onMisfire();
     },
   });
   return {

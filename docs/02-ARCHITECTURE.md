@@ -361,8 +361,9 @@ The brief's multimodal example: Sarjy can see an image while you talk about it.
 1. You drop, paste or photograph an image (the text box and the orb both accept it). The browser shrinks it to at most 1,280 px on the long side and JPEG-encodes it, so uploads stay under about 300 KB.
 2. It rides along with your next turn, as a second part of the same `/api/turn` request.
 3. A turn with an image goes to `qwen/qwen3.8-27b` (thinking off), because `gpt-oss-120b` reads text only. Tools and memory work the same.
-4. The transcript shows a thumbnail on your message. The image lives only in that conversation's messages (as a small data URL), and Forget everything removes it.
-5. In a room, the image is shown to everyone, because it was shared in the room.
+4. The transcript shows a thumbnail on your message. The picture is kept with the chat (Turki's review, Day 2): a `pictures` row beside your message (the JPEG bytes, apart from `messages` so listing a chat never loads them). Reopening the chat shows it again, from `GET /api/pictures/{id}`, which serves only the owner's pictures. Deleting the chat, or Forget everything, removes it.
+5. Later turns in the same chat still see it: the latest earlier picture goes back to the model with its message, so "and the horse?" works. Older ones become a note in words, and a new picture replaces them. Such a turn tries the models that see first; if none can answer, the others answer from the words rather than the turn failing.
+6. In a room, the image is shown to everyone, because it was shared in the room.
 
 ## 10. The prompt
 
@@ -395,7 +396,7 @@ Three layers, each cheap, each tested.
 | Mic | `getUserMedia` with echo cancellation, noise suppression and auto gain. An `AnalyserNode` gives the level that drives the wave and the light. |
 | End of speech | `@ricky0123/vad-web` (Silero VAD v5 in ONNX Runtime Web). Its files are copied from `node_modules` into `public/vad/` by `scripts/vad/copy-assets.mjs` before every build (git-ignored), and fetched while the page is idle so the first tap is quick. About 600 ms of silence ends a turn; this is the main dial between "cuts me off" and "feels slow". Tapping the mic mid-sentence also ends the turn; saying nothing for 8 s closes the mic; a turn longer than 30 s is sent as it is. |
 | Barge-in | A tap on the mic while Sarjy thinks or speaks stops it and listens. Speaking over Sarjy is not supported yet: on laptop speakers the detector hears Sarjy's own voice, and browser echo cancellation does not reliably cover Web Audio playback, so Sarjy would interrupt itself. With headphones the risk goes away. |
-| Hands-free | After Sarjy answers a spoken question, the mic reopens by itself (open cue, then listening), only once playback has finished, so Sarjy never hears itself. Eight seconds of quiet, End, or typing ends the conversation. Once you have spoken, a loudness backstop also ends the turn after 1.3 s below a low level, in case the detector keeps hearing "maybe speech" in a noisy room. |
+| Hands-free | After Sarjy answers a spoken question, the mic reopens by itself (open cue, then listening), only once playback has finished, so Sarjy never hears itself. Eight seconds of quiet, End, or typing ends the conversation. Once you have spoken, a loudness backstop also ends the turn after 1.3 s below a low level, in case the detector keeps hearing "maybe speech" in a noisy room. Every way listening ends goes through one function: if nothing was sent (you never spoke, or it was only a cough the detector dropped), the screen rests instead of staying on "Listening" with the mic closed (Turki's review, Day 2). A dropped sound puts the 8 s quiet timer back, and a last guard resets the screen if it ever says "Listening" with no open mic for 1.5 s. |
 | Sound cues | `client/audio/cues.ts` synthesizes the brand's three cues on the player's AudioContext: open when the detector is ready, close when the mic shuts, one tick at the stitch. Mic, voice and cues share one context, so one tap unlocks them all. |
 | Live preview | The Web Speech API with interim results, in the interface language. Display only; Whisper's text is the one that counts. Absent in Firefox, where words appear when the turn ends. |
 | Playback | Web Audio. Each segment is decoded and scheduled back to back on one `AudioContext` clock. An `AnalyserNode` on the output drives the wave while speaking. |
@@ -514,6 +515,7 @@ erDiagram
   users ||--o{ memories : keeps
   users ||--o{ conversations : has
   conversations ||--o{ messages : contains
+  messages ||--o| pictures : "sent with"
   conversations ||--o| rooms : "shared as"
   rooms ||--o{ room_members : has
   rooms ||--o{ room_segments : "keeps audio for 1 h"
@@ -553,6 +555,13 @@ erDiagram
     text lang
     jsonb tools
     jsonb timings
+    timestamptz created_at
+  }
+  pictures {
+    uuid id PK
+    uuid message_id FK
+    text media_type
+    bytea bytes
     timestamptz created_at
   }
   rooms {
@@ -613,7 +622,7 @@ The repository is public and the URL will be shared, so:
 | Forged identity | The cookie is HMAC-signed; a tampered cookie is treated as a new visitor. |
 | Prompt injection through memory or tool output | Clamped values, delimited data blocks, and prompt rules that treat them as data. |
 | Mic abuse | `Permissions-Policy: microphone=(self)`, plus a Content Security Policy. |
-| Oversized or hostile image uploads | Resized in the browser, re-checked on the server (type sniffed, 1 MB cap), never written to disk or served back to anyone outside the conversation. |
+| Oversized or hostile image uploads | Resized in the browser, re-checked on the server (JPEG, PNG or WebP only, 1.5 MB cap), kept in the database (never on disk), and served back only to the chat's owner, with `nosniff`. |
 | Someone publishes fake events into a room | Browser tokens can subscribe and use presence but cannot publish. Only the server publishes. |
 | One person's memory reaches another in a room | Only the speaker's memories are ever loaded into a turn (section 13). Tested directly. |
 

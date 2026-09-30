@@ -3,6 +3,7 @@
 
 import {
   boolean,
+  customType,
   index,
   integer,
   jsonb,
@@ -87,6 +88,31 @@ export const messages = pgTable(
   (t) => [index("messages_conversation_created").on(t.conversationId, t.createdAt)],
 );
 
+/** Raw bytes (Postgres bytea), for pictures. */
+const bytes = customType<{ data: Buffer; driverData: Buffer | Uint8Array }>({
+  dataType: () => "bytea",
+  fromDriver: (value) => Buffer.from(value),
+});
+
+/**
+ * A picture sent with a message (Day 2: pictures stay with the chat). Kept apart from messages so
+ * listing a chat never loads the bytes; each is at most 1.5 MB, usually 150 to 300 KB (a 1280 px
+ * JPEG). Deleting the chat, or the user, deletes its pictures.
+ */
+export const pictures = pgTable(
+  "pictures",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    mediaType: text("media_type").notNull(),
+    bytes: bytes("bytes").notNull(),
+    createdAt,
+  },
+  (t) => [index("pictures_message").on(t.messageId)],
+);
+
 /**
  * A shared moment: one exchange the user chose to share, copied at the time of sharing.
  * Link-only (random code, noindex). Deleting the user deletes their shares.
@@ -115,4 +141,5 @@ export const rateLimits = pgTable("rate_limits", {
 export type User = typeof users.$inferSelect;
 export type MemoryRow = typeof memories.$inferSelect;
 export type MessageRow = typeof messages.$inferSelect;
+export type PictureRow = typeof pictures.$inferSelect;
 export type ShareRow = typeof shares.$inferSelect;

@@ -58,6 +58,7 @@ type Strings = {
     tokens: string;
     cost: string;
     perThousand: string;
+    close: string;
   };
   chatMenu: {
     more: string;
@@ -193,6 +194,7 @@ export const STRINGS: Record<Lang, Strings> = {
       tokens: "Tokens in, out",
       cost: "Cost",
       perThousand: "per 1,000 answers like this",
+      close: "Close",
     },
     chatMenu: {
       more: "More options",
@@ -328,6 +330,7 @@ export const STRINGS: Record<Lang, Strings> = {
       tokens: "التوكنز داخل، طالع",
       cost: "التكلفة",
       perThousand: "لكل ١٬٠٠٠ رد مثله",
+      close: "سكّر",
     },
     chatMenu: {
       more: "خيارات أكثر",

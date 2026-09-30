@@ -36,6 +36,13 @@
       "when": 1790725880138,
       "tag": "0004_strange_paladin",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790730622450,
+      "tag": "0005_mute_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

@@ -215,6 +215,12 @@ export function createFakeModel(modelId = "fake-sarjy") {
       } else if (last.role === "user" && last.content.some((p) => p.type === "file")) {
         // A picture: the stand-in can't see, but it answers like a model that can.
         reply = { text: ar ? "شفت الصورة، حلوة مرة." : "I can see your picture. Nice one." };
+      } else if (
+        prompt.some((m) => m.role === "user" && m.content.some((p) => p.type === "file")) &&
+        /picture|photo|صورة/i.test(lastUserText(prompt))
+      ) {
+        // A question about a picture sent earlier in the chat, which is still in view.
+        reply = { text: ar ? "إيه، الصورة قدامي للحين." : "Yes, I can still see your picture." };
       } else {
         reply = firstReply(lastUserText(prompt), systemText(prompt));
       }

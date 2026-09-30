@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
 import type { Timings } from "@/shared/protocol";
@@ -27,8 +27,12 @@ type Props = {
 };
 
 export function Transcript({ lang, all, earlier: recent, caption, timings, welcome }: Props) {
-  const [open, setOpen] = useState(false);
+  // The card belongs to one answer: it is open for those timings, so the next turn closes it.
+  const [openFor, setOpenFor] = useState<Timings | null>(null);
+  const open = !!timings && openFor === timings;
   const [whole, setWhole] = useState(false);
+  const info = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setOpenFor(null), []);
   const s = t(lang);
   if (!recent.length && !caption) {
     if (!welcome) return null;
@@ -61,7 +65,7 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
       )}
       <div className={styles.transcript} data-whole={whole || undefined}>
         {earlier.length > 0 && (
-          <ol className={styles.earlier} aria-hidden="true">
+          <ol className={styles.earlier} aria-hidden="true" data-whole={whole || undefined}>
             {earlier.map((line, i) => (
               <li
                 key={`${earlier.length - i}:${line.text.slice(0, 24)}`}
@@ -75,7 +79,7 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
                   // eslint-disable-next-line @next/next/no-img-element -- a local object URL
                   <img className={styles.picture} src={line.image} alt="" />
                 )}
-                {line.text}
+                <span className={styles.words}>{line.text}</span>
               </li>
             ))}
           </ol>
@@ -87,12 +91,13 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
             <Caption caption={caption} />
             {canExplain && (
               <button
+                ref={info}
                 type="button"
                 className={styles.info}
                 aria-label={s.details.open}
                 title={s.details.open}
                 aria-expanded={open}
-                onClick={() => setOpen((o) => !o)}
+                onClick={() => setOpenFor(open ? null : timings)}
               >
                 <Icon name="info" />
               </button>
@@ -100,7 +105,7 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
           </div>
         )}
       </div>
-      {canExplain && open && <Details lang={lang} timings={timings!} />}
+      {canExplain && open && <Details lang={lang} timings={timings!} onClose={close} opener={info} />}
     </>
   );
 }

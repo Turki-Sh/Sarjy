@@ -4,12 +4,13 @@
 .side {
   background: color-mix(in srgb, var(--side) var(--panel-keep), transparent);
   border: 1px solid var(--line);
+  /* The same 10 px gap above, below and at the edge, so it floats centered in the window. (It
+     also had a sticky offset of 10 px, which the screen's `position: relative` turned into a
+     plain shift: 20 px above, none below. The page never scrolls, so neither is needed.) */
   margin: 10px;
   margin-inline-end: 0;
   border-radius: var(--r-l);
   height: calc(100dvh - 20px);
-  position: sticky;
-  inset-block-start: 10px;
   padding: 18px 14px;
   display: flex;
   flex-direction: column;

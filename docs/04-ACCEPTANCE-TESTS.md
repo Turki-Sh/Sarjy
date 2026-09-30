@@ -26,6 +26,7 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-05 | Chrome, Edge or Safari | I speak | My words appear while I am still speaking, then are replaced by the final transcript | V5 | Should | Live |
 | AT-06 | Sarjy is speaking | I tap the mic | Playback stops within 300 ms and Sarjy listens to me | V6 | Should | Live |
 | AT-07 | I asked something by voice | Sarjy finishes answering | The mic reopens by itself (open cue, `listening`); if I say nothing for 8 s it closes; End or typing leaves hands-free | V7 | Must | E2E |
+| AT-07a | Sarjy is listening | I cough, or something clicks, and then say nothing | The detector drops the sound, listening carries on, and after 8 s of quiet the mic closes and the state is `idle`; nothing is sent, and the screen never stays on "Listening" with the mic closed (Turki's review, Day 2) | V1, V7 | Must | E2E |
 
 ## Memory
 
@@ -72,9 +73,11 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-48 | Sound on | The mic opens, closes, and a memory is saved | The three cues play as specified (rising fifth, falling fifth, 60 ms tick) and nothing else makes noise | U7 | Should | Live |
 | AT-49 | Two chats exist | I pick an older chat | Its messages load; a new turn continues it; New chat starts a fresh one | U8 | Should | E2E |
 | AT-50 | Any turn finished | I open the details | A waterfall shows speech to text, model, tool, voice and time to first audio in ms | U9 | Should | E2E |
+| AT-50a | The details are open | I press their X, press Escape, tap anywhere else, or tap the ⓘ again | They close; they never cover the ⓘ or the answer, and the next turn closes them (Turki's review, Day 2) | U9 | Must | E2E |
 | AT-51 | A 390 px wide phone | I open the page | No horizontal scroll; the sidebar is a sheet; the orb, caption and control bar fit | U10 | Should | E2E, Live |
 | AT-52 | Reduced motion on | Sarjy speaks | The wave and the light stay still; mic, chip and captions still change | U11 | Should | E2E |
 | AT-53 | A photo of a street sign in Arabic | I drop it into the chat and ask "What does this say?" | A thumbnail appears on my message; Sarjy reads and translates the sign; the turn was answered by the image-capable model | U12 | Must | Int (routing), E2E (upload), Live |
+| AT-53a | AT-53 done | I open another chat, come back to this one, and ask "what else is in it?" | The thumbnail is back on my message, loaded from a link only I can open, and Sarjy answers about the same picture (Turki's review, Day 2) | U12 | Must | Int, E2E, Live |
 | AT-54 | A 12 MB photo, or a file that is not an image | I drop it | The photo is shrunk below 300 KB before upload; the non-image is refused with a short message; the server rejects anything over 1 MB or not an image | U12 | Must | Unit, Int |
 
 ## Deployment, security, resilience

@@ -1,11 +1,11 @@
 /* The details card: a waterfall of the turn's timings, then the facts. */
 
-/* It floats above the text box instead of joining the bubbles, so opening it never squeezes them. */
+/* It floats instead of joining the bubbles, so opening it never squeezes them. Details.tsx sets
+   its top from the ⓘ that opened it. */
 .details {
   position: fixed;
   z-index: 20;
   inset-inline: 0;
-  inset-block-end: 104px;
   margin-inline: auto;
   width: min(420px, calc(100% - 32px));
   padding: 14px 16px;
@@ -13,9 +13,47 @@
   font: 400 13px/1.4 var(--font-ui);
   animation: rise var(--t-base) var(--ease-rein) both;
 }
+/* It floats over the bubbles, so it keeps enough tint and frosting to read at every glass level
+   (like the menus). At Clear, plain glass let the words behind show through.
+   (:root raises it above glass.css's refraction rule, which would otherwise thin the frosting.) */
+:root .details:global(.glass) {
+  background: color-mix(in srgb, var(--bg) calc((1 - var(--lq) * 0.06) * 100%), transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  color: var(--text);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 10px;
+}
 .title {
-  margin: 0 0 10px;
+  margin: 0;
   font: 600 13px/1.3 var(--font-ui);
+}
+.close {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin-inline-end: -6px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.close:hover {
+  color: var(--text);
+  background: var(--sunken);
+}
+.close svg {
+  width: 15px;
+  height: 15px;
 }
 .waterfall {
   list-style: none;

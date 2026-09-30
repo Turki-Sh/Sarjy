@@ -22,6 +22,22 @@ test("how an answer was made: timings, model, tokens and cost", async ({ page })
   await expect(details.getByText("Done")).toBeVisible();
   await expect(details.getByText("fake-main")).toBeVisible();
   await expect(details.getByText(/^\$0\.\d+/)).toBeVisible();
+
+  // It closes like any popover (Turki's report, Day 2: "I can't remove it"): its X, Escape, a tap
+  // anywhere else, or the ⓘ again.
+  const info = page.getByRole("button", { name: "How this answer was made" });
+  await details.getByRole("button", { name: "Close" }).click();
+  await expect(details).toHaveCount(0);
+  await info.click();
+  await page.keyboard.press("Escape");
+  await expect(details).toHaveCount(0);
+  await info.click();
+  await page.mouse.click(10, 400);
+  await expect(details).toHaveCount(0);
+  await info.click();
+  await expect(details).toBeVisible();
+  await info.click();
+  await expect(details).toHaveCount(0);
 });
 
 test("Settings, Voice: pick a voice per language, hear it, and keep it", async ({ page }) => {
@@ -51,6 +67,21 @@ test("a picture goes with the turn, shows in your bubble, and Sarjy answers abou
   });
   await expect(page.locator("main section ol li img")).toBeVisible();
   await expect(page.getByRole("button", { name: "Remove the picture" })).toHaveCount(0);
+
+  // The picture stays with the chat (Turki's report, Day 2): reopened later, it is still in your
+  // bubble, and Sarjy can still answer about it.
+  await idle(page);
+  const sidebar = page.getByRole("complementary");
+  await sidebar.getByRole("button", { name: "New chat" }).click();
+  await expect(page.locator("main section ol li img")).toHaveCount(0);
+  await sidebar.getByRole("button", { name: "What's in this picture?", exact: true }).click();
+  const kept = page.locator("main section ol li img");
+  await expect(kept).toHaveAttribute("src", /^\/api\/pictures\/[0-9a-f-]{36}$/);
+  await expect.poll(() => kept.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  await say(page, "What was in the picture again?");
+  await expect(page.locator("main section p[lang]")).toHaveText("Yes, I can still see your picture.", {
+    timeout: 15_000,
+  });
 });
 
 test("on a phone, the sidebar is a sheet you open and it closes when you pick", async ({ page }) => {

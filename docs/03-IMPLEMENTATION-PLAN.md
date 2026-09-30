@@ -226,6 +226,14 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] The orb is centered in the window (the stage spans the full height; the top bar and text box sit over it)
 - [x] Edge light that reads as glass: a bright crescent at the lit corner, a bright top edge, a faint opposite reflection, soft inner shading low down; it mirrors in Arabic
 
+### Fixed from Turki's sixth review (Day 2, after M5)
+- [x] Stuck on "Listening": a cough or click started the speech detector, which then dropped it, and nothing reset the screen. Every way listening ends now goes through one function that rests the screen when nothing was sent; a dropped sound restarts the 8 s quiet timer; a last guard resets "Listening" with no open mic. A fake-microphone test plays a 160 ms burst (AT-07a)
+- [x] Pictures stay with the chat: saved in a `pictures` table beside the message, shown again when the chat is reopened (`/api/pictures/{id}`, owner only), and the latest one goes back to the model so follow-ups work; if no seeing model can answer, the others answer from the words (AT-53a)
+- [x] Found while checking pictures live: Groq's free tier refused Qwen requests that left the output length open (1,000 output tokens a minute). Qwen, which has no reasoning, is now capped at 500 per step, far above a one or two sentence answer; gpt-oss stays uncapped so its hidden reasoning is never cut
+- [x] The details card could not be closed (it covered its own ⓘ): it now sits above the ⓘ (below when there is no room), closes with its X, Escape, a tap elsewhere, the ⓘ, or the next turn, and keeps enough tint to read at Clear (AT-50a)
+- [x] The hard rectangle around the bubbles: the transcript clipped their shadows. Its box now reaches past the bubbles by the shadows' size; older bubbles show at most three lines, so the list rarely overflows
+- [x] The sidebar sat 20 px from the top and flush with the bottom (a sticky offset turned into a plain shift). It now floats with the same 10 px gap above and below
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)
