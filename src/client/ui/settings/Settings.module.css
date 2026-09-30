@@ -533,6 +533,29 @@
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+/* A memory: one sentence, then the words it came from. */
+.fact .stitched {
+  display: grid;
+  gap: 3px;
+}
+.note {
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+/* A topic: its name, then its memories. Topics are set apart by a line, as rows are. */
+.topic + .topic {
+  border-block-start: 1px solid var(--line);
+}
+.topic .row:first-of-type {
+  padding-block-start: 6px;
+}
+.topicName {
+  margin: 0;
+  padding-block: 14px 2px;
+  font: 600 12px/1.3 var(--font-ui);
+  color: var(--text-2);
+}
 
 /* Phones: the popup fills the screen and the sections become a row of tabs. */
 @media (max-width: 700px) {

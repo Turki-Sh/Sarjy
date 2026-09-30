@@ -51,21 +51,25 @@ test("your name, and your memories: edit, forget, forget everything", async ({ p
   await page.keyboard.press("Escape");
 
   await say(page, "My favorite color is green.");
-  await expect(page.getByRole("button", { name: /^Saved: Favorite color, Green/ })).toBeVisible({
+  await expect(page.getByRole("button", { name: /^Noted: Your favorite color is Green\./ })).toBeVisible({
     timeout: 15_000,
   });
 
   await open(page, "Memory");
   const memory = settings(page);
-  await expect(memory.getByText("Turki", { exact: true })).toBeVisible();
+  // Memories are sentences, grouped by topic, each with the words it came from.
+  await expect(memory.getByText("Your name is Turki.", { exact: true })).toBeVisible();
+  await expect(memory.getByRole("heading", { name: "Likes and dislikes" })).toBeVisible();
+  await expect(memory.getByText("Your favorite color is Green.", { exact: true })).toBeVisible();
+  await expect(memory.getByText("You said: “My favorite color is green.”")).toBeVisible();
   // Edit the color.
   await memory.getByRole("button", { name: "Edit Favorite color" }).click();
-  await memory.getByRole("textbox", { name: "Favorite color" }).fill("Blue");
+  await memory.getByRole("textbox", { name: "Favorite color" }).fill("Your favorite color is blue.");
   await memory.getByRole("button", { name: "Save" }).click();
-  await expect(memory.getByText("Blue", { exact: true })).toBeVisible();
+  await expect(memory.getByText("Your favorite color is blue.", { exact: true })).toBeVisible();
   // Forget it.
   await memory.getByRole("button", { name: "Forget Favorite color" }).click();
-  await expect(memory.getByText("Blue", { exact: true })).toHaveCount(0);
+  await expect(memory.getByText("Your favorite color is blue.", { exact: true })).toHaveCount(0);
 
   // Forget everything asks once, then starts over as a stranger.
   await memory.getByRole("button", { name: "Forget everything" }).click();
@@ -81,13 +85,13 @@ test("memory lives in Settings: the sidebar has one row that opens it, and the s
   await page.goto("/");
   const side = page.getByRole("complementary");
   await say(page, "My favorite color is green.");
-  const card = page.getByRole("button", { name: /^Saved: Favorite color, Green/ });
+  const card = page.getByRole("button", { name: /^Noted: Your favorite color is Green\./ });
   await expect(card).toBeVisible({ timeout: 15_000 });
   // No list of facts in the sidebar, only the way in.
   await expect(side.getByText("Green", { exact: true })).toHaveCount(0);
   await card.click();
   await expect(settings(page).getByRole("heading", { name: "Memory" })).toBeVisible();
-  await expect(settings(page).getByText("Green", { exact: true })).toBeVisible();
+  await expect(settings(page).getByText("Your favorite color is Green.", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await side.getByRole("button", { name: /Memory/ }).click();
   await expect(settings(page).getByRole("heading", { name: "Memory" })).toBeVisible();

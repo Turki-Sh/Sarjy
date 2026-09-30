@@ -17,10 +17,11 @@ test("saves a fact, stitches it, and remembers it after a reload", async ({ page
 
   await expect(screen(page)).toHaveAttribute("data-state", /thinking|tool|speaking/);
   await expect(screen(page)).toHaveAttribute("data-state", "saving", { timeout: 10_000 });
-  // The moment it is remembered: the stitched card under the orb, and the Memory count in the sidebar.
-  await expect(page.getByRole("button", { name: /^Saved: Favorite color, Green/ })).toBeVisible();
+  // Save, then show (Day 2): Sarjy just reacts, and the moment it is remembered the stitched card
+  // lands under the orb, with the Memory count in the sidebar.
+  await expect(caption(page)).toHaveText("Got it.");
+  await expect(page.getByRole("button", { name: /^Noted: Your favorite color is Green\./ })).toBeVisible();
   await expect(page.getByRole("complementary").getByRole("button", { name: /Memory\s*1/ })).toBeVisible();
-  await expect(page.locator("p[lang] span[class*=keep]")).toHaveText(/favorite color is green/i);
   await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 5_000 });
 
   await page.reload();
@@ -28,7 +29,9 @@ test("saves a fact, stitches it, and remembers it after a reload", async ({ page
     .getByRole("complementary")
     .getByRole("button", { name: /Memory/ })
     .click();
-  await expect(page.getByRole("dialog").getByText("Green", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("dialog").getByText("Your favorite color is Green.", { exact: true }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
   await say(page, "What's my favorite color?");
   await expect(caption(page)).toHaveText("Green. You told me today.", { timeout: 10_000 });
@@ -59,9 +62,13 @@ test("the whole answer plays even when the rest of it arrives after the first se
     } as typeof decode;
   });
   await page.goto("/");
-  await say(page, "My favorite color is green.");
-  await expect(screen(page)).toHaveAttribute("data-state", "saving", { timeout: 15_000 });
-  await expect(caption(page)).toHaveText("Saved. Your favorite color is green.");
+  // A first visit's greeting gets a three-sentence answer: the first plays, the rest arrive late.
+  await say(page, "Hello");
+  await expect(screen(page)).toHaveAttribute("data-state", "speaking", { timeout: 15_000 });
+  await expect(screen(page)).toHaveAttribute("data-state", "idle", { timeout: 15_000 });
+  await expect(caption(page)).toHaveText(
+    "Hi, I'm Sarjy. I remember what you tell me. What should I call you?",
+  );
 });
 
 // Past Groq's daily limit the voice returns nothing and the browser reads instead (Turki's review,

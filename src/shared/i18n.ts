@@ -55,6 +55,7 @@ type Strings = {
     firstWord: string;
     firstSound: string;
     tools: string;
+    memory: string;
     done: string;
     model: string;
     tokens: string;
@@ -110,6 +111,8 @@ type Strings = {
     name: string;
     save: string;
     memoryHint: string;
+    /** Under a memory: the words it came from. */
+    memoryFrom: string;
     edit: string;
     forget: string;
     cancel: string;
@@ -179,7 +182,7 @@ export const STRINGS: Record<Lang, Strings> = {
     openSidebar: "Open sidebar",
     changePicture: "Change your picture",
     rename: "Rename",
-    savedCard: "Saved",
+    savedCard: "Noted",
     welcome: {
       line: "Hey, I'm Sarjy. Tap me and say hi, or type below. Tell me things and I'll remember them.",
       skip: "Skip the intro",
@@ -199,6 +202,7 @@ export const STRINGS: Record<Lang, Strings> = {
       firstWord: "First word",
       firstSound: "First sound",
       tools: "Tools",
+      memory: "Remembering",
       done: "Done",
       model: "Model",
       tokens: "Tokens in, out",
@@ -255,6 +259,7 @@ export const STRINGS: Record<Lang, Strings> = {
       name: "Your name",
       save: "Save",
       memoryHint: "Everything Sarjy remembers about you. Change or forget anything.",
+      memoryFrom: "You said",
       edit: "Edit",
       forget: "Forget",
       cancel: "Cancel",
@@ -323,7 +328,7 @@ export const STRINGS: Record<Lang, Strings> = {
     openSidebar: "افتح القائمة",
     changePicture: "غيّر صورتك",
     rename: "غيّر الاسم",
-    savedCard: "انحفظ",
+    savedCard: "حفظتها",
     welcome: {
       line: "هلا، أنا سرجي. اضغط علي وسلّم، أو اكتب تحت. قل لي أشياء وأتذكرها لك.",
       skip: "تخطّ التعريف",
@@ -343,6 +348,7 @@ export const STRINGS: Record<Lang, Strings> = {
       firstWord: "أول كلمة",
       firstSound: "أول صوت",
       tools: "الأدوات",
+      memory: "التذكّر",
       done: "خلص",
       model: "النموذج",
       tokens: "التوكنز داخل، طالع",
@@ -397,6 +403,7 @@ export const STRINGS: Record<Lang, Strings> = {
       name: "اسمك",
       save: "حفظ",
       memoryHint: "كل اللي يتذكره سرجي عنك. عدّل أو احذف أي شي.",
+      memoryFrom: "قلت",
       edit: "تعديل",
       forget: "انسَ",
       cancel: "إلغاء",

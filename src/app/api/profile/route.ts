@@ -55,7 +55,9 @@ export async function PATCH(request: Request) {
   const memory = await upsertMemory(db, user.id, {
     key: "name",
     label: body.lang === "ar" ? "الاسم" : "Name",
+    topic: "you",
     value: body.name,
+    note: body.lang === "ar" ? `اسمك ${body.name}.` : `Your name is ${body.name}.`,
     lang: body.lang,
   });
   await db

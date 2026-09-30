@@ -9,7 +9,7 @@ export type Lang = "en" | "ar";
 
 export interface SpeechToText {
   /** Audio in, text and detected language out. `hint` is the interface language. */
-  transcribe(audio: Blob, hint: Lang): Promise<{ text: string; lang: Lang }>;
+  transcribe(audio: Blob, hint: Lang): Promise<{ text: string; lang: Lang; unsure?: boolean }>;
 }
 
 export interface TextToSpeech {
@@ -34,5 +34,7 @@ export type Providers = {
   stt: SpeechToText;
   tts: TextToSpeech;
   models: Models;
+  /** The models that decide what to remember after each turn (server/memory/writer.ts), best first. */
+  writer: Models;
   fetch: Fetch;
 };

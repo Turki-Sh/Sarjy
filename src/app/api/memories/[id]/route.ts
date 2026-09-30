@@ -10,7 +10,11 @@ import { deleteMemory, listMemories, updateMemory } from "@/server/memory/repo";
 
 export const dynamic = "force-dynamic";
 
-const Patch = z.object({ label: z.string().max(200).optional(), value: z.string().max(500).optional() });
+const Patch = z.object({
+  label: z.string().max(200).optional(),
+  value: z.string().max(500).optional(),
+  note: z.string().max(500).optional(),
+});
 
 type Params = { params: Promise<{ id: string }> };
 

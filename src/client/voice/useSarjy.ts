@@ -527,8 +527,9 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
   }, []);
 
   // Memory card actions.
-  const editMemory = useCallback(async (id: string, value: string) => {
-    const res = await fetch(`/api/memories/${id}`, { method: "PATCH", body: JSON.stringify({ value }) });
+  /** Edits a memory: its sentence, or the bare value of one the app reads (name, city, units). */
+  const editMemory = useCallback(async (id: string, change: { note?: string; value?: string }) => {
+    const res = await fetch(`/api/memories/${id}`, { method: "PATCH", body: JSON.stringify(change) });
     if (res.ok) {
       const { memory } = (await res.json()) as { memory: Memory };
       setMemories((list) => list.map((m) => (m.id === id ? memory : m)));

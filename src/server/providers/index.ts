@@ -30,6 +30,7 @@ export function getProviders(
       { id: "fake-main", model: createFakeModel("fake-main") },
       { id: "fake-fallback", model: createFakeModel("fake-fallback"), vision: true },
     ],
+    writer: [{ id: "fake-writer", model: createFakeModel("fake-writer") }],
     fetch: fakeFetch,
   };
 }

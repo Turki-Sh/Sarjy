@@ -92,6 +92,12 @@ export function Details({ lang, timings, onClose, opener }: Props) {
           ))}
       </ol>
       <dl className={styles.facts}>
+        {timings.memoryMs !== undefined && (
+          <>
+            <dt>{s.memory}</dt>
+            <dd>{ms(timings.memoryMs, lang)}</dd>
+          </>
+        )}
         {timings.toolMs !== undefined && (
           <>
             <dt>{s.tools}</dt>

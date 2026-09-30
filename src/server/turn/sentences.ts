@@ -28,13 +28,15 @@ export const isSelfTalk = (sentence: string) => SELF_TALK.some((p) => p.test(sen
 /**
  * Markdown the model sometimes writes despite the prompt (Turki's review, Day 2: "*Horizon
  * Forbidden West*" on screen). It would show as symbols and be read out, so only the words stay:
- * emphasis marks, code ticks, headings, bullets and numbered list marks, and link targets.
+ * emphasis marks, code ticks, headings, bullets and numbered list marks, link targets, and emoji.
  */
 export const plain = (text: string) =>
   text
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/^\s*(#{1,6}|[-*+•]|\d+[.)])\s+/gm, "")
     .replace(/[*`]+/g, "")
+    // Emoji: never said and never shown (brand rule), though a fallback model sometimes adds one.
+    .replace(/\p{Extended_Pictographic}\uFE0F?/gu, "")
     .replace(/(^|[\s(])_{1,2}(?=\S)|(?<=\S)_{1,2}(?=[\s).,!?؟،]|$)/g, "$1")
     .replace(/[ \t]{2,}/g, " ");
 

@@ -58,7 +58,7 @@ type Props = {
   onAvatar: (id: AvatarId) => void;
   onUpload: (dataUrl: string) => void;
   onName: (name: string) => void;
-  onEditMemory: (id: string, value: string) => void;
+  onEditMemory: (id: string, change: { note?: string; value?: string }) => void;
   onForgetMemory: (id: string) => void;
   onForgetAll: () => void;
 };

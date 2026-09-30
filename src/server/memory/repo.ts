@@ -5,11 +5,12 @@ import "server-only";
 // never smuggle a paragraph of instructions into the prompt), and everything is scoped to one user.
 
 import { and, asc, eq } from "drizzle-orm";
+import { isTopic, type Topic } from "@/shared/memory";
 import type { Memory } from "@/shared/protocol";
 import type { Db } from "../db/client";
 import { memories, type MemoryRow } from "../db/schema";
 
-export const LIMITS = { key: 40, label: 40, value: 120, source: 300 } as const;
+export const LIMITS = { key: 40, label: 40, value: 120, note: 220, source: 300 } as const;
 
 /** "Favorite Color!" and "favorite_color" are the same memory. Keys are English snake_case. */
 export function normalizeKey(key: string): string {
@@ -29,8 +30,10 @@ export function toMemory(row: MemoryRow): Memory {
   return {
     id: row.id,
     key: row.key,
+    topic: isTopic(row.topic) ? row.topic : "other",
     label: row.label,
     value: row.value,
+    note: row.note,
     lang: row.lang === "ar" ? "ar" : "en",
     source: row.source,
     createdAt: row.createdAt.toISOString(),
@@ -49,21 +52,29 @@ export async function listMemories(db: Db, userId: string): Promise<Memory[]> {
 
 export type NewMemory = {
   key: string;
+  topic?: Topic;
   label: string;
   value: string;
+  /** The memory as one sentence, with its details. */
+  note?: string | null;
   source?: string | null;
   lang: "en" | "ar";
 };
 
-/** Saves a memory; saving the same key again updates it (and keeps when it was first told). */
+/**
+ * Saves a memory; saving the same key again updates it. It keeps when it was first told
+ * (createdAt), and updatedAt is when it last changed: the "you told me" date.
+ */
 export async function upsertMemory(db: Db, userId: string, input: NewMemory): Promise<Memory> {
   const key = normalizeKey(input.key);
   if (!key) throw new Error("A memory needs a key.");
   const values = {
     userId,
     key,
+    topic: input.topic ?? "other",
     label: clampLine(input.label, LIMITS.label) || key.replace(/_/g, " "),
     value: clampLine(input.value, LIMITS.value),
+    note: input.note ? clampLine(input.note, LIMITS.note) : null,
     source: input.source ? clampLine(input.source, LIMITS.source) : null,
     lang: input.lang,
   };
@@ -74,8 +85,10 @@ export async function upsertMemory(db: Db, userId: string, input: NewMemory): Pr
     .onConflictDoUpdate({
       target: [memories.userId, memories.key],
       set: {
+        topic: values.topic,
         label: values.label,
         value: values.value,
+        note: values.note,
         source: values.source,
         lang: values.lang,
         updatedAt: new Date(),
@@ -90,12 +103,16 @@ export async function updateMemory(
   db: Db,
   userId: string,
   id: string,
-  patch: { label?: string; value?: string },
+  patch: { label?: string; value?: string; note?: string },
 ): Promise<Memory | null> {
   const set: Partial<typeof memories.$inferInsert> = { updatedAt: new Date() };
   if (patch.label !== undefined) set.label = clampLine(patch.label, LIMITS.label);
   if (patch.value !== undefined) set.value = clampLine(patch.value, LIMITS.value);
-  if (set.value === "") return null;
+  if (patch.note !== undefined) set.note = clampLine(patch.note, LIMITS.note);
+  // A new value makes the old sentence wrong ("You live in Dammam." after changing it to Jeddah):
+  // it goes, and the memory reads as "label: value" until it is next written.
+  else if (patch.value !== undefined) set.note = null;
+  if (set.value === "" || set.note === "") return null;
   const [row] = await db
     .update(memories)
     .set(set)

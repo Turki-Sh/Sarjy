@@ -48,12 +48,21 @@ describe("a turn", () => {
     expect(seg?.type === "segment" && seg.audio).toBeTruthy();
   });
 
-  it("saves a fact, confirms it out loud, and recalls it in a later session (AT-10, AT-11, AT-17)", async () => {
+  it("remembers a fact after replying, as a sentence, and recalls it in a later session (AT-10, AT-11, AT-17)", async () => {
     const id = await newUser();
     const save = await turn(id, "My favorite color is green.");
+    // Save, then show (Day 2): a friendly reply, then the memory arrives, before the turn ends.
+    expect(save.said).toBe("Got it.");
+    const types = save.events.map((e) => e.type);
+    expect(types.indexOf("memory_saved")).toBeLessThan(types.indexOf("done"));
     const saved = save.events.find((e) => e.type === "memory_saved");
-    expect(saved).toBeDefined();
-    expect(save.said).toBe("Saved. Your favorite color is green.");
+    expect(saved?.type === "memory_saved" && saved.memory).toMatchObject({
+      key: "favorite_color",
+      topic: "likes",
+      value: "Green",
+      note: "Your favorite color is Green.",
+      source: "My favorite color is green.",
+    });
 
     // A new conversation (a later session) still knows.
     const recall = await turn(id, "What's my favorite color?");
@@ -130,8 +139,11 @@ describe("a turn", () => {
     const id = await newUser(false);
     const hello = await turn(id, "Hello");
     expect(hello.said).toContain("What should I call you?");
-    const named = await turn(id, "Turki");
-    expect(named.said).toBe("Saved. Your name is Turki.");
+    // A bare answer to that question is a name: the writer sees what Sarjy asked just before.
+    const chat = hello.done && hello.done.type === "done" ? hello.done.conversationId : null;
+    const named = await turn(id, "Turki", chat);
+    expect(named.said).toBe("Nice to meet you, Turki.");
+    expect(named.events.some((e) => e.type === "memory_saved" && e.memory.key === "name")).toBe(true);
     const { users } = await import("@/server/db/schema");
     const { eq } = await import("drizzle-orm");
     const [user] = await db.select().from(users).where(eq(users.id, id));

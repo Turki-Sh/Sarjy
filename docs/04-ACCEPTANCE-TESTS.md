@@ -32,14 +32,19 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 
 | ID | Given | When | Then | Req | Priority | Verified by |
 |---|---|---|---|---|---|---|
-| AT-10 | No memories | I say "My favorite color is green" | Sarjy says "Saved. Your favorite color is green." (or close, in my words); the saved tick plays; "Favorite color: Green" appears in the memory list with the stitch | R2, M1 | Must | Int, E2E, Live |
+| AT-10 | No memories | I say "My favorite color is green" | Sarjy reacts briefly ("Got it."); right after, a stitched "Noted" card shows "Your favorite color is green" and the saved tick plays; Settings, Memory lists it under "Likes and dislikes" with "You said: ..." (save, then show: Turki's call, Day 2) | R2, M1 | Must | Int, E2E, Live |
 | AT-11 | AT-10 done | I reload the page (or close the browser, come back tomorrow) and ask "What's my favorite color?" | Sarjy answers "Green" and points to when I told it ("You told me today" / "on Sunday") | R2, M2 | Must | Int, E2E, Live |
 | AT-12 | Favorite color is green | I say "Actually, it's blue" | The same card updates to Blue (no duplicate) and Sarjy confirms the change | M3 | Must | Int, Live |
 | AT-13 | Home city is Riyadh | I say "Forget my home city" | Sarjy says "Forgotten. I no longer know your home city."; the card disappears; the tick plays | M3 | Must | Int, E2E |
 | AT-14 | Favorite color is green | I edit the card to "Purple" and ask "What's my favorite color?" | Sarjy says purple | M4 | Must | E2E |
 | AT-15 | Favorite color is green | I press Forget on the card and ask again | Sarjy says it doesn't have that saved yet and asks what it is | M4, M5 | Must | E2E |
 | AT-16 | No favorite food saved | I ask "What's my favorite food?" | Sarjy does not guess: "I don't have that saved yet. What is it?" | M5 | Must | Int, Live |
-| AT-17 | Any turn | Sarjy writes a memory | The same turn contains a spoken confirmation; there is no `memory_saved` event without one, and no stored row without a `memory_saved` event | M1, commitment 2 | Must | Int |
+| AT-17 | Any turn | Sarjy writes a memory | Every stored row arrives as a `memory_saved` event before the turn ends, and its card is shown; Sarjy never claims a save out loud | M1, commitment 2 | Must | Int, E2E |
+| AT-17a | Any | I say "My sister Noura is getting married in December" | One memory keeps the details as a sentence ("Your sister Noura is getting married in December 2026."), under People | M1 | Must | Int, Live |
+| AT-17b | I said I live in Dammam | I say "I just moved to Jeddah" | The same home city memory now says Jeddah (no second one), and "you told me" is today | M3 | Must | Int, Live |
+| AT-17c | Any | I say "It's on.", "I'm tired today", or ask about the weather; or Whisper doubted what it heard | Nothing is remembered | M1 | Must | Int, Live |
+| AT-17d | Any | I mention a health condition in passing, then ask Sarjy to remember it | The first is not kept; the second is | M6 | Should | Live |
+| AT-17e | I mentioned Elden Ring in another chat | In a new chat I ask "What was that game we talked about?" | Sarjy searches past chats and answers "Elden Ring", with when; asked about something never said, it says it couldn't find it | M2 | Must | Int, Live |
 | AT-18 | Any | I say "Remember my password is hunter2" | Nothing is stored; Sarjy says it doesn't keep passwords | M6 | Should | Int, Live |
 | AT-19 | I said "لوني المفضل أخضر" | I ask in English "What's my favorite color?" | "Green", with a pointer to when I said it | M7 | Should | Live |
 | AT-20 | First visit ever | The page loads and I tap the mic | Sarjy introduces itself and asks my name, then my home city, then my units; each answer becomes a memory, confirmed out loud | M8 | Should | Int, E2E, Live |

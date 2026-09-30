@@ -4,15 +4,18 @@
 // the build (and the tests), not the demo.
 
 import { z } from "zod";
+import { TOPICS } from "./memory";
 
 export const Lang = z.enum(["en", "ar"]);
 
-/** One remembered fact, as the browser sees it. */
+/** One remembered thing, as the browser sees it (shared/memory.ts says what the fields mean). */
 export const Memory = z.object({
   id: z.string(),
   key: z.string(),
+  topic: z.enum(TOPICS),
   label: z.string(),
   value: z.string(),
+  note: z.string().nullable(),
   lang: Lang,
   source: z.string().nullable(),
   createdAt: z.string(),
@@ -27,6 +30,8 @@ export const Timings = z.object({
   firstSentenceMs: z.number().optional(),
   firstAudioMs: z.number().optional(),
   toolMs: z.number().optional(),
+  /** How long deciding what to remember took (it runs while the last of the voice is made). */
+  memoryMs: z.number().optional(),
   totalMs: z.number(),
   model: z.string().optional(),
   /** Tokens the model read and wrote, and what the whole turn cost in dollars (details panel). */

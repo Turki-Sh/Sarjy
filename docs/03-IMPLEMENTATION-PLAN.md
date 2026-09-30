@@ -249,6 +249,15 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] At Pure the page behind Settings is neither blurred nor dimmed: pure means clear. Its words carry a halo instead
 - [x] In Arabic, the rim light stuck out past two corners of Sarjy's bubbles: the ring was mirrored by flipping it, which also flipped its corner shapes. Now only the light moves. An English line in the Arabic interface also had its tail corner on the wrong side: bubbles keep the page's direction, and only the words run in their own
 
+### Memory, rebuilt (Turki's review, Day 2)
+Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and what the research says (Mem0, LongMemEval, Zep, Letta, Generative Agents); then a live probe. Turki's calls: sentences, save then show, cross-chat search.
+- [x] Memories are sentences that keep their details, grouped by topic (about you, people, likes and dislikes, plans and dates, other); `topic` and `note` columns, older memories migrated
+- [x] A memory writer runs after each reply (gpt-oss-20b, with its own quota), with every existing memory in view: add, update, delete or nothing; updates merge, filler and passing moods are left out, relative dates become dates, sensitive topics only on request, secrets never; its saves stream before the turn ends and show as a "Noted" card
+- [x] Nothing is remembered from words Whisper doubted (its no-speech and log-probability scores): the likely source of "It's on"
+- [x] `search_chats`: Sarjy looks through your other chats when you ask about one, by words and by period, in Arabic and English, falling back to the latest chats when no words match
+- [x] "You told me" dates from the last change; each memory shows the words it came from
+- [x] `scripts/eval/memory.mjs`: a live eval of what is kept, what is left out, updates, forgetting and search, in English and Arabic. First live run: 16 of 18. Fixed from it: notes written in the wrong language, formal Arabic instead of Saudi dialect, health kept in passing but not when asked, the writer trusting Sarjy's reply. After the fixes every writer case passed live. The search cases need gpt-oss-120b, whose free-tier daily token cap (200K) ran out during testing; they pass with the fakes and are to be rerun live (on the Dev tier the cap goes away)
+
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
 - [ ] T5: prayer times tool (Aladhan, Umm al-Qura)

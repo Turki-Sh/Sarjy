@@ -44,6 +44,20 @@ export function spokenLang(text: string, label: string | undefined, hint: Lang):
   return hint;
 }
 
+type Segment = { avg_logprob?: number; no_speech_prob?: number };
+
+/**
+ * Whisper's own doubt about what it heard. On near silence it can write a short phrase nobody
+ * said ("It's on."); its segments then carry a high "no speech" probability or a low average
+ * log probability. The words are still answered, but nothing is remembered from them.
+ */
+export function unsureOf(segments: Segment[] | undefined): boolean {
+  if (!segments?.length) return false;
+  const mean = (pick: (s: Segment) => number | undefined) =>
+    segments.reduce((sum, s) => sum + (pick(s) ?? 0), 0) / segments.length;
+  return mean((s) => s.no_speech_prob) > 0.5 || mean((s) => s.avg_logprob) < -1;
+}
+
 function groqStt(apiKey: string): SpeechToText {
   return {
     async transcribe(audio, hint) {
@@ -60,9 +74,9 @@ function groqStt(apiKey: string): SpeechToText {
         signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) throw new Error(`Groq speech to text failed: ${res.status}`);
-      const data = (await res.json()) as { text: string; language?: string };
+      const data = (await res.json()) as { text: string; language?: string; segments?: Segment[] };
       const text = data.text.trim();
-      return { text, lang: spokenLang(text, data.language, hint) };
+      return { text, lang: spokenLang(text, data.language, hint), unsure: unsureOf(data.segments) };
     },
   };
 }
@@ -106,6 +120,9 @@ export function createGroqProviders(
       // Of the three, only Qwen reads pictures (checked on Day 2).
       vision: id === GROQ_MODELS.fallback,
     })),
+    // The small model first: deciding what to remember is a short, structured job, and it has its
+    // own per-minute quota, so it never takes tokens from the answer.
+    writer: [GROQ_MODELS.reserve, GROQ_MODELS.main].map((id) => ({ id, model: groq(id) })),
     fetch: (url, init) => fetch(url, init),
   };
 }

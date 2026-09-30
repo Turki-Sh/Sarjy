@@ -63,6 +63,7 @@ describe("tidy", () => {
     expect(tidy("- Kabsa is great.")).toBe("Kabsa is great.");
     expect(tidy("See [the forecast](https://example.com) and `code`.")).toBe("See the forecast and code.");
     expect(tidy("It's _really_ hot.")).toBe("It's really hot.");
+    expect(tidy("قهوة بدون سكر، ذوق أصيل. 👍")).toBe("قهوة بدون سكر، ذوق أصيل.");
     // Words with underscores and ordinary numbers are left alone.
     expect(tidy("Your favorite_color key is set. It's 41.5 today.")).toBe(
       "Your favorite_color key is set. It's 41.5 today.",

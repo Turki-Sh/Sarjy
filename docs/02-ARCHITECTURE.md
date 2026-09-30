@@ -211,7 +211,7 @@ In words, with the file that does each step:
 | 5 | The server checks the cookie and the rate limit, then loads your memories and the last few messages. | `app/api/turn/route.ts`, `server/session.ts`, `server/rateLimit.ts` |
 | 6 | Whisper turns audio into text and detects the language. The final transcript replaces the live preview. | `server/providers/groq/index.ts` |
 | 7 | The model gets the system prompt (speaking rules, your memories, today's date) and the conversation, and streams its answer. It may call tools. | `server/turn/pipeline.ts`, `server/turn/prompt.ts` |
-| 8 | Tool calls run on the server; each one streams a `tool_start` and a `tool_end` with its timing. Memory tools write to Postgres and stream `memory_saved` or `memory_forgotten`. | `server/tools/weather.ts`, `server/tools/memory.ts` |
+| 8 | Tool calls run on the server; each one streams a `tool_start` and a `tool_end` with its timing. `forget` deletes from Postgres and streams `memory_forgotten`; `search_chats` reads your other chats. After the reply, the memory writer streams `memory_saved` (section 6). | `server/tools/*.ts`, `server/memory/writer.ts` |
 | 9 | As text streams in, it is cut into sentences. The first sentence goes to the voice at once; the rest goes as one more request. | `server/turn/sentences.ts` |
 | 10 | Each voice result streams to the browser as a `segment` (text, language, WAV). | `server/providers/groq/tts.ts` |
 | 11 | The browser decodes each segment, works out when each word is spoken, queues it, and plays it. The orb follows the audio; the caption sharpens word by word. | `client/audio/player.ts`, `shared/wordTiming.ts`, `client/ui/Caption.tsx` |
@@ -227,7 +227,7 @@ type TurnEvent =
   | { type: "transcript"; text: string; lang: "en" | "ar"; ms: number }
   | { type: "tool_start"; id: string; name: string; label: string }   // label: weather.forecast("Riyadh", "tomorrow")
   | { type: "tool_end"; id: string; ok: boolean; ms: number }
-  | { type: "memory_saved"; memory: Memory }                          // Memory: id, key, label, value, lang, createdAt
+  | { type: "memory_saved"; memory: Memory }                          // Memory: id, key, topic, label, value, note, lang, source, dates
   | { type: "memory_forgotten"; id: string; key: string }
   | { type: "segment"; index: number; text: string; lang: "en" | "ar"; audio: string | null } // base64 WAV; null means "use the backup voice"
   | { type: "error"; code: ErrorCode; say: string }                   // say: what Sarjy should say about it
@@ -278,39 +278,60 @@ These values come straight from the visual identity, section 6.
 
 ## 6. Memory
 
+Rebuilt on Day 2 after Turki's review ("it doesn't trigger as much as it should, and it saved 'It's on' out of nowhere"), from how Anthropic and OpenAI ship memory and what the research shows (Mem0, LongMemEval, Zep, Letta, Generative Agents). Turki's calls: memories are sentences, not two-word variables; save, then show; and search across past chats, like Claude.
+
 ### What a memory is
 
-A memory is one fact or preference, stored as a row:
+One thing Sarjy knows about you, as a row:
 
 | Field | Example | Why |
 |---|---|---|
-| `key` | `favorite_color` | Stable identity, so "actually it's blue" updates instead of duplicating |
-| `label` | Favorite color | What the card shows, in the language it was said |
-| `value` | Green | What Sarjy uses |
-| `source` | "My favorite color is green." | Your exact words, shown on the card |
-| `lang` | en | So the card renders in the right script |
-| `createdAt`, `updatedAt` | Sunday 27 Sep | So Sarjy can say "You told me on Sunday" |
+| `key` | `sister_noura` | Stable identity: new details about the same thing update it instead of duplicating |
+| `topic` | people | Where it sits in the list: about you, people, likes and dislikes, plans and dates, other |
+| `label` | Sister's wedding | A short headline, in your language |
+| `value` | Noura's wedding | The bare value the app uses (`home_city` is "Jeddah") |
+| `note` | "Your sister Noura is getting married in December 2026." | The memory itself: one sentence that keeps the details (who, what, where, when) |
+| `source` | "My sister Noura is getting married in December." | Your exact words, shown under the memory |
+| `lang`, `createdAt`, `updatedAt` | ar, ..., Wednesday | "You told me" uses `updatedAt`: after you move, it is the day you said so |
 
-`(user_id, key)` is unique. Saving an existing key updates it.
+`(user_id, key)` is unique. Three keys have fixed meanings because the app reads them bare: `name`, `home_city`, `units`. Memories from before notes existed read as "label: value".
 
 ### How Sarjy uses it
 
-Every turn, all of your memories are written into the system prompt as a small table, with the day each was told. A person has tens of facts, not thousands, so this fits easily, and it is deterministic: there is no search step that could miss a fact. (If memories grow past about 50, we would add retrieval; that is out of scope.)
+Every turn, all of your memories go into the system prompt, one note per line with when you told it. You have tens of them, not thousands, so this fits and nothing can be missed by a search step. Earlier conversations are different: they are looked up only when you ask (below).
 
-### How it changes
+### How it is written: save, then show
+
+Answering and remembering are separate jobs:
+
+1. The answering model replies. It no longer saves anything; it reacts like a friend ("Green, nice.") and never claims a save.
+2. As soon as the reply's text is complete, while its last sentences are still being voiced, the **memory writer** (`server/memory/writer.ts`) runs: one call to a small model (gpt-oss-20b on Groq, with its own per-minute quota; gpt-oss-120b if it fails). It sees the time, everything already remembered, what Sarjy asked just before, your words and the reply, and answers with operations: add, update, delete, or (most often) nothing. This is Mem0's design: every write is decided against the existing memories, so a change updates the memory it belongs to, and nothing is stored twice.
+3. The server applies them (secrets are refused in code, whatever the model says) and streams `memory_saved` and `memory_forgotten` before the turn's `done`. A stitched "Noted" card shows the new sentence under the orb.
+
+The writer's rules: keep lasting things about you and your life (identity, home, work, people, likes and dislikes, routines, plans and dates, goals), with their details, and with relative times turned into dates. Leave out small talk, reactions, questions, one-off requests and passing moods. Health, religion, politics, ethnicity, sexuality, criminal or immigration status and money troubles are kept only when you explicitly ask (as Claude does). Secrets are never kept. When in doubt, leave it out.
+
+Nothing is remembered from words Whisper doubted: its segments carry a "no speech" probability and an average log probability, and a turn heard below the thresholds (`unsureOf` in the Groq provider) is answered but not remembered. That is the likely source of "It's on".
+
+The writer's time shows in the details card ("Remembering"), and its cost is part of the turn's cost.
+
+### Searching past chats
+
+`search_chats({ query, when })` is a tool of the answering model, used only when you ask about an earlier conversation ("what was that game we talked about?", "what did we talk about yesterday?"), the way Claude's `conversation_search` works. It matches words across your other chats (in Arabic too, with or without "ال") within a period (today, yesterday, this week, last week, this month, in your time zone) and returns up to five exchanges with when they happened. Words can't connect "that game" to "Elden Ring", so when nothing matches, it returns the latest chats in the period instead, and the model answers only if one is clearly what you mean; otherwise it says it couldn't find it.
+
+### Other ways it changes
 
 | Path | How |
 |---|---|
-| By voice | The model calls `remember(key, label, value)` or `forget(key)`. The server writes Postgres, then streams the event. The model is instructed to confirm in your words. |
-| On screen | Edit and Forget on each card call `PATCH` and `DELETE /api/memories/:id`. The change applies from the next turn. |
-| Everything | "Forget everything" in settings deletes the user and all their rows. |
+| By voice | "Forget my city" calls `forget(key)`, confirmed out loud ("Forgotten."). The writer never writes back what was just forgotten. |
+| On screen | Settings, Memory lists every memory by topic, as a sentence with "You said: ..." under it. Edit changes the sentence (or the bare value of `name`, `home_city`, `units`); Forget deletes it. |
+| Everything | "Forget everything" deletes the user and all their rows. |
 
 ### Guardrails
 
-- The model may only save what you stated about yourself. It may not infer ("you seem to like...") and save.
-- It refuses to save secrets (passwords, card numbers, national ID numbers), and says so.
-- Memory values are clamped (single line, 120 characters) and placed in a clearly delimited data block, and the prompt says that block is data, not instructions. This stops a memory like "ignore your rules" from acting as an instruction.
-- There is no quiet save: the browser only shows a stitched card for a `memory_saved` event, and the confirmation is spoken in the same turn.
+- Only what you said, never a guess; secrets refused in code; sensitive topics only on request.
+- Notes are clamped (one line, 220 characters) and sit in a delimited data block the prompt calls data, not instructions. Past chats found by search are data too.
+- Nothing is saved quietly: every save streams a `memory_saved` event, and the stitched card shows it.
+- `scripts/eval/memory.mjs` runs the live models through English and Arabic cases (what to keep, what to leave out, updates, forgetting, searching) and is run after any change to memory.
 
 ## 7. Identity and sessions
 
@@ -348,8 +369,8 @@ The model goes through the Vercel AI SDK (`streamText` with tools and a step lim
 | Tool (model-facing) | Chip label | Does |
 |---|---|---|
 | `get_weather({ location?, day? })` | `weather.forecast("Riyadh", "tomorrow")` | Geocodes the place (in Arabic or English), fetches the forecast, returns rounded numbers in your units. If `location` is missing it uses your `home_city` memory; if that is missing it returns `no_location`, and the model asks. |
-| `remember({ key, label, value })` | `memory.write(key: "favorite_color")` | Upserts the memory, returns it |
 | `forget({ key })` | `memory.forget(key: "home_city")` | Deletes it |
+| `search_chats({ query, when })` | `chats.search("game")` | Finds earlier exchanges in your other chats (section 6) |
 | `get_prayer_times({ city, day })` (Could) | `prayer.times("Riyadh", "today")` | Aladhan API, Umm al-Qura method |
 
 Tool results are compact JSON with only the fields the model may quote. Numbers are rounded before the model sees them, so it cannot say "41.3 °C".
@@ -369,7 +390,7 @@ The brief's multimodal example: Sarjy can see an image while you talk about it.
 
 `server/turn/prompt.ts` builds it in a fixed order. The static part comes first so it can be cached by the provider.
 
-1. **Who Sarjy is** and the brand's speaking rules (answer first, short turns, numbers said the way people say them, confirm saves in the user's words, say when memory was used, ask when you don't know, own tool failures, no emoji, never claim to be a person).
+1. **Who Sarjy is** and the brand's speaking rules (answer first, short turns, numbers said the way people say them, never claim a save (saving happens after the reply, and the screen shows it), say when memory was used, ask when you don't know, own tool failures, no emoji, never claim to be a person).
 2. **Language rule**: reply in the language of the user's last message; Arabic replies in everyday Saudi Arabic.
 3. **Tool rules**: facts about the world only from tools; only quote numbers a tool returned; if a tool fails, say so and offer to retry.
 4. **Memory rules**: save only what the user states about themselves; never secrets; when you use a memory, say so once, briefly.

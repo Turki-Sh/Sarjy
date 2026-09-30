@@ -338,7 +338,7 @@ export function VoiceScreen({
           onAvatar={(id) => void sarjy.setAvatar(id)}
           onUpload={(image) => void sarjy.uploadAvatar(image)}
           onName={(name) => void sarjy.setName(name)}
-          onEditMemory={(id, value) => void sarjy.editMemory(id, value)}
+          onEditMemory={(id, change) => void sarjy.editMemory(id, change)}
           onForgetMemory={(id) => void sarjy.forgetMemory(id)}
           onForgetAll={() => void sarjy.forgetEverything()}
         />

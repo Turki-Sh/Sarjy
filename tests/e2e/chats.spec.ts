@@ -34,7 +34,9 @@ test("new chat, reopening a past chat, and search", async ({ page }) => {
 
   await chat.click();
   await expect(page.getByText("Picking up where you left off")).toBeVisible();
-  await expect(caption(page)).toHaveText(/kabsa/i);
+  // The last answer is on screen, and what you said sits above it.
+  await expect(caption(page)).toHaveText("Got it.");
+  await expect(page.locator("main section ol li").last()).toHaveText(/kabsa/i);
   await expect(chat).toHaveAttribute("aria-current", "page");
 
   // Search filters chats as you type.
@@ -136,9 +138,5 @@ test("the conversation shows as bubbles: yours and Sarjy's", async ({ page }) =>
   await say(page, "What's my favorite color?");
   await expect(caption(page)).toHaveText("Green. You told me today.", { timeout: 10_000 });
   const bubbles = page.locator("main section ol li");
-  await expect(bubbles).toHaveText([
-    "My favorite color is green.",
-    "Saved. Your favorite color is green.",
-    "What's my favorite color?",
-  ]);
+  await expect(bubbles).toHaveText(["My favorite color is green.", "Got it.", "What's my favorite color?"]);
 });

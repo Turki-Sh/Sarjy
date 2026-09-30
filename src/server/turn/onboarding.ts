@@ -17,7 +17,7 @@ export type OnboardingStep = (typeof STEPS)[number];
 export const isStep = (s: string): s is OnboardingStep => (STEPS as readonly string[]).includes(s);
 
 const LISTEN =
-  "If they mention it, save it with remember and confirm. Never ask for it in reply to small talk, and never twice.";
+  "If they mention it, it's remembered on its own after you reply. Never ask for it in reply to small talk, and never twice.";
 
 /**
  * The prompt's lines about onboarding, or nothing once it is done.
@@ -34,7 +34,7 @@ export function onboardingInstruction(step: OnboardingStep, userTurns = 0): stri
   if (step === "home_city") {
     return (
       "Getting to know the user: you don't know their home city yet (key `home_city`). Don't ask for it on your own. " +
-      "Only if they ask about the weather without naming a place, ask which city and save their answer as their home city. " +
+      "Only if they ask about the weather without naming a place, ask which city; their answer becomes their home city, and you check the weather there. " +
       LISTEN
     );
   }

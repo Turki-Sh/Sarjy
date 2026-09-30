@@ -2,8 +2,10 @@ import "server-only";
 
 // A scripted stand-in for the language model, speaking the AI SDK's model interface, so the real
 // pipeline (tool loop, streaming, events) runs unchanged in tests and without API keys.
-// It understands a small set of phrasings in English and Arabic: saving, recalling and forgetting
-// facts, weather questions, and the onboarding questions. Anything else gets a short introduction.
+// It understands a small set of phrasings in English and Arabic: facts about you, recalling and
+// forgetting them, weather questions, and the onboarding questions. Anything else gets a short
+// introduction. As the memory writer (server/memory/writer.ts), it hears the same facts and
+// answers with the writer's JSON.
 
 import type { LanguageModelV4Prompt, LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
@@ -49,16 +51,34 @@ function systemText(prompt: LanguageModelV4Prompt): string {
   return prompt.map((m) => (m.role === "system" ? m.content : "")).join("\n");
 }
 
-/** Memory lines from the prompt: key | label | value | told when. */
+/** The value inside a note the fake writer wrote: "Your favorite color is Green." gives "Green". */
+const valueOfNote = (note: string) =>
+  clean(note.match(/(?: is | in )(.+)$/)?.[1] ?? note.split(/[:：]\s*/)[1] ?? note);
+
+/** Memory lines from the prompt: key | note | told when. */
 function memoryFromPrompt(system: string): Map<string, { value: string; when: string }> {
   const block = system.split("<memory>")[1]?.split("</memory>")[0] ?? "";
   const map = new Map<string, { value: string; when: string }>();
   for (const line of block.split("\n")) {
-    const [key, , value, when] = line.split(" | ");
-    if (key && value && when && key !== "key")
-      map.set(key.trim(), { value: value.trim(), when: when.replace("told ", "").trim() });
+    const [key, note, when] = line.split(" | ");
+    if (key && note && when && key !== "key")
+      map.set(key.trim(), { value: valueOfNote(note.trim()), when: when.replace("told ", "").trim() });
   }
   return map;
+}
+
+/** A fact in the user's words, as the fake hears it: key, labels and value; null if none. */
+function hearFact(user: string): { key: string; label: string; value: string } | null {
+  const ar = isArabic(user);
+  for (const [pattern, key, labelEn, labelAr] of FACTS) {
+    const m = user.match(pattern);
+    if (!m) continue;
+    const raw = clean(m.slice(1).find(Boolean) ?? "");
+    if (!raw) continue;
+    const value = key === "units" ? raw.toLowerCase() : ar ? raw : cap(raw);
+    return { key, label: ar ? labelAr : labelEn, value };
+  }
+  return null;
 }
 
 /** Decide the next step from the user's words (no tool result yet). */
@@ -69,6 +89,13 @@ function firstReply(user: string, system: string): Reply {
   const forget = user.match(/forget (?:my )?([^.!?]+)|انسَ? ([^.،!؟]+)/i);
   if (forget) return { tool: { name: "forget", input: { key: clean(forget[1] ?? forget[2] ?? "") } } };
 
+  // A question about an earlier chat: look it up.
+  if (/what did we talk about|we talked about|we were talking about|وش سولفنا|تكلمنا عن/i.test(user)) {
+    const when = /yesterday|أمس|امس/i.test(user) ? "yesterday" : /today|اليوم/i.test(user) ? "today" : "any";
+    const topic = user.match(/(?:that|the) ([\p{L} ]+?) (?:we|you) (?:talked|were talking|mentioned)/iu)?.[1];
+    return { tool: { name: "search_chats", input: { query: topic ?? "", when } } };
+  }
+
   if (/weather|temperature|forecast|how'?s (it|tomorrow|today)|الجو|الطقس|الحرارة/i.test(user)) {
     const place = user.match(
       /\bin ([A-Za-z][A-Za-z ]+?)(?: tomorrow| today|\?|$)|في ([^\s؟?]+)|بال([^\s؟?]+)/,
@@ -78,14 +105,19 @@ function firstReply(user: string, system: string): Reply {
     return { tool: { name: "get_weather", input: location ? { location, day_offset } : { day_offset } } };
   }
 
-  for (const [pattern, key, labelEn, labelAr] of FACTS) {
-    const m = user.match(pattern);
-    if (!m) continue;
-    const raw = clean(m.slice(1).find(Boolean) ?? "");
-    if (!raw) continue;
-    const value = key === "units" ? cap(raw.toLowerCase()) : ar ? raw : cap(raw);
-    return { tool: { name: "remember", input: { key, label: ar ? labelAr : labelEn, value } } };
+  // A fact about the user: a friendly reaction. Remembering it is the writer's job, after the reply.
+  const fact = hearFact(user);
+  if (fact?.key === "password") {
+    return {
+      text: ar
+        ? "كلمات السر والأرقام الخاصة ما أحفظها. غيرها أبشر، أتذكر لك أي شي."
+        : "I don't keep passwords or numbers like that. I can remember anything else for you.",
+    };
   }
+  if (fact?.key === "name")
+    return { text: ar ? `هلا فيك يا ${fact.value}.` : `Nice to meet you, ${fact.value}.` };
+  if (fact) return { text: ar ? "أبشر." : "Got it." };
+  if (/^(?:remember|تذكر)|my sister|i just moved|أختي/i.test(user)) return { text: ar ? "أبشر." : "Got it." };
 
   const memory = memoryFromPrompt(system);
   for (const [pattern, key] of RECALL) {
@@ -107,7 +139,7 @@ function firstReply(user: string, system: string): Reply {
   const nameUnknown = system.includes("you don't know their name yet");
   if (nameUnknown && !greeting && /^[\p{L}' -]{2,30}$/u.test(clean(user))) {
     const name = cap(clean(user));
-    return { tool: { name: "remember", input: { key: "name", label: ar ? "الاسم" : "Name", value: name } } };
+    return { text: ar ? `هلا فيك يا ${name}.` : `Nice to meet you, ${name}.` };
   }
   if (nameUnknown && greeting && system.includes("ask what to call them")) {
     return {
@@ -154,18 +186,14 @@ function afterTool(name: string, output: Record<string, unknown>, ar: boolean): 
       ? `${day} ${condition}، والعظمى ${toArabicDigits(String(high))} في ${place}.`
       : `${cap(condition)} and a high of ${high} ${day} in ${place}.`;
   }
-  if (name === "remember") {
-    if (!output.saved)
-      return ar
-        ? "كلمات السر والأرقام الخاصة ما أحفظها. غيرها أبشر، أتذكر لك أي شي."
-        : "I don't keep passwords or numbers like that. I can remember anything else for you.";
-    const label = String(output.label);
-    // Names and places keep their capitals; other values are said as ordinary words.
-    const proper = ["name", "home_city"].includes(String(output.key));
-    const value = proper ? String(output.value) : String(output.value).toLowerCase();
+  if (name === "search_chats") {
+    const chats = (output.chats ?? []) as { when: string; lines: string[] }[];
+    if (!chats.length) return ar ? "ما لقيت شي عن هذا في سوالفنا." : "I couldn't find that in our chats.";
+    const first = chats[0]!;
+    const said = first.lines[0]?.replace(/^(User|You): /, "") ?? "";
     return ar
-      ? `أبشر، حفظتها. ${label}: ${output.value}.`
-      : `Saved. Your ${label.toLowerCase()} is ${value}.`;
+      ? `سولفنا عنه ${toArabicWhen(first.when)}: ${said}`
+      : `We talked about it ${first.when}: ${said}`;
   }
   if (name === "forget") {
     const key = String(output.key ?? "that").replace(/_/g, " ");
@@ -197,10 +225,72 @@ const usage = {
   outputTokens: { total: 20, text: 20, reasoning: 0 },
 };
 
+/** The fake memory writer: the facts it hears in the exchange, as the writer's JSON. */
+export function fakeWrites(prompt: string): string {
+  const user = prompt.match(/^User: (.*)$/m)?.[1] ?? "";
+  const asked = prompt.match(/^Sarjy \(before\): (.*)$/m)?.[1] ?? "";
+  const forgotten = prompt.match(/never add back: ([^.]+)\./)?.[1]?.split(", ") ?? [];
+  const ar = isArabic(user);
+  const ops: object[] = [];
+  const fact = hearFact(user);
+  const add = (key: string, topic: string, label: string, value: string, note: string) => {
+    if (!forgotten.includes(key)) ops.push({ op: "add", key, topic, label, value, note });
+  };
+  const sentence = (key: string, label: string, value: string) => {
+    if (ar) return `${label}: ${value}.`;
+    if (key === "name") return `Your name is ${value}.`;
+    if (key === "home_city") return `You live in ${value}.`;
+    if (key === "units") return `Your units is ${value}.`;
+    return `Your ${label.toLowerCase()} is ${value}.`;
+  };
+  if (fact && fact.key !== "password") {
+    const topic = fact.key.startsWith("favorite") ? "likes" : "you";
+    add(fact.key, topic, fact.label, fact.value, sentence(fact.key, fact.label, fact.value));
+  } else if (/call you|وش أناديك/i.test(asked) && /^[\p{L}' -]{2,30}$/u.test(clean(user))) {
+    // A bare answer to "what should I call you?" is a name.
+    const name = cap(clean(user));
+    add("name", "you", ar ? "الاسم" : "Name", name, sentence("name", "Name", name));
+  } else if (/which city|أي مدينة/i.test(asked) && /^[\p{L}' -]{2,30}$/u.test(clean(user))) {
+    const city = cap(clean(user));
+    add("home_city", "you", ar ? "المدينة" : "Home city", city, sentence("home_city", "Home city", city));
+  }
+  const moved = user.match(/i just moved to ([^.,!?]+)/i);
+  if (moved) {
+    const city = cap(clean(moved[1]!));
+    ops.push({
+      op: "update",
+      key: "home_city",
+      topic: "you",
+      label: "Home city",
+      value: city,
+      note: `You live in ${city}.`,
+    });
+  }
+  const wedding = user.match(/my sister (\w+) is getting married in (\w+)/i);
+  if (wedding) {
+    const [, sister, month] = wedding;
+    add(
+      "sister_" + sister!.toLowerCase(),
+      "people",
+      "Sister's wedding",
+      `${sister}'s wedding`,
+      `Your sister ${sister} is getting married in ${month} 2026.`,
+    );
+  }
+  return JSON.stringify({ ops });
+}
+
 export function createFakeModel(modelId = "fake-sarjy") {
   let calls = 0;
   return new MockLanguageModelV4({
     modelId,
+    // The memory writer asks once, without streaming.
+    doGenerate: async ({ prompt }) => ({
+      content: [{ type: "text", text: fakeWrites(lastUserText(prompt)) }],
+      finishReason: { unified: "stop", raw: "stop" },
+      usage,
+      warnings: [],
+    }),
     doStream: async ({ prompt }) => {
       calls += 1;
       const last = prompt[prompt.length - 1]!;

@@ -70,7 +70,7 @@ The rubric asks whether Sarjy is clearly different from what a frontier model wo
 | A generic chat layout | A designed visual identity: the glass orb driven by real audio, the stitch for memory, sound cues, dark mode | Steps 1 to 4 |
 | The browser's robotic voice, English only | Groq Orpheus voices, including a native Saudi voice for Arabic, and a mirrored Arabic interface | Step 6 |
 | Captions that appear all at once | Words that sharpen as they are spoken, timed from the audio | Every answer |
-| Memory hidden in a prompt | Memory you can see, edit and forget, confirmed out loud, with "you told me on Sunday" | Steps 2, 5, 7 |
+| Memory hidden in a prompt | Memory you can see, edit and forget, shown the moment it is saved, with "you told me on Sunday" | Steps 2, 5, 7 |
 | A tool call you have to trust | A tool chip with timing, and numbers that must come from the tool | Step 4 |
 | One user | Rooms across devices with private memory per person | Steps 9, 10 |
 | Nothing measured | A latency waterfall and a cost per turn | Step 8 |
@@ -82,7 +82,7 @@ These three commitments come from the brand book. Every feature below must keep 
 | Commitment | In the product |
 |---|---|
 | **It's yours** | Memory is per person and persists. Sarjy uses what it knows without being asked, and says when an answer came from memory ("You told me on Sunday"). |
-| **You hold the reins** | Every memory is visible, editable and deletable. Sarjy never stores anything quietly: every save and every forget is confirmed out loud, with a sound, and appears on screen with the stitch. |
+| **You hold the reins** | Every memory is visible, editable and deletable. Sarjy never stores anything quietly: every save appears on screen with the stitch the moment it happens, with a sound, and every forget is confirmed out loud. |
 | **It doesn't guess** | Facts about the world come from tools; facts about you come from memory. When neither has the answer, Sarjy says so. It only speaks numbers that came back from a tool. |
 
 ## 5. Features
@@ -105,8 +105,8 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 
 | ID | Feature | Priority |
 |---|---|---|
-| M1 | Save a fact or preference by saying it; confirmed out loud in your words | Must |
-| M2 | Recall it in a later session, with a short pointer to when you said it | Must |
+| M1 | Save a fact or preference by saying it, as a sentence that keeps its details; shown on screen the moment it is saved (save, then show: Turki's call, Day 2) | Must |
+| M2 | Recall it in a later session, with a short pointer to when you said it; and find earlier chats when asked ("what was that game we talked about?") | Must |
 | M3 | Update ("actually it's blue") and forget ("forget my home city") by voice | Must |
 | M4 | Memory list on screen, each item stitched, with Edit and Forget | Must |
 | M5 | Asks instead of guessing when it does not know something about you | Must |
@@ -215,7 +215,7 @@ Accounts and cross-device sync, native apps, telephony, vector search over memor
 
 ## 8. How Sarjy speaks
 
-The brand book's speaking rules become the system prompt. In short: answer first; one or two sentences, around 25 words; say numbers the way people say them; confirm every save in the user's words; say when memory was used; ask when you don't know; own tool failures plainly; reply in the user's language, in everyday Saudi Arabic; never claim to be a person; no emoji.
+The brand book's speaking rules become the system prompt. In short: answer first; one or two sentences, around 25 words; say numbers the way people say them; never claim a save (it is shown on screen instead); say when memory was used; ask when you don't know; own tool failures plainly; reply in the user's language, in everyday Saudi Arabic; never claim to be a person; no emoji.
 
 **Turki's decision (Day 2), which overrides the brand book's more neutral voice:** Sarjy talks like a good friend who happens to know things. Casual, familiar and warm, never stiff or corporate. In Arabic that means everyday Saudi dialect as friends speak it in Riyadh or Jeddah, never Modern Standard and never formal service language: "أبشر، حفظتها" rather than "تم حفظ المعلومة بنجاح", "بكرة" rather than "غدًا", "وش" rather than "ماذا". Being friendly never means being long: the brevity rules above still hold. The full wording lives in `src/server/turn/prompt.ts` and is checked by `tests/unit/prompt.test.ts`.
 

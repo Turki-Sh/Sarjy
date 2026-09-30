@@ -33,7 +33,16 @@ export const users = pgTable("users", {
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** One remembered fact or preference. (user_id, key) is unique, so saving again updates it. */
+/**
+ * One thing Sarjy remembers about you (Day 2: sentences, not two-word variables). (user_id, key) is
+ * unique, so writing the same key again updates it.
+ *   key    a stable English snake_case id; name, home_city and units are the ones the app itself reads
+ *   topic  where it sits in the list: you, people, likes, plans or other
+ *   label  a short headline, in your language ("Sister's wedding")
+ *   value  the bare value the app uses ("Jeddah"), or a short summary
+ *   note   the memory itself, one sentence with its details ("Your sister Noura is getting married
+ *          in December 2026."); older memories have none, and read as "label: value"
+ */
 export const memories = pgTable(
   "memories",
   {
@@ -42,8 +51,10 @@ export const memories = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     key: text("key").notNull(),
+    topic: text("topic").notNull().default("you"),
     label: text("label").notNull(),
     value: text("value").notNull(),
+    note: text("note"),
     /** The user's own words when they said it, shown on the card. */
     source: text("source"),
     lang: text("lang").notNull().default("en"),

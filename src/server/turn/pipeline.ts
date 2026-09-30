@@ -16,7 +16,9 @@ import type { Db } from "../db/client";
 import { users, type User } from "../db/schema";
 import { listMemories } from "../memory/repo";
 import type { Lang, Providers } from "../providers/types";
-import { memoryTools } from "../tools/memory";
+import { chatSearchTool } from "../tools/chats";
+import { forgetTool } from "../tools/memory";
+import { applyWrites, planWrites } from "../memory/writer";
 import { weatherTool, type Units } from "../tools/weather";
 import { isStep, nextStep } from "./onboarding";
 import { buildSystemPrompt } from "./prompt";
@@ -90,12 +92,15 @@ export async function runTurn(
 
   // 1. Hear.
   let heard = input.text?.trim() ?? "";
+  /** Whisper doubted what it heard: answer it, but remember nothing from it. */
+  let unsure = false;
   let lang: Lang = detectLang(heard, input.uiLang);
   if (input.audio) {
     try {
       const result = await providers.stt.transcribe(input.audio, input.uiLang);
       heard = result.text;
       lang = result.lang;
+      unsure = result.unsure ?? false;
     } catch {
       heard = "";
     }
@@ -157,8 +162,7 @@ export async function runTurn(
   // 3. Think, with tools. Each tool reports its start and end, so the chip shows live timing.
   const toolLog: { name: string; label: string; ok: boolean; ms: number }[] = [];
   const toolStarts = new Map<string, { label: string; at: number }>();
-  const savedKeys: string[] = [];
-  let savedName: string | null = null;
+  const forgottenKeys: string[] = [];
   let toolCounter = 0;
   const onStart = (label: string) => {
     const id = `tool-${++toolCounter}`;
@@ -184,17 +188,22 @@ export async function runTurn(
       onStart,
       onEnd,
     }),
-    ...memoryTools({
+    forget: forgetTool({
       db,
       userId: input.user.id,
-      lang,
-      source: heard,
-      onSaved: (memory) => {
-        savedKeys.push(memory.key);
-        if (memory.key === "name") savedName = memory.value;
-        emit({ type: "memory_saved", memory });
+      onForgotten: (id, key) => {
+        forgottenKeys.push(key);
+        emit({ type: "memory_forgotten", id, key });
       },
-      onForgotten: (id, key) => emit({ type: "memory_forgotten", id, key }),
+      onStart,
+      onEnd,
+    }),
+    search_chats: chatSearchTool({
+      db,
+      userId: input.user.id,
+      conversationId: conversation.id,
+      now: new Date(),
+      timeZone: input.timeZone,
       onStart,
       onEnd,
     }),
@@ -292,9 +301,46 @@ export async function runTurn(
   answer = tidy(answer);
   const rest = chunker.flush();
   if (rest) speak(rest);
-  await sending;
 
-  // 5. Keep.
+  // 5. Remember (Day 2: "save, then show"). The writer reads the exchange with everything already
+  // remembered and decides what to keep, while the last of the voice is still being made; what it
+  // saves reaches the screen before the turn ends. Nothing is kept from words Whisper doubted.
+  const remembering = (async () => {
+    if (unsure) return null;
+    const started = performance.now();
+    const plan = await planWrites(
+      providers.writer,
+      {
+        now: new Date(),
+        timeZone: input.timeZone,
+        lang,
+        memories,
+        asked: history.findLast((m) => m.role === "assistant")?.text ?? null,
+        user: heard,
+        answer: answer!.trim(),
+        forgotten: forgottenKeys,
+      },
+      signal,
+    );
+    const { saved, forgotten } = await applyWrites(db, input.user.id, plan.ops, {
+      user: heard,
+      lang,
+      forgotten: forgottenKeys,
+    });
+    for (const memory of saved) emit({ type: "memory_saved", memory });
+    for (const gone of forgotten) emit({ type: "memory_forgotten", ...gone });
+    timings.memoryMs = Math.round(performance.now() - started);
+    // Kept with the turn like a tool call, so a shared moment knows a fact was saved.
+    for (const memory of saved) {
+      toolLog.push({ name: "memory.write", label: `memory.write(key: "${memory.key}")`, ok: true, ms: 0 });
+    }
+    return { saved, plan };
+  })();
+  const [, remembered] = await Promise.all([sending, remembering]);
+  const savedKeys = remembered?.saved.map((m) => m.key) ?? [];
+  const savedName = remembered?.saved.find((m) => m.key === "name")?.value ?? null;
+
+  // 6. Keep.
   const toolMs = toolLog.reduce((sum, t) => sum + t.ms, 0);
   if (toolMs) timings.toolMs = toolMs;
   const next = nextStep(onboarding, savedKeys);
@@ -315,13 +361,24 @@ export async function runTurn(
     picture: image ? { bytes: image, mediaType } : null,
   });
   const model = String(timings.model ?? "");
-  const costUsd = turnCost({
-    model,
-    inputTokens: tokens.input,
-    outputTokens: tokens.output,
-    audioSeconds: input.audio ? wavSeconds(input.audio.size) : 0,
-    voiced,
-  });
+  const writer = remembered?.plan;
+  const costUsd =
+    turnCost({
+      model,
+      inputTokens: tokens.input,
+      outputTokens: tokens.output,
+      audioSeconds: input.audio ? wavSeconds(input.audio.size) : 0,
+      voiced,
+    }) +
+    (writer?.model
+      ? turnCost({
+          model: writer.model,
+          inputTokens: writer.inputTokens,
+          outputTokens: writer.outputTokens,
+          audioSeconds: 0,
+          voiced: { en: 0, ar: 0 },
+        })
+      : 0);
   emit({
     type: "done",
     messageId,
