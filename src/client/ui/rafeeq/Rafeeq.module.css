@@ -98,6 +98,10 @@
   transform-box: view-box;
   transform-origin: 100px 184px;
 }
+/* A dodgy companion slips aside from your pointer (useRafeeqMotion writes --dodge). */
+.float {
+  translate: var(--dodge, 0px) 0;
+}
 /* Breathing, leaning toward where you are, leaning in, squashing down. */
 .wrap :global(.r-body) {
   transform: rotate(calc(var(--tilt) + var(--look-x) * 2.5deg))
@@ -126,8 +130,8 @@
 /* Eyes: open (blinking, widening), happy ^ ^, or closed ‿ ‿. */
 .wrap :global(.r-open) {
   transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(var(--eye));
+  transform-origin: 50% 80%;
+  transform: scale(var(--eye), calc(var(--eye) * var(--lid, 1)));
 }
 .wrap :global(.r-eye) {
   transform-box: view-box;
@@ -143,6 +147,18 @@
   fill: var(--rafeeq-blush);
   opacity: 0.38;
   transition: opacity var(--t-slow) var(--ease-rein);
+}
+.wrap :global(:is(.r-brow, .r-mouth-flat)) {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity var(--t-base) var(--ease-rein),
+    rotate var(--t-base) var(--ease-rein),
+    translate var(--t-base) var(--ease-rein);
+}
+.wrap :global(.r-open) {
+  transition: transform var(--t-base) var(--ease-rein);
 }
 .wrap :global(.r-blush-soft) {
   fill: var(--plush-blush);
@@ -284,7 +300,7 @@
   --glow: 0.3;
 }
 .wrap[data-state="speaking"] :global(.r-body) {
-  translate: 0 calc(var(--lvl) * -5px);
+  translate: 0 calc(var(--lvl) * -5px * var(--energy, 1));
 }
 
 /* ---- Moods ---- */
@@ -304,7 +320,7 @@
 
 /* Happy (a save): two bounces, sparkles, and everything that dangles swings. */
 .wrap[data-mood="happy"] .float {
-  animation: bounce 0.8s var(--ease-rein) 2;
+  animation: bounce calc(0.8s / var(--energy, 1)) var(--ease-rein) 2;
 }
 .wrap:is([data-mood="happy"], [data-mood="celebrate"], [data-mood="greet"], [data-mood="petted"])
   :global(:is(.r-tassel, .r-hood-tip)) {
@@ -327,7 +343,7 @@
 }
 @keyframes bounce {
   35% {
-    transform: translateY(-16px) scale(1.02, 0.98);
+    transform: translateY(calc(-16px * var(--energy, 1))) scale(1.02, 0.98);
   }
   70% {
     transform: translateY(0) scale(1.05, 0.93);
@@ -477,7 +493,7 @@
 }
 @keyframes hop {
   40% {
-    transform: translateY(-10px) scale(0.98, 1.03);
+    transform: translateY(calc(-10px * var(--energy, 1))) scale(0.98, 1.03);
   }
   80% {
     transform: translateY(0) scale(1.03, 0.97);
@@ -744,6 +760,294 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* ---- Expressions (data-expr, from expressionOf in shared/rafeeq.ts) ---- */
+
+/* Annoyed: brows down at the middle, eyes narrowed, a flat mouth, no blush. */
+.wrap[data-expr="annoyed"] {
+  --lid: 0.5;
+}
+.wrap[data-expr="annoyed"] :global(.r-brow),
+.wrap[data-expr="wary"] :global(.r-brow),
+.wrap[data-expr="worried"] :global(.r-brow),
+.wrap[data-expr="determined"] :global(.r-brow),
+.wrap[data-expr="smug"] :global(.r-brow),
+.wrap[data-expr="wide"] :global(.r-brow) {
+  opacity: 1;
+}
+.wrap[data-expr="annoyed"] :global(.r-brow-l) {
+  rotate: 20deg;
+  translate: 0 2px;
+}
+.wrap[data-expr="annoyed"] :global(.r-brow-r) {
+  rotate: -20deg;
+  translate: 0 2px;
+}
+.wrap:is([data-expr="annoyed"], [data-expr="determined"]) :global(.r-mouth) {
+  opacity: 0;
+}
+.wrap:is([data-expr="annoyed"], [data-expr="determined"]) :global(.r-mouth-flat) {
+  opacity: 1;
+}
+.wrap[data-expr="annoyed"] :global(.r-blush) {
+  opacity: 0;
+}
+/* Wary: not yet annoyed, but watching you. */
+.wrap[data-expr="wary"] {
+  --lid: 0.75;
+}
+.wrap[data-expr="wary"] :global(.r-brow-l) {
+  rotate: 8deg;
+}
+.wrap[data-expr="wary"] :global(.r-brow-r) {
+  rotate: -8deg;
+}
+/* Worried: brows up at the middle, eyes a little big. */
+.wrap[data-expr="worried"] {
+  --eye: 1.08;
+}
+.wrap[data-expr="worried"] :global(.r-brow-l) {
+  rotate: -16deg;
+  translate: 0 -2px;
+}
+.wrap[data-expr="worried"] :global(.r-brow-r) {
+  rotate: 16deg;
+  translate: 0 -2px;
+}
+/* Determined: a firm brow, a set mouth. */
+.wrap[data-expr="determined"] :global(.r-brow-l) {
+  rotate: 10deg;
+}
+.wrap[data-expr="determined"] :global(.r-brow-r) {
+  rotate: -10deg;
+}
+/* Smug: half-lidded, brows raised, chin up. */
+.wrap[data-expr="smug"] {
+  --lid: 0.55;
+  --face-y: -2px;
+}
+.wrap[data-expr="smug"] :global(.r-brows) {
+  translate: 0 -3px;
+}
+.wrap[data-expr="smug"] :global(.r-brow-l) {
+  rotate: -6deg;
+}
+.wrap[data-expr="smug"] :global(.r-brow-r) {
+  rotate: 6deg;
+}
+/* Content: soft, half-closed eyes, a little blush. */
+.wrap[data-expr="content"] {
+  --lid: 0.6;
+}
+.wrap[data-expr="content"] :global(.r-blush) {
+  opacity: 0.55;
+}
+/* Shy: eyes down, a deep blush, a little turn away. */
+.wrap[data-expr="shy"] {
+  --tilt: 5deg;
+}
+.wrap[data-expr="shy"] :global(.r-blush) {
+  opacity: 0.9;
+}
+/* Wide: all eyes, brows up. */
+.wrap[data-expr="wide"] {
+  --eye: 1.15;
+}
+.wrap[data-expr="wide"] :global(.r-brows) {
+  translate: 0 -3px;
+}
+/* A giggle: happy eyes. */
+.wrap[data-expr="giggle"] :global(.r-open) {
+  opacity: 0;
+}
+.wrap[data-expr="giggle"] :global(.r-happy) {
+  opacity: 1;
+}
+.wrap:is([data-expr="giggle"], [data-mood="grumble"]) :global(.r-brows) {
+  translate: 0 0;
+}
+
+/* ---- Your pointer resting on it: each answers in character (data-temper, data-hover) ---- */
+
+/* Rider stands to attention, with a small nod. */
+.wrap[data-temper="attentive"][data-hover] {
+  --grow: 0.035;
+}
+.wrap[data-temper="attentive"][data-hover="near"] .float {
+  animation: nod 0.7s var(--ease-rein) 1;
+}
+/* Keeper goes shy: turns a little away, sways, blushes. */
+.wrap[data-temper="shy"][data-hover] .float {
+  animation: sway 2.4s ease-in-out infinite;
+}
+/* Scout leans right in to see you (its eyes follow keenly: useRafeeqMotion). */
+.wrap[data-temper="curious"][data-hover] {
+  --grow: 0.03;
+}
+.wrap[data-temper="curious"][data-hover] :global(.r-hood-tip) {
+  rotate: -10deg;
+}
+/* Drifter can't be bothered: it only settles a little lower. */
+.wrap[data-temper="unbothered"][data-hover] {
+  --squash: 0.25;
+}
+/* Dune puffs up, chin high, showing off. */
+.wrap[data-temper="proud"][data-hover] {
+  --grow: 0.06;
+}
+.wrap[data-temper="proud"][data-hover="long"] .float {
+  animation: hop calc(0.7s / var(--energy, 1)) var(--ease-rein) 1;
+}
+/* Lantern glows warmly at you. */
+.wrap[data-temper="warm"][data-hover] {
+  --glow: 0.5;
+}
+.wrap[data-temper="warm"][data-hover] :global(.r-flame) {
+  opacity: 0.9;
+  transform: scale(1.3);
+}
+/* Fennec is annoyed: ears back, a huff, a stamp of the foot if you stay. */
+.wrap[data-temper="annoyed"][data-hover] :global(.r-ear-l) {
+  transform: rotate(-26deg);
+}
+.wrap[data-temper="annoyed"][data-hover] :global(.r-ear-r) {
+  transform: rotate(26deg);
+}
+.wrap[data-temper="annoyed"][data-hover="long"] {
+  --tilt: -5deg;
+}
+.wrap[data-temper="annoyed"][data-hover="long"] .float {
+  animation: stomp 0.5s ease-in-out 2;
+}
+.huff {
+  opacity: 0;
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.wrap:is([data-temper="annoyed"][data-hover="long"], [data-mood="grumble"]) .huff {
+  opacity: 0.8;
+  animation: huff 0.8s ease-out infinite;
+}
+@keyframes huff {
+  0% {
+    opacity: 0;
+    translate: -6px 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    translate: 6px 0;
+  }
+}
+@keyframes stomp {
+  30% {
+    transform: translateY(-5px) rotate(-3deg);
+  }
+  60% {
+    transform: translateY(0) scale(1.03, 0.96);
+  }
+}
+@keyframes nod {
+  40% {
+    transform: rotate(4deg) translateY(2px);
+  }
+}
+/* Breeze giggles and slips away (--dodge, from useRafeeqMotion). */
+.wrap[data-temper="dodge"][data-hover] .float {
+  animation: wiggle calc(0.45s / var(--energy, 1)) ease-in-out infinite;
+}
+
+/* ---- Petting, in character (data-pet) ---- */
+
+/* Composed (Rider): a proud nod, no fuss. */
+.wrap[data-mood="petted"][data-pet="composed"] .float {
+  animation: nod 0.7s var(--ease-rein) 2;
+}
+/* Melts (Keeper, Drifter, Lantern): sinks happily, slow and long. */
+.wrap[data-mood="petted"][data-pet="melts"] {
+  --squash: 0.55;
+}
+.wrap[data-mood="petted"][data-pet="melts"] .float {
+  animation: sway 1.6s ease-in-out 1;
+}
+/* Ticklish (Scout): a quick squirm. */
+.wrap[data-mood="petted"][data-pet="ticklish"] .float {
+  animation: wiggle 0.22s ease-in-out 6;
+}
+/* Giggles (Dune, Breeze): bouncy little hops. */
+.wrap[data-mood="petted"][data-pet="giggles"] .float {
+  animation: hop 0.35s var(--ease-rein) 4;
+}
+/* Grumbles (Fennec): a huff and a stomp; pet it again and it gives in (then it's "petted"). */
+.wrap[data-mood="grumble"] .float {
+  animation: stomp 0.45s ease-in-out 2;
+}
+.wrap[data-mood="grumble"] :global(.r-ear-l) {
+  transform: rotate(-26deg);
+}
+.wrap[data-mood="grumble"] :global(.r-ear-r) {
+  transform: rotate(26deg);
+}
+
+/* ---- A failed tool, in character (data-fail) ---- */
+
+/* Only the worried ones really droop; the others take it their own way. */
+.wrap[data-mood="droop"]:not([data-fail="worried"]) {
+  --squash: 0;
+  --eye: 1;
+  --face-y: 0px;
+}
+.wrap[data-mood="droop"][data-fail="determined"] .float {
+  animation: nod 0.6s var(--ease-rein) 2;
+}
+.wrap[data-mood="droop"][data-fail="shrug"] {
+  --tilt: 7deg;
+}
+.wrap[data-mood="droop"][data-fail="indignant"] .float {
+  animation: stomp 0.5s ease-in-out 2;
+}
+.wrap[data-mood="droop"][data-fail="startle"] .float {
+  animation: startle 0.5s var(--ease-rein) 1;
+}
+.wrap[data-mood="droop"][data-fail="spin"] .float {
+  transform-origin: 100px 124px;
+  animation: loop 1.2s var(--ease-rein) 1;
+}
+
+/* ---- More fidgets ---- */
+
+.wrap[data-fidget="nod"] .float {
+  animation: nod 0.7s var(--ease-rein) 2;
+}
+.wrap[data-fidget="stretch"] .float {
+  animation: stretch 1.4s var(--ease-rein) both;
+}
+.wrap[data-fidget="stomp"] .float {
+  animation: stomp 0.5s ease-in-out 2;
+}
+.wrap[data-fidget="spin"] .float {
+  transform-origin: 100px 124px;
+  animation: loop 1.2s var(--ease-rein) both;
+}
+
+/* ---- A save, in character ---- */
+
+/* The calm ones don't bounce: they glow and sway. */
+.wrap:is([data-rafeeq="keeper"], [data-rafeeq="drifter"], [data-rafeeq="lantern"])[data-mood="happy"] .float {
+  animation: sway 1.4s ease-in-out 1;
+}
+/* Rider: a proud nod. Breeze: a loop of joy. */
+.wrap[data-rafeeq="rider"][data-mood="happy"] .float {
+  animation: nod 0.6s var(--ease-rein) 2;
+}
+.wrap[data-rafeeq="breeze"][data-mood="happy"] .float {
+  transform-origin: 100px 124px;
+  animation: loop 1.2s var(--ease-rein) 1;
 }
 
 /* A small, calm preview in Settings. */

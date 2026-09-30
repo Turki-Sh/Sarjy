@@ -130,6 +130,9 @@ type Strings = {
     noneLine: string;
     names: Record<RafeeqId, string>;
     lines: Record<RafeeqId, string>;
+    /** Three words for who each one is, and its story. */
+    traits: Record<RafeeqId, string>;
+    stories: Record<RafeeqId, string>;
     /** Two families in the picker: the plush Rafeeqs, and the first four. */
     groups: { plush: string; classic: string };
     /** A short level badge on each companion's card ("Lv 3"). */
@@ -352,6 +355,33 @@ export const STRINGS: Record<Lang, Strings> = {
         fennec: "The desert fox. Ears up for every search.",
         breeze: "A puff of desert wind. Dreamy, always drifting by.",
       },
+      traits: {
+        rider: "Balanced · Attentive · Ready",
+        keeper: "Dependable · Gentle · Generous",
+        scout: "Curious · Alert · Observant",
+        drifter: "Relaxed · Adaptable · Dreamy",
+        dune: "Bold · Cheerful · Proud",
+        lantern: "Calm · Wise · Warm",
+        fennec: "Prickly · Sharp · Secretly soft",
+        breeze: "Playful · Restless · Cheeky",
+      },
+      stories: {
+        rider:
+          "Rode with the caravans from Najran to the Hijaz, and knows every well by name. The saddle on its back is the one it was born with. Nothing startles it, and it never leaves your side.",
+        keeper:
+          "Carries a satchel of other people's little things: a date seed, a letter, the words of a song. It has never lost one. Shy when you look at it, happiest when you're close.",
+        scout:
+          "Climbs the tallest dune before sunrise to see what's coming. It has never once been surprised, and can't stand not knowing. It leans in, always.",
+        drifter:
+          "Has been everywhere, and is in no hurry to be anywhere. Collects stories, not things. Likes a long nap, a gentle stroke, and not being rushed.",
+        dune: "The tallest dune in the Empty Quarter, or so it says. Wears its shemagh like a crown and loves an audience. Laughs loud, sulks for a second, laughs again.",
+        lantern:
+          "Lit the way for night travellers for a hundred years. Speaks softly, glows warmer when you're near, and remembers everything you tell it.",
+        fennec:
+          "A desert fox who hates being stared at and loves being fed. Hears everything, pretends not to. Grumbles when you pet it, then leans in for more.",
+        breeze:
+          "Born where the wind turns. Can't sit still, loves to tease, and always leaves a little sand behind. Try to touch it and it slips away, giggling.",
+      },
       groups: { plush: "The Rafeeqs", classic: "The first four" },
       short: (n) => `Lv ${n}`,
       levels: ["New friend", "Getting close", "Friend", "Close friend", "Rafeeq"],
@@ -569,6 +599,31 @@ export const STRINGS: Record<Lang, Strings> = {
         lantern: "يولّع فانوسه النحاسي مع كل ذكرى.",
         fennec: "ثعلب الصحرا، آذانه فوق مع كل بحث.",
         breeze: "نسمة من هوا البر. سرحانة ودايم تطفو.",
+      },
+      traits: {
+        rider: "متوازن · منتبه · جاهز",
+        keeper: "يعتمد عليه · حنون · كريم",
+        scout: "فضولي · صاحي · لمّاح",
+        drifter: "رايق · مرن · سرحان",
+        dune: "جريء · مستانس · شايف نفسه",
+        lantern: "هادي · حكيم · دافي",
+        fennec: "متنرفز · حاد · قلبه طيب",
+        breeze: "لعوب · ما يهدا · شقي",
+      },
+      stories: {
+        rider:
+          "مشى مع القوافل من نجران للحجاز، ويعرف كل بير باسمه. السرج اللي على ظهره معه من يوم انولد. ما يخوفه شي، وما يفارقك.",
+        keeper:
+          "يشيل بشنطته أغراض صغيرة للناس: نواة تمر، ورسالة، وكلمات أغنية. عمره ما ضيّع شي. يستحي إذا طالعته، ويفرح إذا قربت.",
+        scout: "يطلع أعلى طعس قبل الشروق عشان يشوف وش جاي. عمره ما تفاجأ، وما يطيق ما يدري. دايم مقرّب يشوف.",
+        drifter:
+          "راح كل مكان، وما هو مستعجل يروح لأي مكان. يجمع سوالف مو أغراض. يحب النومة الطويلة والدلع، وإن محد يستعجله.",
+        dune: "أطول طعس في الربع الخالي، على كلامه. لابس شماغه كأنه تاج ويحب أحد يطالعه. يضحك بصوت عالي، يزعل ثانية، ويرجع يضحك.",
+        lantern: "نوّر الدرب لمسافرين الليل مية سنة. صوته هادي، ويدفى إذا قربت، ويتذكر كل شي تقوله.",
+        fennec:
+          "ثعلب صحرا ما يحب أحد يطالعه، ويموت في الأكل. يسمع كل شي ويسوي نفسه ما سمع. يتنرفز إذا دلعته، وبعدين يقرب يبي زود.",
+        breeze:
+          "انولد عند منعطف الريح. ما يهدا، يحب يتشاقى، ودايم يخلي وراه شوية رمل. حاول تلمسه ويتزحلق عنك وهو يضحك.",
       },
       groups: { plush: "الرفاق", classic: "الأربعة الأوائل" },
       short: (n) => `مستوى ${n.toLocaleString("ar-SA")}`,

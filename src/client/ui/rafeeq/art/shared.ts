@@ -97,7 +97,8 @@ type FaceSpec = {
 
 /**
  * The face every companion shares (Turki, Day 3): eyes, blush, and the cat's ω mouth with a small
- * open mouth under it for talking. Every eye shape is drawn once (open, happy ^ ^, closed ‿ ‿);
+ * open mouth under it for talking; brows and a flat mouth for its moods (annoyed, worried, smug,
+ * determined), hidden until an expression shows them. Every eye shape is drawn once (open, happy ^ ^, closed ‿ ‿);
  * the stylesheet shows one. On a plush companion the eyes are glossy beads on a felt patch, and
  * the patch and the eyes move by different amounts as it looks around, like a head turning.
  */
@@ -127,6 +128,11 @@ export function face(uid: string, { cx, y, spread, plush = null, eye = 1 }: Face
       <ellipse class="r-blush${plush ? " r-blush-soft" : ""}" cx="${lx - 10 * m}" cy="${my - 1}" rx="${7 * m}" ry="${4 * m}"/>
       <ellipse class="r-blush${plush ? " r-blush-soft" : ""}" cx="${rx + 10 * m}" cy="${my - 1}" rx="${7 * m}" ry="${4 * m}"/>
       <path class="r-mouth" d="M${cx - 8 * m} ${my} q${4 * m} ${5 * m} ${8 * m} 0 q${4 * m} ${5 * m} ${8 * m} 0" ${stroke(line, plush ? 1.9 : 3.2)}/>
+      <path class="r-mouth-flat" d="M${cx - 6 * m} ${my + 2} h${12 * m}" ${stroke(line, plush ? 1.9 : 3.2)}/>
+      <g class="r-brows">
+        <path class="r-brow r-brow-l" d="M${lx - 7 * s} ${y - 15 * s} h${14 * s}" ${stroke(line, plush ? 2.2 : 3.4)}/>
+        <path class="r-brow r-brow-r" d="M${rx - 7 * s} ${y - 15 * s} h${14 * s}" ${stroke(line, plush ? 2.2 : 3.4)}/>
+      </g>
       <g class="r-talk" style="transform-origin:${cx}px ${my + 3}px">
         <ellipse cx="${cx}" cy="${my + 7 * m}" rx="${5.5 * m}" ry="${5 * m}" ${fill(plush ? "plush-mouth" : "rafeeq-ink")}/>
         <ellipse cx="${cx}" cy="${my + 9.5 * m}" rx="${3.2 * m}" ry="${2 * m}" ${fill("rafeeq-blush")}/>

@@ -288,6 +288,7 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [x] Turki's review: eight companions. The plush Rafeeqs from his reference sheet (Rider, Keeper, Scout, Drifter: felt, leather, brass, Sadu, bead eyes on a felt face) take the names; the first four become Dune, Lantern, Fennec and Breeze, refined, and Breeze is redrawn as wind (the old Drifter read wrong). Existing picks and bonds move to the renamed looks
 - [x] One bond per companion (Pokémon style), `rafeeq_bonds`; each card shows its own level
 - [x] More alive: a head-turn on plush faces, the body leaning toward you, tassels, hoods and ribbons swaying, fidgets between turns (hop, twitch, tilt, yawn, look), a trick each; the art lab (`scripts/rafeeq/lab.mjs`) draws every companion in every pose
+- [x] Turki's review (Day 4): a personality each. Its own reaction to your pointer resting on it (Fennec annoyed, Keeper shy, Dune proud, Breeze dodging), to petting (composed, melts, ticklish, giggles, grumbles then gives in) and to a failure; its own energy, gaze, fidgets and bedtime; a face at rest (brows, lids, mouth); traits and a story each in Settings, in both languages (AT-116)
 - [ ] Live look on a phone with real audio (the mouth follows the voice level, which headless tests can't hear)
 
 ---
@@ -296,7 +297,7 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 
 If we fall behind, cut in this order, top first. Musts are never cut.
 
-1. Rafeeq: live look and feel on a phone (A1 to A3 are built)
+1. Rafeeq: live look and feel on a phone (A1 to A4 are built)
 2. The Morning card (H2)
 3. Prayer times tool (T5)
 4. Hijri and greetings (H1)

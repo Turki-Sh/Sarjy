@@ -39,7 +39,7 @@ export function RafeeqPicker({ lang, choice, bonds, onChoice }: Props) {
       </span>
       <span className={styles.label}>{id ? s.names[id] : s.none}</span>
       {id && <span className={styles.rafeeqLevel}>{s.short(levelOf(id))}</span>}
-      <span className={styles.hint}>{id ? s.lines[id] : s.noneLine}</span>
+      <span className={styles.hint}>{id ? s.traits[id] : s.noneLine}</span>
     </button>
   );
   const bond = choice ? (bonds[choice] ?? 0) : 0;
@@ -62,6 +62,8 @@ export function RafeeqPicker({ lang, choice, bonds, onChoice }: Props) {
               <span className={styles.label}>
                 {s.names[choice]} · {s.levels[level - 1]}
               </span>
+              <p className={styles.hint}>{s.lines[choice]}</p>
+              <p className={`${styles.hint} ${styles.story}`}>{s.stories[choice]}</p>
               <p className={styles.hint}>
                 {s.level(level)}. {next === null ? s.maxed : s.toNext(next - bond)}
               </p>

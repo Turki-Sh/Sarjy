@@ -6,10 +6,13 @@
 //   --lvl      your voice while it listens, Sarjy's while it speaks, smoothed
 //   --mouth    how open its mouth is: Sarjy's voice, while it speaks
 //   --look-x/y where its eyes point: your pointer, the text box while you type, a glance now and then
-// and it blinks, at a random moment every few seconds (data-blink).
+// and it blinks, at a random moment every few seconds (data-blink). Its personality sets how
+// keenly it follows you and how fast it breathes; while your pointer rests on it, a shy or annoyed
+// one looks away, and a dodgy one slips aside (--dodge).
 
 import { useEffect, useRef, type RefObject } from "react";
 import type { VoiceState } from "@/shared/states";
+import type { Personality } from "@/shared/rafeeq";
 import { follow, type LevelSource } from "../../voice/useOrbMotion";
 
 const clamp = (n: number, lo = -1, hi = 1) => Math.min(hi, Math.max(lo, n));
@@ -18,13 +21,16 @@ export function useRafeeqMotion(
   root: RefObject<HTMLElement | null>,
   state: VoiceState,
   levels: { input: LevelSource; output: LevelSource },
+  self: Personality,
   still: boolean,
 ) {
   const stateRef = useRef(state);
   const levelsRef = useRef(levels);
+  const selfRef = useRef(self);
   useEffect(() => {
     stateRef.current = state;
     levelsRef.current = levels;
+    selfRef.current = self;
   });
 
   useEffect(() => {
@@ -34,6 +40,7 @@ export function useRafeeqMotion(
     let raf = 0;
     let level = 0;
     let mouth = 0;
+    let dodge = 0;
     const look = { x: 0, y: 0 };
     const aim = { x: 0, y: 0 };
     let pointerAt = 0;
@@ -86,8 +93,13 @@ export function useRafeeqMotion(
         // Where to look: typing wins, then your pointer (for 4 s after it moved), then a glance.
         let tx = 0;
         let ty = 0;
+        const me = selfRef.current;
+        const hovered = el.dataset.hover;
+        // Shy, or annoyed once you linger: it looks away from you (and a little down, if shy).
+        const averted = hovered && (me.temper === "shy" || (me.temper === "annoyed" && hovered === "long"));
         if (now < typingUntil) ty = 1;
-        else if (now - pointerAt < 4000) ((tx = aim.x), (ty = aim.y));
+        else if (averted) ((tx = -Math.sign(aim.x || 1) * 0.9), (ty = me.temper === "shy" ? 0.7 : -0.2));
+        else if (now - pointerAt < 4000) ((tx = aim.x * me.gaze), (ty = aim.y * me.gaze));
         else if (s === "idle") {
           if (now > nextGlance) {
             aim.x = Math.random() * 1.6 - 0.8;
@@ -97,10 +109,16 @@ export function useRafeeqMotion(
           }
           if (now < glanceUntil) ((tx = aim.x), (ty = aim.y));
         }
-        look.x += (tx - look.x) * 0.12;
-        look.y += (ty - look.y) * 0.12;
+        // Quick ones snap their eyes over; calm ones take their time.
+        const ease = 0.06 + 0.06 * me.energy;
+        look.x += (clamp(tx) - look.x) * ease;
+        look.y += (clamp(ty) - look.y) * ease;
+        // A dodgy one slips away from your pointer while it rests on it.
+        const away = hovered && me.temper === "dodge" ? -Math.sign(aim.x || 1) * 16 : 0;
+        dodge += (away - dodge) * 0.08;
 
-        el.style.setProperty("--breath", Math.sin(now / 900).toFixed(3));
+        el.style.setProperty("--breath", Math.sin((now / 900) * Math.sqrt(me.energy)).toFixed(3));
+        el.style.setProperty("--dodge", `${dodge.toFixed(2)}px`);
         el.style.setProperty("--lvl", level.toFixed(3));
         el.style.setProperty("--mouth", mouth.toFixed(3));
         el.style.setProperty("--look-x", look.x.toFixed(3));

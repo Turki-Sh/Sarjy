@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Rafeeq, the companion (Turki, Day 3): off by default; picked in Settings, it takes the orb's
 // place in your own chats, follows every state, reacts to saves and petting, and grows a bond.
-// Never in a Majlis. Acceptance tests AT-110 to AT-115.
+// Never in a Majlis. Acceptance tests AT-110 to AT-116.
 
 const say = async (page: Page, text: string) => {
   await page.getByRole("textbox", { name: "Type to Sarjy…" }).fill(text);
@@ -110,4 +110,32 @@ test("each companion has its own bond, kept when you switch (AT-115)", async ({ 
   // ...and Scout's bond was kept.
   await page.getByRole("radio", { name: /^Scout/ }).click();
   await expect(progress()).not.toHaveAttribute("aria-valuenow", "0");
+});
+
+test("each companion has its own personality: Fennec gets annoyed, Keeper goes shy (AT-116)", async ({
+  page,
+}) => {
+  await Promise.all([page.waitForResponse("**/api/session"), page.goto("/")]);
+  const restOn = async () => {
+    const box = (await rafeeq(page).boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 3 });
+  };
+
+  await pick(page, /^Fennec/);
+  await expect(rafeeq(page)).toHaveAttribute("data-temper", "annoyed");
+  await restOn();
+  // Wary for a moment, then annoyed if you stay.
+  await expect(rafeeq(page)).toHaveAttribute("data-expr", "wary");
+  await expect(rafeeq(page)).toHaveAttribute("data-expr", "annoyed", { timeout: 5_000 });
+  await page.mouse.move(5, 5);
+  await expect(rafeeq(page)).not.toHaveAttribute("data-expr", /wary|annoyed/);
+
+  await pick(page, /^Keeper/);
+  await expect(rafeeq(page)).toHaveAttribute("data-expr", "content");
+  await restOn();
+  await expect(rafeeq(page)).toHaveAttribute("data-expr", "shy");
+
+  // Each tells its own story in Settings.
+  await page.getByRole("button", { name: /^Your Rafeeq/ }).click();
+  await expect(page.getByRole("dialog").getByText(/satchel of other people's little things/)).toBeVisible();
 });

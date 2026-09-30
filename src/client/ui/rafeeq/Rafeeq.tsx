@@ -2,38 +2,45 @@
 
 // Rafeeq, the companion (Turki, Day 3): when you pick one in Settings it takes the orb's place in
 // your own chats, and is the mic the same way (tap it to talk). It follows every state the orb
-// does, and it has a life of its own:
+// does, and it has a life, and a personality, of its own (shared/rafeeq.ts, PERSONALITIES):
 //   - it breathes, blinks, and looks at your pointer, or down at the text box while you type
-//   - it leans in and pulses with your voice while listening; its mouth moves with Sarjy's voice
-//   - it thinks (dots over its head), works a tool, beams on a save, droops when a tool fails
-//   - stroke it and it's happy (from bond level 3 it purrs, blushes and shows hearts)
-//   - leave it be and it falls asleep, and wakes with a start when you come back
-//   - between turns it fidgets: a little hop, an ear twitch, a head tilt, a yawn, a look around
-//   - it greets you when you arrive (level 2), does its own trick now and then (level 4), and
-//     wears a gold star (level 5)
-// The moods live here; the poses live in Rafeeq.module.css, keyed on data-state and data-mood.
+//   - it leans in while listening; its mouth moves with Sarjy's voice; it thinks and searches
+//   - rest your pointer on it and it answers in character: Rider stands to attention, Keeper goes
+//     shy and looks away, Scout leans in, Drifter doesn't care, Dune puffs up, Lantern glows,
+//     Fennec gets annoyed, Breeze dodges and giggles
+//   - stroke it and it reacts in character too: melts, giggles, keeps its composure, or grumbles
+//     (and gives in if you keep at it); a failed tool worries one and fires up another
+//   - between turns it fidgets in its own way, at its own pace, and dozes off on its own schedule
+//   - it greets you when you arrive (level 2), does its own trick (level 4), wears a star (level 5)
+// The moods and personality live here; the looks live in Rafeeq.module.css, keyed on data-*.
 
-import { useEffect, useId, useRef, useState } from "react";
-import type { RafeeqId } from "@/shared/rafeeq";
-import { UNLOCKS } from "@/shared/rafeeq";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import {
+  expressionOf,
+  PERSONALITIES,
+  UNLOCKS,
+  type Fidget,
+  type Hover,
+  type Mood,
+  type RafeeqId,
+} from "@/shared/rafeeq";
 import type { VoiceState } from "@/shared/states";
 import type { LevelSource } from "../../voice/useOrbMotion";
 import { ART } from "./art";
 import styles from "./Rafeeq.module.css";
 import { useRafeeqMotion } from "./useRafeeqMotion";
 
-type Mood = "none" | "sleepy" | "waking" | "happy" | "petted" | "droop" | "greet" | "trick" | "celebrate";
-
-/** The small things it does on its own while it waits, one at a time. */
-const FIDGETS = ["hop", "twitch", "tilt", "yawn", "look"] as const;
-type Fidget = (typeof FIDGETS)[number];
-
 /** Something that just happened that it reacts to. `at` makes each one new. */
 export type RafeeqCue = { kind: "saved" | "failed" | "levelup"; at: number };
 
 const none: LevelSource = () => null;
-/** How long with nothing happening before it dozes off. */
-const SLEEP_MS = 45_000;
+/** How much stroking (in pixels, within a second) counts as petting. */
+const PET_PX = 260;
+/** Your pointer resting on it: a moment, then a while. */
+const NEAR_MS = 250;
+const LONG_MS = 2200;
+/** A grumbler gives in when petted again this soon. */
+const GIVE_IN_MS = 8000;
 /** Where sparkles burst around it, on a save. */
 const SPARKLES: [number, number][] = [
   [44, 70],
@@ -42,20 +49,18 @@ const SPARKLES: [number, number][] = [
   [168, 132],
   [100, 36],
 ];
-/** How much stroking (in pixels, within a second) counts as petting. */
-const PET_PX = 260;
 
 type Props = {
   id: RafeeqId;
   state: VoiceState;
   inputLevel?: LevelSource;
   outputLevel?: LevelSource;
-  /** Bond level, 1 to 5. */
+  /** Bond level with this companion, 1 to 5. */
   level: number;
   cue?: RafeeqCue | null;
   /** It was petted (a stroke across it). */
   onPet?: () => void;
-  /** A small, calm preview (Settings): no greeting, no sleep, no tricks, no pointer. */
+  /** A small, calm preview (Settings): no greeting, no sleep, no fidgets, no pointer. */
   preview?: boolean;
 };
 
@@ -71,11 +76,16 @@ export function Rafeeq({
 }: Props) {
   const root = useRef<HTMLDivElement>(null);
   const uid = `rq${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const self = PERSONALITIES[id];
+  const selfRef = useRef(self);
+  const stateRef = useRef(state);
   const [mood, setMood] = useState<Mood>("none");
   const moodRef = useRef<Mood>("none");
   useEffect(() => {
     moodRef.current = mood;
-  }, [mood]);
+    stateRef.current = state;
+    selfRef.current = self;
+  });
   const moodTimer = useRef(0);
   /** A mood for a moment, then back to itself (unless something else took over). */
   const flash = (next: Mood, ms: number) => {
@@ -88,9 +98,9 @@ export function Rafeeq({
     flashRef.current = flash;
   });
 
-  useRafeeqMotion(root, state, { input: inputLevel, output: outputLevel }, preview);
+  useRafeeqMotion(root, state, { input: inputLevel, output: outputLevel }, self, preview);
 
-  // Hello, when you arrive (from bond level 2).
+  // Hello, when you arrive (from bond level 2), in its own way.
   useEffect(() => {
     if (preview || level < UNLOCKS.greet) return;
     const t = window.setTimeout(() => flashRef.current("greet", 1700), 500);
@@ -111,7 +121,7 @@ export function Rafeeq({
     flashRef.current(next, ms);
   }, [cue]);
 
-  // Dozing off when nothing happens, and waking with a start. Any state but rest keeps it awake.
+  // Dozing off when nothing happens (each on its own schedule), and waking with a start.
   const lastActive = useRef(0);
   useEffect(() => {
     lastActive.current = performance.now();
@@ -125,7 +135,8 @@ export function Rafeeq({
       if (moodRef.current === "sleepy") flashRef.current("waking", 900);
     };
     const check = window.setInterval(() => {
-      if (moodRef.current === "none" && performance.now() - lastActive.current > SLEEP_MS) setMood("sleepy");
+      const idleFor = performance.now() - lastActive.current;
+      if (moodRef.current === "none" && idleFor > selfRef.current.sleepMs) setMood("sleepy");
     }, 3000);
     window.addEventListener("pointermove", wake, { passive: true });
     window.addEventListener("keydown", wake);
@@ -137,10 +148,6 @@ export function Rafeeq({
   }, [preview]);
 
   // Its own trick, now and then while it waits (from bond level 4).
-  const stateRef = useRef(state);
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
   useEffect(() => {
     if (preview || level < UNLOCKS.trick) return;
     let t = 0;
@@ -157,28 +164,49 @@ export function Rafeeq({
     return () => window.clearTimeout(t);
   }, [preview, level]);
 
-  // Fidgeting while it waits: every 6 to 13 seconds, one small thing, for a moment.
+  // Fidgeting while it waits: its own habits, at its own pace.
   const [fidget, setFidget] = useState<Fidget | null>(null);
   useEffect(() => {
     if (preview) return;
     let t = 0;
     const next = () => {
+      const [lo, hi] = selfRef.current.fidgetEvery;
       t = window.setTimeout(
         () => {
           if (stateRef.current === "idle" && moodRef.current === "none") {
-            setFidget(FIDGETS[Math.floor(Math.random() * FIDGETS.length)]!);
+            const habits = selfRef.current.fidgets;
+            setFidget(habits[Math.floor(Math.random() * habits.length)]!);
             window.setTimeout(() => setFidget(null), 1400);
           }
           next();
         },
-        6000 + Math.random() * 7000,
+        (lo + Math.random() * (hi - lo)) * 1000,
       );
     };
     next();
     return () => window.clearTimeout(t);
   }, [preview]);
 
-  // Petting: a stroke back and forth across it.
+  // Your pointer resting on it (a mouse or pen; a finger taps, it doesn't hover).
+  const [hover, setHover] = useState<Hover>(null);
+  const hoverTimers = useRef<number[]>([]);
+  const onPointerEnter = (e: React.PointerEvent) => {
+    if (preview || e.pointerType === "touch") return;
+    hoverTimers.current.forEach(window.clearTimeout);
+    hoverTimers.current = [
+      window.setTimeout(() => setHover("near"), NEAR_MS),
+      window.setTimeout(() => setHover("long"), LONG_MS),
+    ];
+  };
+  const onPointerLeave = () => {
+    hoverTimers.current.forEach(window.clearTimeout);
+    setHover(null);
+    stroke.current.x = 0;
+    stroke.current.y = 0;
+  };
+  useEffect(() => () => hoverTimers.current.forEach(window.clearTimeout), []);
+
+  // Petting: a stroke back and forth across it. A grumbler grumbles, then gives in if you persist.
   const stroke = useRef({ px: 0, since: 0, x: 0, y: 0, lastPet: -Infinity });
   const onPointerMove = (e: React.PointerEvent) => {
     if (preview) return;
@@ -189,17 +217,16 @@ export function Rafeeq({
     s.x = e.clientX;
     s.y = e.clientY;
     if (s.px > PET_PX && now - s.lastPet > 2500 && stateRef.current === "idle") {
+      const persisted = now - s.lastPet < GIVE_IN_MS;
       s.lastPet = now;
       s.px = 0;
-      flash("petted", 1800);
+      if (self.pet === "grumbles" && !persisted) flash("grumble", 1600);
+      else flash("petted", 1800);
       onPet?.();
     }
   };
-  const onPointerLeave = () => {
-    stroke.current.x = 0;
-    stroke.current.y = 0;
-  };
 
+  const idle = state === "idle";
   return (
     <div
       ref={root}
@@ -207,10 +234,17 @@ export function Rafeeq({
       data-rafeeq={id}
       data-state={state}
       data-mood={mood}
-      data-fidget={mood === "none" && state === "idle" ? (fidget ?? undefined) : undefined}
+      data-fidget={mood === "none" && idle && !hover ? (fidget ?? undefined) : undefined}
+      data-hover={mood === "none" && idle ? (hover ?? undefined) : undefined}
+      data-expr={expressionOf(id, mood, hover, idle) ?? undefined}
+      data-temper={self.temper}
+      data-pet={self.pet}
+      data-fail={self.fail}
       data-purr={level >= UNLOCKS.purr || undefined}
       data-star={level >= UNLOCKS.star || undefined}
       data-preview={preview || undefined}
+      style={{ "--energy": self.energy } as CSSProperties}
+      onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
       aria-hidden="true"
@@ -239,6 +273,9 @@ export function Rafeeq({
           <path d="M60 60 c-4 -6 -12 -2 -8 5 l8 8 l8 -8 c4 -7 -4 -11 -8 -5 Z" />
           <path d="M140 52 c-3 -5 -10 -2 -7 4 l7 7 l7 -7 c3 -6 -4 -9 -7 -4 Z" />
           <path d="M100 30 c-3 -5 -9 -2 -6 4 l6 6 l6 -6 c3 -6 -3 -9 -6 -4 Z" />
+        </g>
+        <g className={styles.huff}>
+          <path d="M150 64 l10 -6 M154 74 l12 -2 M150 84 l10 4" />
         </g>
         <g className={styles.sparkles}>
           {SPARKLES.map(([x, y]) => (

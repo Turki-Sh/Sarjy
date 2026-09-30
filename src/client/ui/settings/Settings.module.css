@@ -698,3 +698,14 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* A companion's story, in the voice face: it's a tale. */
+.story {
+  margin-block: 8px 10px;
+  color: var(--text);
+  font: italic 400 15px/1.5 var(--font-voice);
+}
+.story:lang(ar),
+:lang(ar) .story {
+  font: 500 15px/1.8 var(--font-ar-voice);
+}
