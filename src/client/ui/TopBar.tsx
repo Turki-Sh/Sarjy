@@ -1,6 +1,8 @@
 // The top of the voice area. With the sidebar closed: buttons to reopen it and start a new chat.
+// On the other end: "Start a Majlis", or in a Majlis, its bar.
 // Sharing lives in each chat's ⋯ menu; theme and language live in Settings.
 
+import type { ReactNode } from "react";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
 import { Icon } from "./Icon";
@@ -13,9 +15,13 @@ type Props = {
   /** Opens the sidebar as a sheet on a narrow screen (its button only shows there). */
   onOpenSheet: () => void;
   onNewChat: () => void;
+  /** On the reading end, in a Majlis: its bar. */
+  end?: ReactNode;
+  /** Elsewhere: start a Majlis. */
+  onStartMajlis?: () => void;
 };
 
-export function TopBar({ lang, onOpenSidebar, onOpenSheet, onNewChat }: Props) {
+export function TopBar({ lang, onOpenSidebar, onOpenSheet, onNewChat, end, onStartMajlis }: Props) {
   const s = t(lang);
   return (
     <header className={styles.top}>
@@ -52,6 +58,13 @@ export function TopBar({ lang, onOpenSidebar, onOpenSheet, onNewChat }: Props) {
           </>
         )}
       </div>
+      {end}
+      {!end && onStartMajlis && (
+        <button type="button" className={styles.majlis} onClick={onStartMajlis}>
+          <Icon name="finjan" />
+          {s.majlis.start}
+        </button>
+      )}
     </header>
   );
 }

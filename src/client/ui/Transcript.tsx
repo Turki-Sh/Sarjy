@@ -12,6 +12,7 @@ import type { ChatLine } from "../voice/useSarjy";
 import { Caption, type CaptionModel } from "./Caption";
 import { Details } from "./Details";
 import { Icon } from "./Icon";
+import { seatStyle } from "./majlis/seat";
 import styles from "./Transcript.module.css";
 
 type Props = {
@@ -101,7 +102,11 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
                 lang={line.lang}
                 // The newest earlier line is the clearest; older ones fade.
                 data-age={whole ? undefined : earlier.length - 1 - i}
+                // In a Majlis, each person's bubbles wear their seat's color.
+                data-seat={line.speaker?.seat}
+                style={line.speaker ? seatStyle(line.speaker.seat) : undefined}
               >
+                {line.speaker && <span className={styles.who}>{line.speaker.name}</span>}
                 {line.image && (
                   // eslint-disable-next-line @next/next/no-img-element -- a local object URL
                   <img className={styles.picture} src={line.image} alt="" />
@@ -116,7 +121,12 @@ export function Transcript({ lang, all, earlier: recent, caption, timings, welco
         {caption && (
           <div
             className={`${styles.bubble} ${styles.now} ${caption.speaker === "sarjy" ? `${styles.sarjy} glass text` : styles.user}`}
+            data-seat={caption.speaker === "user" ? caption.who?.seat : undefined}
+            style={caption.speaker === "user" && caption.who ? seatStyle(caption.who.seat) : undefined}
           >
+            {caption.speaker === "user" && caption.who && (
+              <span className={styles.who}>{caption.who.name}</span>
+            )}
             <Caption caption={caption} />
             {canExplain && (
               <button

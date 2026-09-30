@@ -6,6 +6,7 @@ import { env } from "../env";
 import { fakeFetch } from "./fake/fetch";
 import { createFakeModel } from "./fake/model";
 import { createFakeStt, createFakeTts } from "./fake/speech";
+import { createFakeGuard } from "./fake/guard";
 import { createFakeWeb } from "./fake/web";
 import { createGroqProviders } from "./groq";
 import type { Providers } from "./types";
@@ -16,6 +17,8 @@ export function getProviders(
     slowRestMs?: number;
     /** Fake mode: the voice returns nothing, as past Groq's daily limit. */
     voiceOut?: boolean;
+    /** Fake mode: the picture guard turns the next picture away. */
+    unsafePicture?: boolean;
     /** The voices this person chose (Settings, Voice). */
     voices?: Record<"en" | "ar", string>;
   } = {},
@@ -33,6 +36,7 @@ export function getProviders(
     ],
     writer: [{ id: "fake-writer", model: createFakeModel("fake-writer") }],
     web: createFakeWeb(),
+    guard: createFakeGuard(options.unsafePicture ?? false),
     fetch: fakeFetch,
   };
 }

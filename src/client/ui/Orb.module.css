@@ -97,8 +97,34 @@
   opacity: 0.95;
 }
 
+/* In a Majlis the finjan takes the wave's place. The wave's paths stay (the motion loop drives the
+   light through them) but are not drawn. The steam rises gently at rest and more with the voice. */
+.wave[data-majlis] :is(.master, .moving, .trace) {
+  display: none;
+}
+.steam {
+  opacity: calc(0.4 + var(--glow, 0) * 0.6);
+  animation: steam 2.2s var(--ease-rein) infinite;
+}
+@keyframes steam {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  35% {
+    opacity: calc(0.4 + var(--glow, 0) * 0.6);
+  }
+  100% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wrap {
     transition: none;
+  }
+  .steam {
+    animation: none;
   }
 }

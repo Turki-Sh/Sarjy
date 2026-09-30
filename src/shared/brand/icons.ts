@@ -35,6 +35,9 @@ export const ICONS = {
   pin: '<path d="M9.5 4.5h5l-.8 5.2 3.3 3.3H7l3.3-3.3zM12 13v6.5"/>',
   play: '<path d="M8 5.5v13l10.5-6.5z"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  /** A finjan, the small Arabic coffee cup: the Majlis. */
+  finjan:
+    '<path d="M5.5 10h13l-1.6 7.2a2 2 0 0 1-1.9 1.6H9a2 2 0 0 1-1.9-1.6z"/><path d="M10 3.5c-.9.8.9 1.7 0 2.7M14 3.5c-.9.8.9 1.7 0 2.7"/>',
   sidebar: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/>',
 } as const;
 

@@ -6,6 +6,7 @@
 // An item marked `confirm` asks once more in place (used by Delete), instead of a separate dialog.
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { IconName } from "@/shared/brand/icons";
 import { Icon } from "./Icon";
 import styles from "./Menu.module.css";
@@ -89,48 +90,53 @@ export function Menu({ label, items, className }: Props) {
       >
         <Icon name="more" />
       </button>
-      {open && at && (
-        <div
-          ref={menu}
-          role="menu"
-          aria-label={label}
-          className={`${styles.menu} glass`}
-          style={{ top: at.top, left: at.left }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowDown") move(1);
-            else if (e.key === "ArrowUp") move(-1);
-            else if (e.key === "Escape") close();
-            else if (e.key === "Tab") close(false);
-            else return;
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {items.map((item, i) => {
-            const asking = confirming === item.id;
-            return (
-              <div key={item.id} className={styles.group}>
-                {item.danger && i > 0 && <hr className={styles.rule} />}
-                <button
-                  type="button"
-                  role="menuitem"
-                  className={styles.item}
-                  data-danger={item.danger || undefined}
-                  data-asking={asking || undefined}
-                  onClick={() => {
-                    if (item.confirm && !asking) return setConfirming(item.id);
-                    close();
-                    item.onSelect();
-                  }}
-                >
-                  <Icon name={item.icon} />
-                  {asking ? item.confirm : item.label}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* On the page's body: inside anything glass (backdrop-filter), a fixed menu would be placed
+          relative to that box instead of the window. */}
+      {open &&
+        at &&
+        createPortal(
+          <div
+            ref={menu}
+            role="menu"
+            aria-label={label}
+            className={`${styles.menu} glass`}
+            style={{ top: at.top, left: at.left }}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") move(1);
+              else if (e.key === "ArrowUp") move(-1);
+              else if (e.key === "Escape") close();
+              else if (e.key === "Tab") close(false);
+              else return;
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {items.map((item, i) => {
+              const asking = confirming === item.id;
+              return (
+                <div key={item.id} className={styles.group}>
+                  {item.danger && i > 0 && <hr className={styles.rule} />}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.item}
+                    data-danger={item.danger || undefined}
+                    data-asking={asking || undefined}
+                    onClick={() => {
+                      if (item.confirm && !asking) return setConfirming(item.id);
+                      close();
+                      item.onSelect();
+                    }}
+                  >
+                    <Icon name={item.icon} />
+                    {asking ? item.confirm : item.label}
+                  </button>
+                </div>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

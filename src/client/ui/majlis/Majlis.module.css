@@ -1,0 +1,207 @@
+/* The Majlis: the bar at the top of the voice area, and the door. Seat colors come from tokens.css
+   through --seat (seat.ts). */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 5px;
+  padding-inline: 12px 6px;
+  border-radius: var(--r-pill);
+  font: 500 13px/1 var(--font-ui);
+  color: var(--text);
+  min-width: 0;
+}
+.bar:lang(ar) {
+  font-family: var(--font-ar);
+}
+.mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--mark);
+}
+.title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.people {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Each person: an initial on their seat's color. Overlapping a little, like people sitting close. */
+.person {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-inline-start: -5px;
+  border-radius: 50%;
+  background: var(--seat);
+  color: var(--white);
+  font: 700 11.5px/1 var(--font-ui);
+  box-shadow: 0 0 0 2px var(--bg);
+  opacity: 0.4;
+  transition:
+    opacity var(--t-base) var(--ease-rein),
+    box-shadow var(--t-base) var(--ease-rein);
+}
+.person:first-child {
+  margin-inline-start: 0;
+}
+.person[data-online] {
+  opacity: 1;
+}
+/* Holding the mic: a ring in their color that breathes. */
+.person[data-floor] {
+  opacity: 1;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--seat);
+  animation: holding 1.6s var(--ease-rein) infinite;
+  z-index: 1;
+}
+@keyframes holding {
+  50% {
+    box-shadow:
+      0 0 0 2px var(--bg),
+      0 0 0 6px color-mix(in srgb, var(--seat) 50%, transparent);
+  }
+}
+.count {
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.invite {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-block: 6px;
+  padding-inline: 10px 12px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  cursor: pointer;
+  text-shadow: none;
+}
+.invite svg {
+  width: 15px;
+  height: 15px;
+}
+@media (max-width: 640px) {
+  .title,
+  .count {
+    display: none;
+  }
+}
+
+/* The door: a card in the middle of the stage, where the conversation will be. */
+.door {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(360px, 100%);
+  padding: 22px 22px 20px;
+  border-radius: var(--r-l);
+  text-align: center;
+  font: 400 14px/1.5 var(--font-ui);
+  color: var(--text);
+}
+.door:lang(ar) {
+  font-family: var(--font-ar);
+}
+.doorMark {
+  width: 28px;
+  height: 28px;
+  color: var(--mark);
+}
+.doorTitle {
+  margin: 0;
+  font: 600 19px/1.3 var(--font-ui);
+}
+.door:lang(ar) .doorTitle {
+  font-family: var(--font-ar);
+}
+.doorForm {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+.doorCount {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.doorHint {
+  margin: 0;
+  color: var(--text-2);
+}
+.nameField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: start;
+  font-weight: 500;
+}
+.nameField input {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+}
+.nameField input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.join {
+  display: inline-flex;
+  justify-content: center;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 15px/1 var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+  text-shadow: none;
+}
+.join:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* The ⋯ at the end of the bar: leave, or (the host) end it for everyone. */
+.more {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.more:hover,
+.more[aria-expanded="true"] {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+.more svg {
+  width: 16px;
+  height: 16px;
+}

@@ -2,26 +2,52 @@ import "server-only";
 
 // Conversations and their messages: recent chats in the sidebar, and the context for each turn.
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, or } from "drizzle-orm";
 import type { Db } from "../db/client";
-import { conversations, messages, pictures, type MessageRow } from "../db/schema";
+import { conversations, messages, pictures, roomMembers, rooms, type MessageRow } from "../db/schema";
+import { guestConversationIds, isRoomReader, roomsOf } from "../rooms/rooms";
 
-export type ChatSummary = { id: string; title: string; updatedAt: string; pinned: boolean };
+export type ChatSummary = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  pinned: boolean;
+  /** A Majlis chat: its code, whether it is still open, and whether you opened it. */
+  majlis?: { code: string; live: boolean; mine: boolean };
+};
 
-/** Recent chats: pinned ones first, then the newest. */
+/** Recent chats, your own and the Majlis chats you joined: pinned ones first, then the newest. */
 export async function listConversations(db: Db, userId: string, limit = 20): Promise<ChatSummary[]> {
+  const joined = await guestConversationIds(db, userId);
   const rows = await db
     .select()
     .from(conversations)
-    .where(eq(conversations.userId, userId))
+    .where(
+      joined.length
+        ? or(eq(conversations.userId, userId), inArray(conversations.id, joined))
+        : eq(conversations.userId, userId),
+    )
     .orderBy(desc(conversations.pinned), desc(conversations.updatedAt))
     .limit(limit);
-  return rows.map((c) => ({
-    id: c.id,
-    title: c.title ?? "",
-    updatedAt: c.updatedAt.toISOString(),
-    pinned: c.pinned,
-  }));
+  const majlis = await roomsOf(
+    db,
+    rows.map((c) => c.id),
+  );
+  return rows.map((c) => {
+    const room = majlis.get(c.id);
+    return {
+      id: c.id,
+      title: c.title ?? "",
+      updatedAt: c.updatedAt.toISOString(),
+      pinned: c.userId === userId && c.pinned,
+      ...(room ? { majlis: { code: room.code, live: !room.endedAt, mine: room.hostId === userId } } : {}),
+    };
+  });
+}
+
+/** Whether this user may read a conversation: their own, or a Majlis they joined. */
+async function canRead(db: Db, userId: string, conversation: { id: string; userId: string }) {
+  return conversation.userId === userId || isRoomReader(db, userId, conversation.id);
 }
 
 /** The conversation to continue: the given one if it is this user's, otherwise a new one. */
@@ -38,6 +64,19 @@ export async function openConversation(db: Db, userId: string, id: string | null
   const title = firstText.replace(/\s+/g, " ").trim().slice(0, 60);
   const [created] = await db.insert(conversations).values({ userId, title }).returning();
   return created!;
+}
+
+/**
+ * A Majlis's conversation (the room already checked who may speak in it). It starts untitled;
+ * the first thing said in the room names it, as in any chat.
+ */
+export async function roomConversation(db: Db, id: string, firstText: string) {
+  const [found] = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
+  if (!found) throw new Error("The room's conversation is gone.");
+  if (found.title) return found;
+  const title = firstText.replace(/\s+/g, " ").trim().slice(0, 60);
+  const [named] = await db.update(conversations).set({ title }).where(eq(conversations.id, id)).returning();
+  return named!;
 }
 
 /** The last few messages, oldest first, for the model's context. */
@@ -105,6 +144,8 @@ export async function saveTurn(
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
+  /** Who said it (in a Majlis, whose color it wears). Absent for Sarjy. */
+  speakerId?: string;
   text: string;
   lang: "en" | "ar";
   createdAt: string;
@@ -122,20 +163,25 @@ export async function picturesOf(db: Db, messageIds: string[]): Promise<Map<stri
   return new Map(rows.map((r) => [r.messageId, r.id]));
 }
 
-/** One picture's bytes, only if it belongs to one of this user's chats. */
+/** One picture's bytes, only if it belongs to a chat this user may read. */
 export async function getPicture(
   db: Db,
   userId: string,
   id: string,
 ): Promise<{ bytes: Buffer; mediaType: string } | null> {
   const [found] = await db
-    .select({ bytes: pictures.bytes, mediaType: pictures.mediaType })
+    .select({
+      bytes: pictures.bytes,
+      mediaType: pictures.mediaType,
+      conversation: { id: conversations.id, userId: conversations.userId },
+    })
     .from(pictures)
     .innerJoin(messages, eq(messages.id, pictures.messageId))
     .innerJoin(conversations, eq(conversations.id, messages.conversationId))
-    .where(and(eq(pictures.id, id), eq(conversations.userId, userId)))
+    .where(eq(pictures.id, id))
     .limit(1);
-  return found ?? null;
+  if (!found || !(await canRead(db, userId, found.conversation))) return null;
+  return { bytes: found.bytes, mediaType: found.mediaType };
 }
 
 /** A picture's bytes by id, for the model's context (the caller already owns the chat). */
@@ -148,18 +194,14 @@ export async function pictureBytes(db: Db, id: string): Promise<{ bytes: Buffer;
   return found ?? null;
 }
 
-/** One of the user's chats with its messages, oldest first; null if it is not theirs. */
+/** A chat this user may read, with its messages, oldest first; null if they may not. */
 export async function getConversation(
   db: Db,
   userId: string,
   id: string,
 ): Promise<{ id: string; title: string; messages: ChatMessage[] } | null> {
-  const [found] = await db
-    .select()
-    .from(conversations)
-    .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
-    .limit(1);
-  if (!found) return null;
+  const [found] = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
+  if (!found || !(await canRead(db, userId, found))) return null;
   const rows = await recentMessages(db, id, 40);
   const withPicture = await picturesOf(
     db,
@@ -173,6 +215,7 @@ export async function getConversation(
       return {
         id: m.id,
         role: m.role as "user" | "assistant",
+        ...(m.role === "user" && m.speakerId ? { speakerId: m.speakerId } : {}),
         text: m.text,
         lang: m.lang as "en" | "ar",
         createdAt: m.createdAt.toISOString(),
@@ -197,13 +240,31 @@ export async function updateConversation(
   return rows.length > 0;
 }
 
-/** Deletes one of the user's chats and its messages (shared links are copies, so they stay). */
+/**
+ * Deletes one of the user's chats and its messages (shared links are copies, so they stay).
+ * A Majlis you joined as a guest isn't yours to delete: it leaves your Recent instead.
+ */
 export async function deleteConversation(db: Db, userId: string, id: string): Promise<boolean> {
   const rows = await db
     .delete(conversations)
     .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
     .returning({ id: conversations.id });
-  return rows.length > 0;
+  if (rows.length > 0) return true;
+  const joined = await db.select({ roomId: rooms.id }).from(rooms).where(eq(rooms.conversationId, id));
+  if (!joined.length) return false;
+  const left = await db
+    .delete(roomMembers)
+    .where(
+      and(
+        eq(roomMembers.userId, userId),
+        inArray(
+          roomMembers.roomId,
+          joined.map((r) => r.roomId),
+        ),
+      ),
+    )
+    .returning({ roomId: roomMembers.roomId });
+  return left.length > 0;
 }
 
 /** The id of Sarjy's latest answer in one of the user's chats, for sharing it from the chat menu. */

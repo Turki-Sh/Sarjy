@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { deleteConversation, getConversation, updateConversation } from "@/server/chat/repo";
 import { currentUser, json } from "@/server/http";
+import { listMembers, roomsOf } from "@/server/rooms/rooms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,13 @@ export async function GET(_request: Request, { params }: Params) {
   if (!id.success) return json({ error: "not_found" }, 404);
   const { db, user } = await currentUser();
   const chat = await getConversation(db, user.id, id.data);
-  return chat ? json({ chat }) : json({ error: "not_found" }, 404);
+  if (!chat) return json({ error: "not_found" }, 404);
+  // A Majlis chat comes with its people, so each turn wears its speaker's color.
+  const room = (await roomsOf(db, [chat.id])).get(chat.id);
+  const majlis = room
+    ? { code: room.code, live: !room.endedAt, members: await listMembers(db, room) }
+    : undefined;
+  return json({ chat: { ...chat, majlis } });
 }
 
 /** A title is one line, 1 to 60 characters, trimmed; pinned is on or off. */

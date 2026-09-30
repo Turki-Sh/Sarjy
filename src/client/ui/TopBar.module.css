@@ -77,3 +77,29 @@
     display: none;
   }
 }
+
+/* Start a Majlis: a quiet pill with the finjan. */
+.majlis {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding-block: 7px;
+  padding-inline: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text);
+  font: 500 13px/1 var(--font-ui);
+  cursor: pointer;
+  transition: background var(--t-base) var(--ease-rein);
+}
+.majlis:lang(ar) {
+  font-family: var(--font-ar);
+}
+.majlis:hover {
+  background: var(--sunken);
+}
+.majlis svg {
+  width: 17px;
+  height: 17px;
+}

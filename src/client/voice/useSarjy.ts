@@ -5,11 +5,13 @@
 //   - the voice state (through the pure state machine in machine.ts)
 //   - the mic: listening, deciding you are done, and sending what you said
 //   - one turn at a time: send it, react to each streamed event, play the audio, sync the caption
+//   - in a Majlis, other people's turns too: the room's events arrive through `receive` and are
+//     rendered by the same code as your own (architecture, section 13)
 // Components only render what this hook returns.
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { AvatarChoice, AvatarId } from "@/shared/avatars";
-import type { Lang } from "@/shared/i18n";
+import { t, type Lang } from "@/shared/i18n";
 import type { Memory, Timings, TurnEvent } from "@/shared/protocol";
 import type { VoiceState } from "@/shared/states";
 import { encodeWav } from "@/shared/wav";
@@ -29,7 +31,16 @@ import { sendTurn } from "./turnStream";
 /** How the mic looks, drawn on the orb: ready, live, or dashed when there is no mic access. */
 export type MicLook = "ready" | "live" | "blocked";
 
-export type ChatSummary = { id: string; title: string; updatedAt: string; pinned: boolean };
+export type ChatSummary = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  pinned: boolean;
+  /** A Majlis chat: its code, whether it is still open, and whether you opened it. */
+  majlis?: { code: string; live: boolean; mine: boolean };
+};
+/** Who said a line in a Majlis: their name, their seat (its color), and whether it was you. */
+export type Speaker = { name: string; seat: number; me: boolean };
 /** One line of the chat on screen, for the small transcript above the caption. */
 export type ChatLine = {
   role: "user" | "assistant";
@@ -37,6 +48,19 @@ export type ChatLine = {
   lang: Lang;
   /** A picture sent with this line: a local object URL just after sending, the saved copy after. */
   image?: string;
+  /** In a Majlis: who said it. */
+  speaker?: Speaker;
+};
+
+/** What the hook needs to know about the Majlis it is in. */
+export type RoomLinkForVoice = {
+  code: string;
+  /** Your user id: the room's copy of your own turns is skipped (your stream already has them). */
+  me: string;
+  /** Who a user id is, for labels and colors. */
+  who: (id: string) => Speaker | undefined;
+  /** You stopped listening without saying anything: give the mic back. */
+  onRest: () => void;
 };
 
 /** How many earlier lines show above the caption. */
@@ -58,6 +82,9 @@ export type Profile = {
 type Turn = {
   /** The picture sent with this turn, shown in your bubble. */
   image?: string;
+  /** In a Majlis: who asked, and, for someone else's turn, their user id. */
+  speaker?: Speaker;
+  remote?: string;
   segments: PlayedSegment[];
   /** Pieces of audio received from the server (segments, and a spoken error). */
   received: number;
@@ -131,7 +158,22 @@ function earlierLines(lines: ChatLine[], caption: CaptionModel | null): ChatLine
   return captionIsLast ? lines.slice(-EARLIER - 1, -1) : lines.slice(-EARLIER);
 }
 
-export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}) {
+const newTurn = (lang: Lang, extra: Partial<Turn> = {}): Turn => ({
+  segments: [],
+  received: 0,
+  words: [],
+  lang,
+  streamDone: false,
+  changedMemory: false,
+  saved: null,
+  shown: 0,
+  ...extra,
+});
+
+export function useSarjy(
+  lang: Lang,
+  events: { onBackupVoice?: () => void; room?: RoomLinkForVoice | null } = {},
+) {
   const [state, dispatch] = useReducer(transition, "idle" as VoiceState);
   const [caption, setCaption] = useState<CaptionModel | null>(null);
   const [chip, setChip] = useState<ToolChipModel | null>(null);
@@ -139,6 +181,10 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
   const [freshId, setFreshId] = useState<string | null>(null);
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const profileRef = useRef(profile);
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
   const [timings, setTimings] = useState<Timings | null>(null);
   const [micLook, setMicLook] = useState<MicLook>("ready");
   /** A picture waiting to be sent with the next turn (dropped, pasted, or taken). */
@@ -168,8 +214,10 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
   /** Whether the screen has said, this visit, that the browser's voice is standing in. */
   const backupNoted = useRef(false);
   const onBackupVoice = useRef(events.onBackupVoice);
+  const roomRef = useRef(events.room ?? null);
   useEffect(() => {
     onBackupVoice.current = events.onBackupVoice;
+    roomRef.current = events.room ?? null;
   });
 
   const getPlayer = () => (player.current ??= new Player());
@@ -181,14 +229,18 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
     setChats(data.chats);
   }, []);
 
-  // Who am I? Profile, memories and chats for the first paint.
+  // Who am I? Profile, memories and chats for the first paint. A first visit creates you here,
+  // so anything else that would (a turn, joining a Majlis) waits for it: two requests without the
+  // cookie would make two different people.
+  const sessionReady = useRef<Promise<unknown>>(Promise.resolve());
   useEffect(() => {
     let current = true;
-    void loadSession(lang).then((data) => current && applySession(data));
+    sessionReady.current = loadSession(lang).then((data) => current && applySession(data));
     return () => {
       current = false;
     };
   }, [lang, applySession]);
+  const whenReady = useCallback(() => sessionReady.current.catch(() => {}), []);
 
   const refreshSession = useCallback(async () => applySession(await loadSession(lang)), [lang, applySession]);
 
@@ -209,8 +261,10 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
   const stop = useCallback(() => {
     conversing.current = false;
     if (ear.current) {
+      const sent = ear.current.sent;
       void closeEar(false);
       player.current?.cue("close");
+      if (!sent) roomRef.current?.onRest();
     }
     abort.current?.abort();
     player.current?.stop();
@@ -235,13 +289,17 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
       switch (event.type) {
         case "transcript":
           t.lang = event.lang;
-          setLines((l) => [...l, { role: "user", text: event.text, lang: event.lang, image: t.image }]);
+          setLines((l) => [
+            ...l,
+            { role: "user", text: event.text, lang: event.lang, image: t.image, speaker: t.speaker },
+          ]);
           setCaption({
             speaker: "user",
             lang: event.lang,
             words: event.text.split(/\s+/),
             shown: Infinity,
             style: "dim",
+            who: t.speaker,
           });
           return;
         case "tool_start":
@@ -266,7 +324,7 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
           t.received++;
           // No audio: Sarjy's voice is out (usually Groq's daily limit), and the browser reads
           // instead. Said once, so the change of voice doesn't sound like something broke.
-          if (!event.audio && !backupNoted.current) {
+          if (!event.audio && !event.url && !backupNoted.current) {
             backupNoted.current = true;
             onBackupVoice.current?.();
           }
@@ -304,17 +362,8 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
       abort.current?.abort();
       getPlayer().stop();
       getPlayer().unlock();
-      const t: Turn = {
-        segments: [],
-        received: 0,
-        words: [],
-        lang,
-        streamDone: false,
-        changedMemory: false,
-        saved: null,
-        shown: 0,
-        image: attached?.url,
-      };
+      const room = roomRef.current;
+      const t = newTurn(lang, { image: attached?.url, speaker: room?.who(room.me) });
       turn.current = t;
       abort.current = new AbortController();
       setChip(null);
@@ -323,16 +372,26 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
       setChatNote(null);
       if (input.text) conversing.current = false; // typing steps out of hands-free
       if (input.text) {
-        setCaption({ speaker: "user", lang, words: input.text.split(/\s+/), shown: Infinity, style: "dim" });
+        setCaption({
+          speaker: "user",
+          lang,
+          words: input.text.split(/\s+/),
+          shown: Infinity,
+          style: "dim",
+          who: t.speaker,
+        });
       }
       dispatch({ type: "SEND" });
       try {
+        await whenReady();
+        if (turn.current !== t) return; // replaced while waiting
         await sendTurn(
           {
             ...input,
             image: attached?.blob,
             conversationId: conversationId.current,
             lang,
+            room: room?.code,
             signal: abort.current.signal,
           },
           (e) => turn.current === t && handle(e, t),
@@ -354,7 +413,7 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
       // New chats and changed titles show up in the sidebar.
       void refreshSession();
     },
-    [handle, lang, refreshSession],
+    [handle, lang, refreshSession, whenReady],
   );
 
   /**
@@ -380,7 +439,8 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
     setMicLook("live");
     const e: Ear = { mic, vad: null, stopPreview: () => {}, timers: [], sent: false, end: async () => {} };
     ear.current = e;
-    conversing.current = true;
+    // Hands-free is for talking with Sarjy alone. In a Majlis the mic is shared, so you tap each time.
+    conversing.current = !roomRef.current;
 
     // Called by the VAD when you stop speaking, or when listening is closed mid-sentence with submit.
     const finish = async (audio: Float32Array) => {
@@ -403,6 +463,7 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
       setMicLook("ready");
       getPlayer().cue("close");
       dispatch({ type: "CANCEL" });
+      roomRef.current?.onRest();
     };
     e.end = end;
 
@@ -526,6 +587,73 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  /**
+   * In a Majlis: one event of someone else's turn. Their transcript starts a new turn on this
+   * screen (whatever was playing stops: the room has moved on); the rest feed the same handler as
+   * your own turns, so the orb, caption, chip and voice behave exactly the same.
+   */
+  const receive = useCallback(
+    (speakerId: string, event: TurnEvent) => {
+      const room = roomRef.current;
+      if (!room || speakerId === room.me) return;
+      let t = turn.current;
+      if (event.type === "transcript" || !t || t.remote !== speakerId) {
+        if (ear.current) void closeEar(false);
+        abort.current?.abort();
+        getPlayer().stop();
+        t = newTurn(lang, {
+          remote: speakerId,
+          speaker: room.who(speakerId),
+          image: event.type === "transcript" ? event.image : undefined,
+        });
+        turn.current = t;
+        setChip(null);
+        setTimings(null);
+        setFreshId(null);
+        setChatNote(null);
+        dispatch({ type: "CANCEL" });
+        dispatch({ type: "SEND" });
+      }
+      handle(event, t);
+    },
+    [closeEar, handle, lang],
+  );
+
+  /** In a Majlis: the mic was let go. Someone's turn that stopped midway is over on this screen too. */
+  const remoteEnded = useCallback((speakerId: string | null) => {
+    const t = turn.current;
+    if (!t || !t.remote || (speakerId && t.remote !== speakerId)) return;
+    t.streamDone = true;
+    // Nothing was ever said: rest now, rather than wait for audio that will never come.
+    if (!t.received) {
+      turn.current = null;
+      dispatch({ type: "CANCEL" });
+    }
+  }, []);
+
+  /** Audio needs a tap before it may play: coming into a Majlis is that tap. */
+  const unlockAudio = useCallback(() => getPlayer().unlock(), []);
+
+  /** In a Majlis: its conversation is the one on screen. */
+  const enterRoom = useCallback((chatId: string, past: ChatLine[]) => {
+    conversationId.current = chatId;
+    setActiveChatId(chatId);
+    setLines(past);
+    setChatNote(null);
+    const last = past.findLast((m) => m.role === "assistant");
+    setCaption(
+      last
+        ? {
+            speaker: "sarjy",
+            lang: last.lang,
+            words: last.text.split(/\s+/),
+            shown: Infinity,
+            style: "speak",
+          }
+        : null,
+    );
+  }, []);
+
   // Memory card actions.
   /** Edits a memory: its sentence, or the bare value of one the app reads (name, city, units). */
   const editMemory = useCallback(async (id: string, change: { note?: string; value?: string }) => {
@@ -564,10 +692,8 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
       stop();
       const res = await fetch(`/api/chats/${id}`);
       if (!res.ok) return;
-      const { chat } = (await res.json()) as {
-        chat: { id: string; messages: ChatLine[] };
-      };
-      setLines(chat.messages);
+      const { chat } = (await res.json()) as { chat: FetchedChat };
+      setLines(chatLines(chat, profileRef.current?.id ?? null, lang));
       conversationId.current = chat.id;
       setActiveChatId(chat.id);
       setChip(null);
@@ -586,7 +712,7 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
           : null,
       );
     },
-    [stop],
+    [lang, stop],
   );
 
   /** Renames a chat: shown at once, then saved. */
@@ -744,5 +870,30 @@ export function useSarjy(lang: Lang, events: { onBackupVoice?: () => void } = {}
     earlier: earlierLines(lines, caption),
     listen,
     finishListening,
+    receive,
+    remoteEnded,
+    unlockAudio,
+    enterRoom,
+    refreshSession,
+    whenReady,
   };
+}
+
+/** A chat as /api/chats/[id] returns it; a Majlis chat comes with its people. */
+export type FetchedChat = {
+  id: string;
+  messages: (ChatLine & { speakerId?: string })[];
+  majlis?: { code: string; live: boolean; members: { id: string; name: string | null; seat: number }[] };
+};
+
+/** A fetched chat's lines, each Majlis line labeled with who said it. */
+export function chatLines(chat: FetchedChat, me: string | null, lang: Lang): ChatLine[] {
+  const people = chat.majlis?.members;
+  return chat.messages.map(({ speakerId, ...line }) => {
+    const member = people?.find((m) => m.id === speakerId);
+    if (!member) return line;
+    const s = t(lang).majlis;
+    const name = member.id === me ? s.you : (member.name ?? s.guest(member.seat));
+    return { ...line, speaker: { name, seat: member.seat, me: member.id === me } };
+  });
 }

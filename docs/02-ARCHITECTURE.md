@@ -88,8 +88,8 @@ Sarjy/
 │   │       ├── turn/route.ts       One turn: audio or text in, event stream out
 │   │       ├── memories/           List, edit, forget memories
 │   │       ├── conversations/      Recent chats
-│   │       ├── rooms/              Create, join, take the floor, fetch room audio, end
-│   │       ├── realtime/token/     Short-lived Ably token for one room
+│   │       ├── rooms/              Open, join, take the floor, room media, the local event stream, end
+│   │       ├── realtime/token/     Short-lived Ably token request for one room
 │   │       └── health/route.ts     Which providers are configured (booleans only)
 │   │
 │   ├── client/                     Runs in the browser only
@@ -105,7 +105,8 @@ Sarjy/
 │   │   │   ├── turnStream.ts       Sends a turn, reads the event stream back
 │   │   │   └── useSarjy.ts         The one hook the screen uses; wires everything together
 │   │   ├── room/
-│   │   │   └── useRoom.ts          Joins the room channel, presence, the floor, remote events
+│   │   │   ├── transport.ts        Ably, or the local event stream: events, presence, link status
+│   │   │   └── useRoom.ts          The door, who is here, the floor, remote events
 │   │   └── ui/                     React components: Orb, Caption, ToolChip, ControlBar,
 │   │                               Sidebar, MemoryCard, MajlisBar, MorningCard, Rafeeq, SettingsSheet, TextComposer, Logo
 │   │
@@ -121,12 +122,15 @@ Sarjy/
 │   │   │   ├── cost.ts             Cost of a turn from tokens and voice characters
 │   │   │   └── sentences.ts        Cuts streamed text into speakable chunks
 │   │   ├── rooms/
-│   │   │   ├── rooms.ts            Create, join, end; who is in the room
-│   │   │   └── floor.ts            Who holds the mic, claimed atomically in Postgres
+│   │   │   ├── rooms.ts            Open, join (seats), end; who is in the room
+│   │   │   ├── floor.ts            Who holds the mic, claimed atomically in Postgres
+│   │   │   ├── media.ts            Room audio and shared pictures, kept an hour
+│   │   │   ├── outlet.ts           Sends one person's turn to the room
+│   │   │   └── access.ts           Members only; the room's state for a screen
 │   │   ├── realtime/
 │   │   │   ├── types.ts            Publisher interface
-│   │   │   ├── ably.ts             Publishes room events over Ably's REST API, mints tokens
-│   │   │   └── fake.ts             In-memory channels for tests
+│   │   │   ├── ably.ts             Publishes room events over Ably's REST API, signs token requests
+│   │   │   └── local.ts            In-process bus, for tests, offline, and no Ably key
 │   │   ├── providers/
 │   │   │   ├── types.ts            The interfaces: SpeechToText, TextToSpeech, model
 │   │   │   ├── groq/               Real implementations
@@ -233,12 +237,15 @@ type TurnEvent =
   | { type: "error"; code: ErrorCode; say: string }                   // say: what Sarjy should say about it
   | { type: "done"; messageId: string; conversationId: string; timings: Timings };
 
-// In a room, every event above is also published to the room channel, wrapped with who said it,
-// and audio is replaced by a URL (Ably messages are capped at 64 KB).
+// In a room (shared/room.ts), every event above except memory events is also published to the
+// room channel, wrapped with who said it; audio becomes a URL (Ably messages are capped at 64 KB)
+// and the transcript carries the shared picture's URL.
 type RoomEvent =
-  | { type: "turn"; speaker: { id: string; name: string }; event: TurnEvent }
-  | { type: "floor"; holder: { id: string; name: string } | null }
-  | { type: "room_ended" };
+  | { type: "turn"; speaker: string; event: TurnEvent }        // speaker: a user id
+  | { type: "floor"; holder: string | null }
+  | { type: "members"; members: Member[] }                     // Member: id, name, seat, host
+  | { type: "presence"; online: string[] }                     // the local transport only
+  | { type: "ended" };
 ```
 
 Every event is validated with zod on both sides in tests, so a change to the protocol breaks the build, not the demo.
@@ -469,10 +476,10 @@ sequenceDiagram
   participant A as Ably
   participant G as Guest browser
 
-  H->>S: POST /api/rooms (from the current chat)
+  H->>S: POST /api/rooms (a new chat, host in seat 0)
   S-->>H: link /majlis/K7Q2M
-  G->>S: open /majlis/K7Q2M, POST /api/rooms/K7Q2M/join
-  G->>S: GET /api/realtime/token
+  G->>S: open /majlis/K7Q2M, give a name, POST /api/rooms/K7Q2M
+  G->>S: GET /api/realtime/token?code=K7Q2M
   S-->>G: token for channel room:K7Q2M (subscribe and presence only)
   G->>A: subscribe, enter presence as "Sara"
   A-->>H: presence: Sara joined
@@ -483,20 +490,26 @@ sequenceDiagram
   S-->>G: event stream (as in single-player)
   S->>A: the same events, with speaker = Sara
   A-->>H: transcript, tool chip, segments
-  H->>S: GET /api/rooms/K7Q2M/segments/3 (audio)
+  H->>S: GET /api/rooms/K7Q2M/media/{id} (audio)
   S->>A: floor released
 ```
 
 | Concern | Decision |
 |---|---|
 | Transport | Ably. Vercel Functions cannot hold WebSockets, so a managed realtime service carries the fan-out. The server publishes over Ably's REST API (one HTTPS call, fits serverless). Browsers connect with short-lived tokens from `/api/realtime/token`, scoped to one room, allowed to subscribe and use presence but not to publish. The Ably key never leaves the server. |
-| Audio | Ably messages are limited to 64 KB, and a spoken sentence is 100 to 300 KB. So room audio is stored briefly in Postgres (`room_segments`, deleted after an hour) and the event carries a URL. Listeners fetch and play it; they hear it 100 to 300 ms after the speaker, which is fine across devices. |
-| The floor | Claimed atomically in Postgres (`UPDATE rooms SET floor = me WHERE floor IS NULL OR floor_expires_at < now()`). It expires after 45 seconds so a dropped phone cannot hold the room hostage. Released at `done`. |
+| Without Ably | With no Ably key (tests, offline work, a local run) the same events go through an in-process bus, and browsers read it as a server-sent event stream (`/api/rooms/[code]/events`); having the stream open is being present. It reaches only browsers served by the one process, which is why production uses Ably. The browser learns which transport to use when it joins. |
+| Audio | Ably messages are limited to 64 KB, and a spoken sentence is 100 to 300 KB. So room audio is stored briefly in Postgres (`room_media`, deleted after an hour) and the event carries a URL. Listeners start fetching it the moment the event arrives and play it in order; they hear it 100 to 300 ms after the speaker, which is fine across devices. |
+| The floor | Claimed atomically in Postgres (`UPDATE rooms SET floor = me WHERE floor IS NULL OR floor = me OR floor_expires_at < now()`). The browser claims it when you tap the finjan; the turn route claims it again (so a typed turn can't talk over anyone). It expires after 45 seconds so a dropped phone cannot hold the room hostage. Released when the turn has reached the room, or when you stop without saying anything. |
+| Hands-free | Off in a Majlis (Turki, Day 3): the mic is shared, so each person taps each time. |
+| Seats and colors | Up to 8 people (Turki, Day 3). Each gets a seat at the door, the lowest free one, never shared; the seat is their color (`--seat-1` to `--seat-8` in tokens.css, added on Day 3; Dusk is left out because it means memory). Their bubbles wear it with their name, and the room bar shows everyone in their color, ringed while they hold the mic. |
+| The finjan | In a Majlis the wave inside the orb gives way to a finjan in the same stroke (Turki, Day 3); its steam rises with the voice, and the light still carries every state. |
+| Pictures | Shared with the whole room, so each is checked first (Turki, Day 3: "a small model for guardrail first"). Groq hosts no vision safety model any more, so Qwen, the one model that sees, answers SAFE or UNSAFE against a short policy, reasoning off (`providers/groq/guard.ts`). Anything but a clear SAFE, an error included, keeps the picture from the room, stops the turn, and tells only the sender. |
 | Who is talking | The speaker is known from their signed cookie, never from anything the browser claims. The prompt says who is in the room and who is speaking, so Sarjy can address them by name. |
-| Private memory | By construction: the pipeline loads only the speaker's memories. Other people's memories are never in the prompt, so they cannot leak. A saved fact is stitched in everyone's caption (it was said aloud), but the memory card appears only in the owner's sidebar. |
-| Late joiners | The room's conversation is an ordinary conversation; joining loads its messages, with speaker names. |
+| Private memory | By construction: the pipeline loads only the speaker's memories. Other people's memories are never in the prompt, so they cannot leak. Memory events never go to the room at all: the stitch and the Noted card are only on the owner's screen (changed on Day 3; the first design stitched everyone's caption, but what was saved can say more than what was said). |
+| Late joiners | Every Majlis starts in a new conversation, owned by the host (never an existing chat: guests would read it). Joining loads its messages, each labeled with its speaker. |
+| Afterwards | The Majlis chat stays in everyone's Recent as "Majlis: ..." (Turki, Day 3). Members can read it and its pictures; guests can remove it from their list but not rename or delete the host's chat. An open Majlis in Recent takes you back into the room. |
 | Privacy of the link | Room codes are random (about 40 bits). Room pages are `noindex`. The host can end a room; ended rooms refuse joins and tokens. |
-| Tests | `server/realtime/fake.ts` is an in-memory channel. E2E runs two browser contexts in one Playwright test, joined to one room. |
+| Tests | `server/realtime/local.ts` is the in-process bus. Integration tests cover seats, the floor, private memory and what the room hears; E2E runs two and three browser contexts in one room (`tests/e2e/majlis.spec.ts`). Ably token requests are checked against Ably's own SDK. |
 
 ## 14. Onboarding: a small multistep flow
 
@@ -556,7 +569,7 @@ erDiagram
   users ||--o| wallpapers : "has"
   conversations ||--o| rooms : "shared as"
   rooms ||--o{ room_members : has
-  rooms ||--o{ room_segments : "keeps audio for 1 h"
+  rooms ||--o{ room_media : "keeps audio and pictures for 1 h"
   users {
     uuid id PK
     text name
@@ -620,12 +633,14 @@ erDiagram
   room_members {
     uuid room_id FK
     uuid user_id FK
-    text display_name
+    int seat
+    timestamptz joined_at
   }
-  room_segments {
+  room_media {
     uuid id PK
     uuid room_id FK
-    bytea audio
+    text media_type
+    bytea bytes
     timestamptz created_at
   }
 ```

@@ -137,16 +137,16 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Below 900 px: the sidebar is a sheet from the reading start, over a dimmed page; reduced motion and reduced transparency respected throughout
 
 ### M6 · Multiplayer: the Majlis (afternoon and evening)
-- [ ] Tables: `rooms`, `room_members`, `room_segments`; `messages.speaker_id`
-- [ ] `server/realtime/` (Ably REST publisher, token minting, in-memory fake)
-- [ ] Create, join and end a Majlis; "Invite to your Majlis" link and share sheet
-- [ ] The floor: atomic claim, 45 s expiry, release at `done`
-- [ ] Pipeline publishes every turn event to the room, audio by URL
-- [ ] `client/room/useRoom.ts`: presence, floor, remote events into the same hook and components
-- [ ] Room bar: who is here, who is speaking
-- [ ] Memory privacy: only the speaker's memories load; cards only on the owner's screen
-- [ ] Majlis invite metadata ("Join Turki's Majlis on Sarjy", preview card, `noindex`)
-- [ ] E2E: two browser contexts in one room
+- [x] Tables: `rooms`, `room_members` (with seats), `room_media`; `messages.speaker_id`
+- [x] `server/realtime/` (Ably REST publisher, signed token requests, in-process bus for tests and offline)
+- [x] Create, join and end a Majlis; "Invite" link and share sheet
+- [x] The floor: atomic claim, 45 s expiry, release once the turn has reached the room
+- [x] Pipeline publishes every turn event to the room, audio by URL
+- [x] `client/room/useRoom.ts`: presence, floor, remote events into the same hook and components
+- [x] Room bar: who is here, who is speaking
+- [x] Memory privacy: only the speaker's memories load; memory events never leave the owner's screen
+- [x] Majlis invite metadata ("Join Turki's Majlis on Sarjy", preview card, `noindex`)
+- [x] E2E: two (and three) browser contexts in one room
 
 **Done when:** two browsers join one room, take turns, both see and hear every answer, and neither can get the other's memories out of Sarjy.
 
@@ -260,6 +260,16 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 
 ### Web search (Turki's call, Day 2)
 - [x] `search_web`: Sarjy looks things up instead of saying it can't (gpt-oss-20b with Groq's browser search, told today's date; English reports; the 120b as fallback). A spoken "One sec, looking it up." as it starts (first sound in about 1.5 to 2 s); month and year added to recent questions; only what the search said, names and results kept exact in Arabic; a failed search owned. Chip, timing and cost like the weather. Checked live: current match results and the gold price, in English and Arabic
+
+### The Majlis, as built (Turki's decisions, Day 3)
+- [x] Hands-free off in a Majlis: each person taps each time
+- [x] At most 8 people; each gets a seat at the door, and the seat is their color (`--seat-1` to `--seat-8`, new in tokens.css)
+- [x] Every Majlis starts in a new chat; afterwards it stays in everyone's Recent as "Majlis: ...", each turn in its speaker's color
+- [x] Pictures are shared with the room only after the guard passes them (Qwen with a short policy; Groq has no vision safety model now); a refused one is never shown, and only the sender is told
+- [x] The finjan replaces the wave inside the orb in a Majlis; its steam rises with the voice
+- [x] The door asks a newcomer's name; members (and the host) go straight in
+- [x] Menus open on the page's body, so a menu inside glass is placed right
+- [ ] Live check on the deployed site with two phones (the container's Ably key is a placeholder, so tokens can only be tried on Vercel)
 
 ### Turki's touches (after every Must, in this order)
 - [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface

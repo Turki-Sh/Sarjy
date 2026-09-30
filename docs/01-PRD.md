@@ -172,7 +172,7 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 
 | ID | Feature | Priority |
 |---|---|---|
-| MP1 | Invite to your Majlis: turn the current chat into a room and share its link; anyone who opens it joins with no setup | Must |
+| MP1 | Invite to your Majlis: start a Majlis (a new chat, never an existing one, so guests can't read your past) and share its link; anyone who opens it joins with no setup beyond a name | Must |
 | MP2 | Everyone in the room sees the same orb state, captions, tool chips and transcript live, and hears Sarjy's voice | Must |
 | MP3 | Presence: who is in the room, and who is speaking, shown at the top | Must |
 | MP4 | The floor: one person holds the mic at a time; others see "Sara is speaking" and their mic waits | Must |
@@ -180,6 +180,7 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | MP6 | Private memory in a shared room: Sarjy only uses the current speaker's memories, and never reveals one person's memories to another | Must |
 | MP7 | Late joiners see the room's transcript so far | Should |
 | MP8 | The host can end the room; the link stops working | Should |
+| MP9 | Pictures in a Majlis are seen by everyone, so each is checked by a guard model first; one that fails is never shown (Turki, Day 3). At most 8 people, each in their own color; hands-free off; the finjan in the orb | Must |
 
 ### Presentation and metadata
 

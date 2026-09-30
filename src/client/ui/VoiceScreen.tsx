@@ -2,14 +2,19 @@
 
 // The voice screen: sidebar on the reading start, the voice area beside it.
 // It owns the interface choices (theme, language); everything about the conversation comes
-// from useSarjy, and the pieces below only render it.
+// from useSarjy, and the pieces below only render it. In a Majlis (the `room` prop) it is the
+// same screen: useRoom brings the room's events, and useSarjy renders them like your own.
 
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { avatarUrl } from "@/shared/avatars";
 import { dir, t, type Lang } from "@/shared/i18n";
 import { COOKIE, refractScale, type LangChoice, type ThemeChoice } from "@/shared/preferences";
 import { wallpaperUrl, type WallpaperChoice } from "@/shared/wallpapers";
-import { useSarjy } from "../voice/useSarjy";
+import { useRoom, type RoomPhase } from "../room/useRoom";
+import { chatLines, useSarjy, type FetchedChat, type RoomLinkForVoice } from "../voice/useSarjy";
+import { MajlisBar } from "./majlis/MajlisBar";
+import { MajlisDoor } from "./majlis/MajlisDoor";
 import { SavedCard } from "./SavedCard";
 import { Settings, type SettingsSection } from "./settings/Settings";
 import { Orb } from "./Orb";
@@ -32,6 +37,8 @@ type Props = {
   initialSidebarOpen: boolean;
   initialGlass: number;
   initialWallpaper: WallpaperChoice;
+  /** In a Majlis: its code, whose it is, how many are in, and whether you already are. */
+  room?: { code: string; hostName: string | null; people: number; member: boolean; phase: RoomPhase };
 };
 
 /** The language "Auto detect" resolves to: the browser's own. */
@@ -44,7 +51,9 @@ export function VoiceScreen({
   initialSidebarOpen,
   initialGlass,
   initialWallpaper,
+  room,
 }: Props) {
+  const router = useRouter();
   const [glass, setGlass] = useState(initialGlass);
   const [wallpaper, setWallpaper] = useState(initialWallpaper);
   const [lang, setLang] = useState(initialLang);
@@ -58,7 +67,31 @@ export function VoiceScreen({
   const [section, setSection] = useState<SettingsSection>("general");
   /** Bumped when you switch chats, to replay the stage's fade (only on your click, never mid-answer). */
   const [switches, setSwitches] = useState(0);
-  const sarjy = useSarjy(lang, { onBackupVoice: () => flash(s.voiceResting, 5000) });
+  // The Majlis, when this screen is one. Its turn events go to useSarjy (through a ref: each hook
+  // needs the other, and the room's events only ever arrive after both exist).
+  const voice = useRef<ReturnType<typeof useSarjy> | null>(null);
+  const majlis = useRoom(room?.code ?? "", room?.phase ?? "door", {
+    turn: (speaker, event) => voice.current?.receive(speaker, event),
+    floorFreed: (previous) => voice.current?.remoteEnded(previous),
+  });
+  const me = majlis.room?.me ?? null;
+  const nameOf = useCallback(
+    (id: string) => {
+      const m = majlis.members.find((x) => x.id === id);
+      if (!m) return undefined;
+      const words = t(lang).majlis;
+      return { name: id === me ? words.you : (m.name ?? words.guest(m.seat)), seat: m.seat, me: id === me };
+    },
+    [lang, majlis.members, me],
+  );
+  const inRoom = !!room && majlis.phase === "in" && !!me;
+  const roomLink: RoomLinkForVoice | null = inRoom
+    ? { code: room.code, me: me!, who: nameOf, onRest: majlis.dropFloor }
+    : null;
+  const sarjy = useSarjy(lang, { onBackupVoice: () => flash(s.voiceResting, 5000), room: roomLink });
+  useEffect(() => {
+    voice.current = sarjy;
+  });
   const composer = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -94,6 +127,7 @@ export function VoiceScreen({
   const [freshLine, setFreshLine] = useState(0);
   const newChat = () => {
     setSheet(false);
+    if (room) return router.push("/");
     sarjy.newChat();
     setFreshLine((i) => {
       // Never the same line twice in a row.
@@ -104,9 +138,80 @@ export function VoiceScreen({
   };
   const openChat = async (id: string) => {
     setSheet(false);
+    // A Majlis still open is a place to go back into; anything else opens here (from a Majlis,
+    // on the home screen).
+    const live = sarjy.chats.find((c) => c.id === id)?.majlis;
+    if (live?.live) return router.push(`/majlis/${live.code}`);
+    if (room) return router.push(`/?chat=${id}`);
     await sarjy.openChat(id);
     setSwitches((n) => n + 1);
   };
+
+  // Opened from a Majlis: the home screen shows the chat you picked there.
+  const { openChat: open } = sarjy;
+  useEffect(() => {
+    if (room) return;
+    const id = new URLSearchParams(window.location.search).get("chat");
+    if (!id) return;
+    window.history.replaceState(null, "", "/");
+    void open(id);
+  }, [room, open]);
+
+  /** Opens a Majlis from here and goes in: the host's seat is the first. */
+  const startMajlis = async () => {
+    await sarjy.whenReady();
+    const res = await fetch("/api/rooms", { method: "POST" });
+    if (!res.ok) return flash(s.status.idle);
+    const { path } = (await res.json()) as { path: string };
+    router.push(path);
+  };
+
+  /** Coming in: the room, then what has been said so far, each line with who said it. */
+  const { unlockAudio, enterRoom, refreshSession, whenReady } = sarjy;
+  const { join } = majlis;
+  const comeIn = useCallback(
+    async (name = "") => {
+      unlockAudio(); // this tap is what lets the room's voice play here
+      await whenReady();
+      const state = await join(name, lang);
+      if (!state || state.ended) return;
+      if (name.trim()) void refreshSession();
+      const res = await fetch(`/api/chats/${state.conversationId}`);
+      if (!res.ok) return enterRoom(state.conversationId, []);
+      const { chat } = (await res.json()) as { chat: FetchedChat };
+      enterRoom(chat.id, chatLines(chat, state.me, lang));
+    },
+    [enterRoom, join, lang, refreshSession, unlockAudio, whenReady],
+  );
+  // Already a member (you opened it, or came back): straight in, no door.
+  const autoJoined = useRef(false);
+  useEffect(() => {
+    if (!room?.member || autoJoined.current || room.phase !== "door") return;
+    autoJoined.current = true;
+    void comeIn();
+  }, [room, comeIn]);
+  // Without a tap on this page (you came back to it), sound may still be locked: the first tap
+  // anywhere unlocks it.
+  useEffect(() => {
+    if (!room) return;
+    const unlock = () => unlockAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    return () => window.removeEventListener("pointerdown", unlock);
+  }, [room, unlockAudio]);
+
+  const invite = async () => {
+    if (!room) return;
+    const url = new URL(`/majlis/${room.code}`, window.location.origin).toString();
+    const text = s.majlis.inviteText(majlis.room?.hostName ?? room.hostName);
+    if (navigator.share) {
+      await navigator.share({ title: text, text, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      flash(s.majlis.linkCopied);
+    }
+  };
+  /** Who has the mic, by name, when it isn't you. */
+  const holder = majlis.floor && majlis.floor !== me ? nameOf(majlis.floor)?.name : undefined;
 
   const setSidebar = (open: boolean) => {
     rememberChoice(COOKIE.sidebar, open ? "open" : "closed");
@@ -163,7 +268,16 @@ export function VoiceScreen({
   // thinks or speaks interrupts it and listens. With no mic, the text box takes over.
   const onMic = async () => {
     if (sarjy.state === "listening") return void sarjy.finishListening();
+    // In a Majlis the mic is shared: ask for it first. Someone else talking means wait.
+    if (room) {
+      if (!inRoom) return;
+      if (holder) return flash(s.majlis.busy(holder));
+      if (!(await majlis.takeFloor())) {
+        return flash(s.majlis.busy(nameOf(majlis.floor ?? "")?.name ?? "…"));
+      }
+    }
     if (await sarjy.listen()) return;
+    if (room) majlis.dropFloor();
     composer.current?.focus();
     flash(s.micBlocked);
   };
@@ -185,7 +299,12 @@ export function VoiceScreen({
       ? sarjy.chatNote === "fresh"
         ? s.freshChat[freshLine % s.freshChat.length]
         : s.continuing
-      : s.status[sarjy.state];
+      : // In a Majlis at rest: who has the mic, or that the finjan is yours to tap.
+        room && inRoom && sarjy.state === "idle"
+        ? holder
+          ? s.majlis.holding(holder)
+          : s.majlis.tapToTalk
+        : s.status[sarjy.state];
 
   return (
     <div
@@ -194,6 +313,7 @@ export function VoiceScreen({
       data-sidebar={sidebarOpen ? "open" : "closed"}
       data-sheet={sheet ? "open" : undefined}
       data-wall={wallpaperSrc ? "on" : undefined}
+      data-majlis={room ? "on" : undefined}
     >
       {/* Behind the glass: your wallpaper, or the light field (invisible at Solid, a slow drifting
           field at Clear). */}
@@ -257,6 +377,23 @@ export function VoiceScreen({
           onOpenSidebar={sidebarOpen ? undefined : () => setSidebar(true)}
           onOpenSheet={() => setSheet(true)}
           onNewChat={newChat}
+          onStartMajlis={room ? undefined : () => void startMajlis()}
+          end={
+            room && inRoom ? (
+              <MajlisBar
+                lang={lang}
+                hostName={majlis.room?.hostName ?? room.hostName}
+                members={majlis.members}
+                online={majlis.online}
+                floor={majlis.floor}
+                me={me!}
+                reconnecting={majlis.status === "reconnecting"}
+                onInvite={() => void invite()}
+                onLeave={() => router.push("/")}
+                onEnd={() => void majlis.end()}
+              />
+            ) : undefined
+          }
         />
 
         {/* Switching chats replays the stage's fade, so the change is felt. */}
@@ -269,8 +406,14 @@ export function VoiceScreen({
             aria-label={sarjy.state === "listening" ? s.stop : s.talk}
             aria-pressed={sarjy.state === "listening"}
             onClick={() => void onMic()}
+            disabled={!!room && !inRoom}
           >
-            <Orb state={sarjy.state} inputLevel={sarjy.inputLevel} outputLevel={sarjy.outputLevel} />
+            <Orb
+              state={sarjy.state}
+              inputLevel={sarjy.inputLevel}
+              outputLevel={sarjy.outputLevel}
+              majlis={!!room}
+            />
           </button>
           <ToolChip chip={showChip ? sarjy.chip : null} />
           <SavedCard
@@ -278,23 +421,36 @@ export function VoiceScreen({
             memory={sarjy.freshId ? (sarjy.memories.find((m) => m.id === sarjy.freshId) ?? null) : null}
             onOpen={() => openSettings("memory")}
           />
+          {room && !inRoom && (
+            <MajlisDoor
+              lang={lang}
+              phase={majlis.phase}
+              hostName={room.hostName}
+              people={room.people}
+              askName={!!sarjy.profile && !sarjy.profile.name}
+              onJoin={(name) => void comeIn(name)}
+            />
+          )}
           <Transcript
             lang={lang}
             all={sarjy.lines}
             earlier={sarjy.earlier}
             welcome={
-              // Only on a true first visit: no name yet, and no chats at all.
-              sarjy.profile?.onboardingStep === "name" && sarjy.chats.length === 0 && sarjy.state === "idle"
+              // Only on a true first visit: no name yet, and no chats at all (never in a Majlis).
+              !room &&
+              sarjy.profile?.onboardingStep === "name" &&
+              sarjy.chats.length === 0 &&
+              sarjy.state === "idle"
                 ? { ...s.welcome, onSkip: () => void sarjy.skipIntro() }
                 : null
             }
             caption={sarjy.caption}
             timings={sarjy.state === "idle" ? sarjy.timings : null}
           />
-          <p className={styles.status}>{note}</p>
+          {(!room || inRoom) && <p className={styles.status}>{note}</p>}
         </section>
 
-        <div className={styles.dock}>
+        <div className={styles.dock} hidden={!!room && !inRoom}>
           <TextComposer
             inputRef={composer}
             placeholder={s.typePlaceholder}

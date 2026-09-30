@@ -4,12 +4,14 @@ import "server-only";
 //   speech to text  whisper-large-v3-turbo
 //   the model       openai/gpt-oss-120b, falling back to qwen/qwen3.8-27b, then openai/gpt-oss-20b
 //   the voice       Orpheus: English, and a native Saudi Arabic voice
+//   picture guard   qwen/qwen3.8-27b, the one model here that sees, with a strict policy
 // Whisper and Orpheus are two plain HTTP calls; the model goes through the AI SDK.
 
 import { createGroq } from "@ai-sdk/groq";
 import { DEFAULT_VOICE } from "@/shared/voices";
 import { fixWavHeader } from "@/shared/wav";
 import type { Lang, Providers, SpeechToText, TextToSpeech } from "../types";
+import { groqGuard } from "./guard";
 import { groqWeb } from "./web";
 
 const API = "https://api.groq.com/openai/v1";
@@ -125,6 +127,7 @@ export function createGroqProviders(
     // own per-minute quota, so it never takes tokens from the answer.
     writer: [GROQ_MODELS.reserve, GROQ_MODELS.main].map((id) => ({ id, model: groq(id) })),
     web: groqWeb(apiKey),
+    guard: groqGuard(groq(GROQ_MODELS.fallback), GROQ_MODELS.fallback),
     fetch: (url, init) => fetch(url, init),
   };
 }

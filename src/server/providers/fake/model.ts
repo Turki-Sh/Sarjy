@@ -40,9 +40,13 @@ const RECALL: [RegExp, string][] = [
 ];
 
 function lastUserText(prompt: LanguageModelV4Prompt): string {
+  // In a Majlis each message starts with who said it ("Sara: ..."): the fake hears the words.
+  const majlis = systemText(prompt).includes("This is a Majlis");
   for (let i = prompt.length - 1; i >= 0; i--) {
     const m = prompt[i]!;
-    if (m.role === "user") return m.content.map((p) => (p.type === "text" ? p.text : "")).join(" ");
+    if (m.role !== "user") continue;
+    const text = m.content.map((p) => (p.type === "text" ? p.text : "")).join(" ");
+    return majlis ? text.replace(/^[^:\n]{1,40}: /, "") : text;
   }
   return "";
 }

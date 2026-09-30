@@ -34,6 +34,19 @@
   --light-b: rgba(228, 116, 88, 0.75);
   --light-c: rgba(131, 82, 152, 0.7);
 
+  /* Seats in a Majlis (Turki, Day 3: "at the start of the Majlis each gets a unique color").
+     Eight, one per seat, mid-tones that hold on white and on night. Saffron and coral come from
+     the light; the rest are new, warm and desert-born: oasis green, sky, rose, date, gulf, qahwa.
+     Dusk is left out on purpose: it means memory. */
+  --seat-1: #e3a72f;
+  --seat-2: #e47458;
+  --seat-3: #3fa585;
+  --seat-4: #5f8fd9;
+  --seat-5: #cc6a9c;
+  --seat-6: #a08a3c;
+  --seat-7: #2f9fb3;
+  --seat-8: #b07a4f;
+
   /* Behind a popup (settings): dims the page in both themes. */
   --scrim: rgba(0, 0, 0, 0.45);
   /* Destructive actions (Forget everything). */

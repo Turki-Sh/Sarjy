@@ -99,7 +99,19 @@ export type PromptContext = {
   userTurns?: number;
   /** The language the user spoke or typed this turn: the reply's language. */
   replyLang: "en" | "ar";
+  /** In a Majlis: who is there, who opened it, and who is speaking now. */
+  room?: { people: string[]; host: string | null; speaker: string };
 };
+
+/** The Majlis rules: a group, one voice at a time, and memory that stays each person's own. */
+function majlisBlock(room: NonNullable<PromptContext["room"]>): string {
+  const people = room.people.map((p) => (p === room.host ? `${p} (who opened it)` : p)).join(", ");
+  return `Majlis.
+- This is a Majlis: a group conversation. Several people talk to you from their own phones, one at a time, and everyone hears your answers.
+- In the Majlis: ${people}. Speaking now: ${room.speaker}. Each of their messages starts with the name of who said it.
+- Answer ${room.speaker}; use their name now and then, and talk to the group when it fits. Never start your reply with a name and a colon.
+- The memory block below is ${room.speaker}'s alone. You know nothing private about anyone else here, only what was said aloud in this Majlis. If someone asks what another person told you before, say you only know what's been said here.`;
+}
 
 export function buildSystemPrompt(ctx: PromptContext): string {
   const { now, timeZone } = ctx;
@@ -112,6 +124,8 @@ export function buildSystemPrompt(ctx: PromptContext): string {
   ]
     .filter(Boolean)
     .join("\n");
+
+  const majlis = ctx.room ? `\n\n${majlisBlock(ctx.room)}` : "";
 
   // One line per fact, as data. Values are already clamped to one short line when saved.
   const memoryLines = ctx.memories.length
@@ -127,7 +141,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
   // The reply language goes last, where the model reads it right before answering.
   const reply = ctx.replyLang === "ar" ? "Arabic (Saudi dialect)" : "English";
   return (
-    `${RULES}\n\n${VOICE[ctx.replyLang]}\n\nContext.\n${context}\n\n<memory>\nkey | what you know | when\n${memoryLines}\n</memory>\n\n` +
+    `${RULES}\n\n${VOICE[ctx.replyLang]}${majlis}\n\nContext.\n${context}\n\n<memory>\nkey | what you know | when\n${memoryLines}\n</memory>\n\n` +
     `The user wrote in ${ctx.replyLang === "ar" ? "Arabic" : "English"}. Reply in ${reply}.`
   );
 }

@@ -19,7 +19,8 @@ export type PlayedSegment = {
   backup: boolean;
 };
 
-type Segment = { index: number; text: string; lang: "en" | "ar"; audio: string | null };
+/** A segment's audio: base64 WAV in your own turn's stream, or a URL in a Majlis (fetched here). */
+type Segment = { index: number; text: string; lang: "en" | "ar"; audio: string | null; url?: string };
 
 /** Extra time the browser's voice gets, beyond twice the estimated length, before we stop waiting. */
 const BACKUP_GRACE_S = 2;
@@ -95,12 +96,22 @@ export class Player {
     this.unlock();
     this.pending++;
     const generation = this.generation;
-    const run = this.chain.then(() => this.schedule(seg, generation)).finally(() => this.pending--);
+    // A Majlis segment starts downloading now, while any earlier one is still decoding.
+    const fetched = seg.url
+      ? fetch(seg.url)
+          .then((res) => (res.ok ? res.arrayBuffer() : null))
+          .catch(() => null)
+      : null;
+    const run = this.chain.then(() => this.schedule(seg, generation, fetched)).finally(() => this.pending--);
     this.chain = run.catch(() => {});
     return run;
   }
 
-  private async schedule(seg: Segment, generation: number): Promise<PlayedSegment> {
+  private async schedule(
+    seg: Segment,
+    generation: number,
+    fetched: Promise<ArrayBuffer | null> | null,
+  ): Promise<PlayedSegment> {
     const ctx = this.ctx!;
     const words = seg.text.split(/\s+/).filter(Boolean);
     // Stopped while this segment waited its turn: report it, but never make a sound.
@@ -108,10 +119,10 @@ export class Player {
       return { index: seg.index, words, timings: evenly(words, 0, 0), startAt: 0, endAt: 0, backup: false };
     }
 
-    if (seg.audio) {
+    const wav = seg.audio ? base64ToBytes(seg.audio).buffer.slice(0) : fetched ? await fetched : null;
+    if (wav) {
       try {
-        const bytes = base64ToBytes(seg.audio);
-        const audio = await ctx.decodeAudioData(bytes.buffer.slice(0) as ArrayBuffer);
+        const audio = await ctx.decodeAudioData(wav as ArrayBuffer);
         if (generation !== this.generation) {
           return {
             index: seg.index,

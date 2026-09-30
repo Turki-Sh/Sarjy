@@ -13,7 +13,13 @@ import { Icon } from "./Icon";
 import { Menu } from "./Menu";
 import styles from "./Sidebar.module.css";
 
-export type ChatItem = { id: string; title: string; pinned?: boolean };
+export type ChatItem = {
+  id: string;
+  title: string;
+  pinned?: boolean;
+  /** A Majlis chat (titled "Majlis: ..."); one you joined as a guest can't be renamed or pinned. */
+  majlis?: { code: string; live: boolean; mine: boolean };
+};
 
 type Props = {
   lang: Lang;
@@ -64,7 +70,10 @@ export function Sidebar({
   /** The chat whose title is being edited, if any. */
   const [renaming, setRenaming] = useState<string | null>(null);
   const q = query.trim();
-  const shownChats = recent.filter((c) => c.title && (!q || matches(c.title, q)));
+  /** What a chat is called in the list: a Majlis says so (Turki, Day 3). */
+  const titleOf = (c: ChatItem) => (c.majlis ? s.majlis.chat(c.title) : c.title);
+  // An untitled chat is one nobody has spoken in yet; an open Majlis shows anyway, to find it again.
+  const shownChats = recent.filter((c) => (c.title || c.majlis?.live) && (!q || matches(titleOf(c), q)));
 
   return (
     <aside className={`${styles.side} glass-panel`} aria-label={s.memory}>
@@ -157,24 +166,34 @@ export function Sidebar({
                 className={`${styles.item} ${c.id === activeChatId ? styles.on : ""}`}
                 aria-current={c.id === activeChatId ? "page" : undefined}
                 onClick={() => onOpenChat(c.id)}
-                onDoubleClick={() => setRenaming(c.id)}
+                onDoubleClick={() => (!c.majlis || c.majlis.mine) && setRenaming(c.id)}
               >
-                <Icon name="chat" />
-                <span className={styles.ellipsis}>{c.title}</span>
+                <Icon name={c.majlis ? "finjan" : "chat"} />
+                <span className={styles.ellipsis}>{titleOf(c)}</span>
               </button>
               {c.pinned && <Icon name="pin" className={styles.pinned} />}
               {/* Everything you can do to a chat, behind one ⋯ (like ChatGPT): no projects, no archive. */}
               <Menu
                 className={styles.edit}
-                label={`${s.chatMenu.more}: ${c.title}`}
+                label={`${s.chatMenu.more}: ${titleOf(c)}`}
                 items={[
-                  { id: "rename", label: s.rename, icon: "pencil", onSelect: () => setRenaming(c.id) },
-                  {
-                    id: "pin",
-                    label: c.pinned ? s.chatMenu.unpin : s.chatMenu.pin,
-                    icon: "pin",
-                    onSelect: () => onPinChat(c.id, !c.pinned),
-                  },
+                  // A Majlis you joined is the host's chat: you can share or remove it, not rename it.
+                  ...(c.majlis && !c.majlis.mine
+                    ? []
+                    : [
+                        {
+                          id: "rename",
+                          label: s.rename,
+                          icon: "pencil" as const,
+                          onSelect: () => setRenaming(c.id),
+                        },
+                        {
+                          id: "pin",
+                          label: c.pinned ? s.chatMenu.unpin : s.chatMenu.pin,
+                          icon: "pin" as const,
+                          onSelect: () => onPinChat(c.id, !c.pinned),
+                        },
+                      ]),
                   { id: "share", label: s.chatMenu.share, icon: "share", onSelect: () => onShareChat(c.id) },
                   {
                     id: "delete",

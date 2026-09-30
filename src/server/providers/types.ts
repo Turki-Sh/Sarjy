@@ -37,6 +37,23 @@ export interface TextToSpeech {
   synthesize(text: string, lang: Lang): Promise<ArrayBuffer | null>;
 }
 
+/**
+ * Whether a picture may be shown to everyone in a Majlis, and what checking it took. `checked`
+ * is false when the guard couldn't answer (a rate limit, an error): still a no, said differently.
+ */
+export type PictureVerdict = {
+  safe: boolean;
+  checked: boolean;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+};
+
+export interface PictureGuard {
+  /** Checks a picture before a Majlis sees it. Fails closed: when it can't tell, the answer is no. */
+  check(picture: { bytes: Uint8Array; mediaType: string }, signal?: AbortSignal): Promise<PictureVerdict>;
+}
+
 /** A model the turn may use; `vision` marks the ones that can read a picture. */
 export type ModelChoice = { id: string; model: LanguageModel; vision?: boolean };
 
@@ -58,5 +75,7 @@ export type Providers = {
   writer: Models;
   /** Looking things up on the web (the search_web tool). */
   web: WebSearch;
+  /** Checks pictures before they are shared in a Majlis. */
+  guard: PictureGuard;
   fetch: Fetch;
 };

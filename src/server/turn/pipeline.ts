@@ -11,7 +11,14 @@ import "server-only";
 import { isStepCount, streamText, type ModelMessage } from "ai";
 import { eq } from "drizzle-orm";
 import type { Memory, TurnEvent } from "@/shared/protocol";
-import { openConversation, pictureBytes, picturesOf, recentMessages, saveTurn } from "../chat/repo";
+import {
+  openConversation,
+  pictureBytes,
+  picturesOf,
+  recentMessages,
+  roomConversation,
+  saveTurn,
+} from "../chat/repo";
 import type { Db } from "../db/client";
 import { users, type User } from "../db/schema";
 import { listMemories } from "../memory/repo";
@@ -35,6 +42,11 @@ export type TurnInput = {
   conversationId: string | null;
   uiLang: Lang;
   timeZone: string;
+  /**
+   * In a Majlis: the room's conversation, and everyone in it by the name they go by (the speaker
+   * is `user`). Memory stays the speaker's own: nobody else's is ever loaded.
+   */
+  room?: { conversationId: string; people: { id: string; name: string; host: boolean }[] };
 };
 
 const SAY: Record<"not_understood" | "model_unavailable" | "internal", Record<Lang, string>> = {
@@ -119,13 +131,20 @@ export async function runTurn(
   }
   emit({ type: "transcript", text: heard, lang, ms: since() });
 
-  // 2. Recall.
+  // 2. Recall. Only the speaker's memories, in a Majlis too: that is what keeps each person's private.
+  const room = input.room;
   const [memories, conversation] = await Promise.all([
     listMemories(db, input.user.id),
-    openConversation(db, input.user.id, input.conversationId, heard),
+    room
+      ? roomConversation(db, room.conversationId, heard)
+      : openConversation(db, input.user.id, input.conversationId, heard),
   ]);
   const history = await recentMessages(db, conversation.id);
-  const onboarding = isStep(input.user.onboardingStep) ? input.user.onboardingStep : "done";
+  // Nobody is asked their name in front of the room: the door already did.
+  const onboarding = room ? "done" : isStep(input.user.onboardingStep) ? input.user.onboardingStep : "done";
+  /** In a Majlis each line says who said it, so the model can tell people apart. */
+  const nameOf = (id: string | null) => room?.people.find((p) => p.id === id)?.name ?? "Someone";
+  const said = (text: string, speakerId: string | null) => (room ? `${nameOf(speakerId)}: ${text}` : text);
   const system = buildSystemPrompt({
     now: new Date(),
     timeZone: input.timeZone,
@@ -135,6 +154,13 @@ export async function runTurn(
     onboarding,
     userTurns: history.filter((m) => m.role === "user").length,
     replyLang: lang,
+    room: room
+      ? {
+          people: room.people.map((p) => p.name),
+          host: room.people.find((p) => p.host)?.name ?? null,
+          speaker: nameOf(input.user.id),
+        }
+      : undefined,
   });
   const image = input.image ? new Uint8Array(await input.image.arrayBuffer()) : null;
   const mediaType = input.image?.type || "image/jpeg";
@@ -157,11 +183,14 @@ export async function runTurn(
   /** The conversation for one model: pictures as pictures if it can see, else as a note. */
   const messagesFor = (sees: boolean): ModelMessage[] => [
     ...history.map((m): ModelMessage => {
-      if (!pictured.has(m.id)) return { role: m.role, content: m.text } as ModelMessage;
-      if (sees && earlier && m === lastPictured) return withPicture(m.text, earlier.bytes, earlier.mediaType);
-      return { role: "user", content: `${m.text}\n${PICTURE_NOTE}` };
+      const text = m.role === "user" ? said(m.text, m.speakerId) : m.text;
+      if (!pictured.has(m.id)) return { role: m.role, content: text } as ModelMessage;
+      if (sees && earlier && m === lastPictured) return withPicture(text, earlier.bytes, earlier.mediaType);
+      return { role: "user", content: `${text}\n${PICTURE_NOTE}` };
     }),
-    image ? withPicture(heard, image, mediaType) : { role: "user", content: heard },
+    image
+      ? withPicture(said(heard, input.user.id), image, mediaType)
+      : { role: "user", content: said(heard, input.user.id) },
   ];
 
   // 3. Think, with tools. Each tool reports its start and end, so the chip shows live timing.

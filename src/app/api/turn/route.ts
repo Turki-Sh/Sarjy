@@ -1,12 +1,20 @@
 // POST /api/turn: one conversational turn (architecture, section 3).
-// In: multipart form with `audio` (a WAV) or `text`, plus `conversationId`, `lang`, `tz`.
-// Out: a stream of newline-delimited JSON events (src/shared/protocol.ts).
+// In: multipart form with `audio` (a WAV) or `text`, plus `conversationId`, `lang`, `tz`, and
+// `room` (a Majlis code) when it is said in a Majlis.
+// Out: a stream of newline-delimited JSON events (src/shared/protocol.ts). In a Majlis the same
+// events also go to everyone else in the room (server/rooms/outlet.ts).
 
 import { currentUser, ipHash } from "@/server/http";
 import { env } from "@/server/env";
 import { getProviders } from "@/server/providers";
 import { allowTurn } from "@/server/rateLimit";
-import { runTurn } from "@/server/turn/pipeline";
+import { getRealtime } from "@/server/realtime";
+import { memberRoom, spokenName } from "@/server/rooms/access";
+import { claimFloor, releaseFloor } from "@/server/rooms/floor";
+import { keepMedia, mediaUrl } from "@/server/rooms/media";
+import { roomOutlet, type RoomOutlet } from "@/server/rooms/outlet";
+import { listMembers } from "@/server/rooms/rooms";
+import { runTurn, type TurnInput } from "@/server/turn/pipeline";
 import { safeTimeZone } from "@/shared/hijri";
 import { encodeEvent, type TurnEvent } from "@/shared/protocol";
 import { voiceFor } from "@/shared/voices";
@@ -21,6 +29,19 @@ const MAX_IMAGE_BYTES = 1_500_000; // the browser sends at most 1280 px JPEG, we
 const LIMIT_SAY = {
   en: "I've reached my limit for now. Try again in a minute.",
   ar: "وصلت الحد حاليًا. جرّب بعد دقيقة.",
+};
+
+const MAJLIS_SAY = {
+  floor_busy: { en: "Someone else has the mic. Give them a sec.", ar: "في أحد ماسك المايك. لحظة وخلص." },
+  picture_refused: {
+    en: "I didn't share that picture with the Majlis.",
+    ar: "ما شاركت هالصورة في المجلس.",
+  },
+  picture_unchecked: {
+    en: "I couldn't check that picture just now, so I didn't share it. Try again in a minute.",
+    ar: "ما قدرت أتأكد من الصورة الحين، فما شاركتها. جرب بعد دقيقة.",
+  },
+  ended: { en: "This Majlis has ended.", ar: "هالمجلس خلص." },
 };
 
 const ndjson = (status = 200) => ({
@@ -63,12 +84,55 @@ export async function POST(request: Request) {
   const slow = env.providers === "fake" ? Number(request.headers.get("x-sarjy-fake-slow-voice") ?? 0) : 0;
   // ...or switch the voice off, as past Groq's daily limit.
   const voiceOut = env.providers === "fake" && request.headers.get("x-sarjy-fake-voice-out") === "1";
+  // In a Majlis: only its members may speak, one at a time. The floor is claimed here too (the
+  // browser claims it when you start talking), so a typed turn can't talk over someone.
+  const code = String(form.get("room") ?? "");
+  const room = code ? await memberRoom(db, code, user.id) : null;
+  if (code && !room) return new Response("Not in that Majlis.", { status: 404 });
+  const spoken = (event: TurnEvent, status: number) => new Response(encodeEvent(event), ndjson(status));
+  if (room?.endedAt)
+    return spoken({ type: "error", code: "bad_request", say: MAJLIS_SAY.ended[uiLang] }, 409);
+  if (room && !(await claimFloor(db, room.id, user.id))) {
+    return spoken({ type: "error", code: "floor_busy", say: MAJLIS_SAY.floor_busy[uiLang] }, 409);
+  }
+
   const providers = getProviders({
     scriptedTranscript: scripted ? decodeURIComponent(scripted) : null,
     slowRestMs: Math.min(Math.max(slow, 0), 5000) || 0,
     voiceOut,
     voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
+    unsafePicture: env.providers === "fake" && request.headers.get("x-sarjy-fake-unsafe-picture") === "1",
   });
+
+  let majlis: { input: NonNullable<TurnInput["room"]>; outlet: RoomOutlet } | null = null;
+  if (room) {
+    const realtime = getRealtime();
+    // Everyone hears the mic is taken (the browser usually said so already; this covers typing).
+    await realtime.publish(room.code, { type: "floor", holder: user.id }).catch(() => {});
+    // A picture is shown to the whole room, so it is checked first; one that doesn't pass is
+    // never shown to anyone, and the turn stops there.
+    let pictureUrl: string | null = null;
+    if (picture) {
+      const bytes = new Uint8Array(await picture.arrayBuffer());
+      const verdict = await providers.guard.check({ bytes, mediaType: picture.type }, request.signal);
+      if (!verdict.safe) {
+        await releaseFloor(db, room.id, user.id);
+        await realtime.publish(room.code, { type: "floor", holder: null }).catch(() => {});
+        // Refused, or couldn't be checked (a rate limit): not shared either way, said honestly.
+        const say = verdict.checked ? MAJLIS_SAY.picture_refused : MAJLIS_SAY.picture_unchecked;
+        return spoken({ type: "error", code: "picture_refused", say: say[uiLang] }, 200);
+      }
+      pictureUrl = mediaUrl(room.code, await keepMedia(db, room.id, bytes, picture.type));
+    }
+    const members = await listMembers(db, room);
+    majlis = {
+      input: {
+        conversationId: room.conversationId,
+        people: members.map((m) => ({ id: m.id, name: spokenName(m), host: m.host })),
+      },
+      outlet: roomOutlet({ db, realtime, room, speakerId: user.id, pictureUrl }),
+    };
+  }
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -76,6 +140,8 @@ export async function POST(request: Request) {
       // Once the browser has gone, events have nowhere to go: drop them instead of throwing.
       let open = true;
       const emit = (event: TurnEvent) => {
+        // The room hears the turn even if the speaker's own tab has gone.
+        majlis?.outlet.send(event);
         if (!open || request.signal.aborted) return;
         try {
           controller.enqueue(encoder.encode(encodeEvent(event)));
@@ -93,6 +159,7 @@ export async function POST(request: Request) {
             conversationId,
             uiLang,
             timeZone,
+            room: majlis?.input,
           },
           { db, providers, signal: request.signal },
           emit,
@@ -108,6 +175,15 @@ export async function POST(request: Request) {
         });
       } finally {
         if (open && !request.signal.aborted) controller.close();
+        // In a Majlis: once everything has reached the room, the mic is free again.
+        if (room && majlis) {
+          await majlis.outlet.flushed();
+          if (await releaseFloor(db, room.id, user.id).catch(() => false)) {
+            await getRealtime()
+              .publish(room.code, { type: "floor", holder: null })
+              .catch(() => {});
+          }
+        }
       }
     },
   });

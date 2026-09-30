@@ -57,6 +57,9 @@
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  /* One column, never wider than the window: content that can't fit wraps or clips inside it.
+     Left to size itself, the column grew past a phone's width in Arabic and shifted the page. */
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   height: 100dvh;
   padding-block: 16px 28px;

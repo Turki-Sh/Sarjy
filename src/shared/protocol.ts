@@ -43,6 +43,10 @@ export type Timings = z.infer<typeof Timings>;
 
 export const ErrorCode = z.enum([
   "not_understood",
+  /** In a Majlis: someone else has the mic. */
+  "floor_busy",
+  /** In a Majlis: the picture didn't pass the check, so it wasn't shared. */
+  "picture_refused",
   "rate_limited",
   "model_unavailable",
   "memory_unavailable",
@@ -51,7 +55,14 @@ export const ErrorCode = z.enum([
 ]);
 
 export const TurnEvent = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("transcript"), text: z.string(), lang: Lang, ms: z.number() }),
+  z.object({
+    type: z.literal("transcript"),
+    text: z.string(),
+    lang: Lang,
+    ms: z.number(),
+    /** In a Majlis, where everyone else fetches the picture sent with it (it passed the guard). */
+    image: z.string().optional(),
+  }),
   z.object({ type: z.literal("tool_start"), id: z.string(), name: z.string(), label: z.string() }),
   z.object({ type: z.literal("tool_end"), id: z.string(), ok: z.boolean(), ms: z.number() }),
   z.object({ type: z.literal("memory_saved"), memory: Memory }),
@@ -63,6 +74,8 @@ export const TurnEvent = z.discriminatedUnion("type", [
     lang: Lang,
     /** Base64 WAV, or null when the browser's backup voice should speak it. */
     audio: z.string().nullable(),
+    /** In a Majlis, where everyone else fetches the audio instead (realtime messages are small). */
+    url: z.string().optional(),
   }),
   z.object({ type: z.literal("error"), code: ErrorCode, say: z.string() }),
   z.object({

@@ -121,6 +121,35 @@ type Strings = {
     forgetAllConfirm: string;
   };
   closeSidebar: string;
+  /** The Majlis: several people, one Sarjy (architecture, section 13). */
+  majlis: {
+    start: string;
+    name: (host: string | null) => string;
+    /** How a Majlis chat is titled in Recent. */
+    chat: (title: string) => string;
+    invite: string;
+    inviteText: (host: string | null) => string;
+    linkCopied: string;
+    join: string;
+    joinHint: string;
+    askName: string;
+    namePlaceholder: string;
+    you: string;
+    guest: (seat: number) => string;
+    holding: (name: string) => string;
+    busy: (name: string) => string;
+    tapToTalk: string;
+    leave: string;
+    end: string;
+    endConfirm: string;
+    ended: string;
+    full: string;
+    missing: string;
+    back: string;
+    here: (n: number) => string;
+    reconnecting: string;
+    people: string;
+  };
   sharedMoment: string;
   sharedNote: string;
   about: string;
@@ -268,6 +297,33 @@ export const STRINGS: Record<Lang, Strings> = {
       forgetAllConfirm: "Yes, forget everything",
     },
     closeSidebar: "Close sidebar",
+    majlis: {
+      start: "Start a Majlis",
+      name: (host) => (host ? `${host}'s Majlis` : "A Majlis"),
+      chat: (title) => (title ? `Majlis: ${title}` : "Majlis"),
+      invite: "Invite",
+      inviteText: (host) => (host ? `Join ${host}'s Majlis on Sarjy` : "Join a Majlis on Sarjy"),
+      linkCopied: "Invite link copied.",
+      join: "Come in",
+      joinHint: "Everyone here hears Sarjy. What you've told Sarjy before stays yours.",
+      askName: "What should everyone call you?",
+      namePlaceholder: "Your name",
+      you: "You",
+      guest: (seat) => `Guest ${seat + 1}`,
+      holding: (name) => `${name} has the mic`,
+      busy: (name) => `${name} has the mic. Give them a sec.`,
+      tapToTalk: "Tap the finjan to talk",
+      leave: "Leave",
+      end: "End for everyone",
+      endConfirm: "End the Majlis for everyone?",
+      ended: "This Majlis has ended.",
+      full: "This Majlis is full: 8 people at most.",
+      missing: "There's no Majlis at this link.",
+      back: "Back to Sarjy",
+      here: (n) => (n === 1 ? "1 here" : `${n} here`),
+      reconnecting: "Reconnecting",
+      people: "Who's here",
+    },
     sharedMoment: "A moment with Sarjy",
     sharedNote: "Shared by the person who had this conversation. Only people with the link can see it.",
     about: "About Sarjy",
@@ -412,6 +468,33 @@ export const STRINGS: Record<Lang, Strings> = {
       forgetAllConfirm: "إي، انسَ كل شي",
     },
     closeSidebar: "اقفل القائمة",
+    majlis: {
+      start: "افتح مجلس",
+      name: (host) => (host ? `مجلس ${host}` : "مجلس"),
+      chat: (title) => (title ? `مجلس: ${title}` : "مجلس"),
+      invite: "اعزم",
+      inviteText: (host) => (host ? `تعال مجلس ${host} في سرجي` : "تعال المجلس في سرجي"),
+      linkCopied: "نسخت رابط العزيمة.",
+      join: "ادخل",
+      joinHint: "كل اللي في المجلس يسمعون سرجي. اللي قلته لسرجي قبل يبقى لك.",
+      askName: "وش نناديك؟",
+      namePlaceholder: "اسمك",
+      you: "أنت",
+      guest: (seat) => `ضيف ${(seat + 1).toLocaleString("ar-SA")}`,
+      holding: (name) => `المايك مع ${name}`,
+      busy: (name) => `المايك مع ${name}. لحظة لين يخلص.`,
+      tapToTalk: "اضغط الفنجال وتكلم",
+      leave: "اطلع",
+      end: "سكّر المجلس",
+      endConfirm: "تسكّر المجلس على الكل؟",
+      ended: "المجلس خلص.",
+      full: "المجلس مليان: ٨ أشخاص بالكثير.",
+      missing: "ما فيه مجلس بهالرابط.",
+      back: "ارجع لسرجي",
+      here: (n) => `${n.toLocaleString("ar-SA")} موجودين`,
+      reconnecting: "يرجع يتصل",
+      people: "مين موجود",
+    },
     sharedMoment: "لحظة مع سرجي",
     sharedNote: "شاركها صاحب المحادثة. ما يشوفها إلا اللي عنده الرابط.",
     about: "عن سرجي",

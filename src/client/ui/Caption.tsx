@@ -8,6 +8,7 @@
 // A saved fact carries the Dusk stitch underline (`keep`).
 
 import type { Lang } from "@/shared/i18n";
+import type { Speaker } from "../voice/useSarjy";
 import styles from "./Caption.module.css";
 
 export type CaptionModel = {
@@ -19,6 +20,8 @@ export type CaptionModel = {
   style: "stream" | "dim" | "speak";
   /** Word indexes (inclusive start, exclusive end) of a fact that was just saved. */
   keep?: { start: number; end: number };
+  /** In a Majlis: who is saying it (their bubble wears their color). */
+  who?: Speaker;
 };
 
 export function Caption({ caption }: { caption: CaptionModel | null }) {

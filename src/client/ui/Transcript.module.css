@@ -56,6 +56,37 @@
 .user:lang(ar) {
   font-family: var(--font-ar);
 }
+/* In a Majlis each person's bubbles wear their seat's color (tokens.css, through --seat): a tint,
+   a hairline in the color, and their name above the words. */
+.user[data-seat] {
+  background: color-mix(
+    in srgb,
+    var(--seat) 16%,
+    color-mix(in srgb, var(--sunken) calc((1 - var(--lq) * 0.4 - var(--pure) * 0.4) * 100%), transparent)
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--seat) 45%, transparent);
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-end: 2px;
+  color: color-mix(in srgb, var(--seat) 70%, var(--text));
+  font: 600 11.5px/1.3 var(--font-ui);
+  font-style: normal;
+}
+.who:lang(ar),
+:lang(ar) > .who {
+  font-family: var(--font-ar);
+}
+.who::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--seat);
+}
+
 /* Sarjy's: on the reading-start side, glass, in the voice face. */
 .sarjy {
   align-self: flex-start;

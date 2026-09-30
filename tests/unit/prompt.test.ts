@@ -90,4 +90,16 @@ describe("system prompt", () => {
     });
     expect(moved).toContain("home_city | You live in Jeddah. | told today");
   });
+
+  it("in a Majlis, says who is there and who is speaking, and that the memory is theirs alone", () => {
+    const majlis = buildSystemPrompt({
+      ...context,
+      replyLang: "en",
+      room: { people: ["Turki", "Sara"], host: "Turki", speaker: "Sara" },
+    });
+    expect(majlis).toContain("In the Majlis: Turki (who opened it), Sara. Speaking now: Sara.");
+    expect(majlis).toContain("The memory block below is Sara's alone.");
+    // Alone, there is no Majlis block at all.
+    expect(prompt).not.toContain("Majlis.");
+  });
 });

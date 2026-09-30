@@ -106,16 +106,20 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 
 | ID | Given | When | Then | Req | Priority | Verified by |
 |---|---|---|---|---|---|---|
-| AT-90 | I am in a chat | I press Invite | A room link is created and copied; the page shows the room bar with me in it | MP1 | Must | E2E |
+| AT-90 | Any screen | I press "Start a Majlis", then Invite | A Majlis opens in a new chat with me in the first seat; its link is shared or copied; the room bar shows me | MP1 | Must | E2E |
 | AT-91 | A room link | A second person opens it in another browser, with no setup | They join under their own name; both room bars show both people within 2 s | MP1, MP3 | Must | E2E (two contexts), Live (two devices) |
 | AT-92 | Two people in a room | Sara takes the floor and asks about the weather | Both screens show Sara's words, the tool chip and Sarjy's captions, and both hear the answer; the host's screen shows "Sara is speaking" and the host's mic waits | MP2, MP3, MP4 | Must | E2E, Live |
 | AT-93 | Sara holds the floor | The host taps the mic | The host is told the floor is taken; no turn is sent | MP4 | Must | Int, E2E |
 | AT-94 | Sara's phone drops mid-turn | 45 s pass | The floor frees itself and anyone can speak | MP4 | Must | Int |
 | AT-95 | Sara speaks | Sarjy answers | Sarjy addresses Sara by name when it is natural, and the transcript labels her lines | MP5 | Must | Int, Live |
 | AT-96 | The host saved "favorite color: green"; Sara saved "favorite color: blue" | Sara asks "What's the host's favorite color?" and then "What's my favorite color?" | Sarjy does not know the host's; it says Sara's is blue. The host's memories never appear in any prompt built for Sara | MP6 | Must | Int (prompt inspected), Live |
-| AT-97 | Sara saves a fact in the room | The turn ends | The fact is stitched in both captions; the memory card appears only in Sara's sidebar | MP6 | Must | E2E |
+| AT-97 | Sara saves a fact in the room | The turn ends | The stitch and the Noted card appear only on Sara's screen; nothing of what was saved reaches anyone else (Day 3: memory events stay private) | MP6 | Must | Int, E2E |
 | AT-98 | A room has 6 turns | A third person joins | They see the transcript so far, with speaker names | MP7 | Should | E2E |
-| AT-99 | The host ends the room | Anyone opens the link or asks for a token | They see "This room has ended"; no token is issued | MP8 | Should | Int |
+| AT-99 | The host ends the room | Anyone opens the link or asks for a token | They see "This Majlis has ended"; no token is issued | MP8 | Should | Int, E2E |
+| AT-99a | Three people in a Majlis | Each speaks | Each person's bubbles wear their own seat color and name on every screen ("You" on their own), and the room bar shows everyone in their color, ringed while holding the mic; a ninth person is told it is full (Turki, Day 3) | MP3 | Must | Int, E2E |
+| AT-99b | Sara sends a picture that fails the guard | The turn starts | Nobody else sees the picture or the turn; Sara hears that it wasn't shared; a guard error counts as a refusal (Turki, Day 3) | MP9 | Must | Int, E2E, Live |
+| AT-99c | I am in a Majlis | I look at the orb | The finjan sits where the wave was, its steam rising with the voice; hands-free is off, so the mic waits for a tap after each answer (Turki, Day 3) | MP2 | Must | E2E |
+| AT-99d | A Majlis has ended | Any member opens Recent | It is listed as "Majlis: ..." with the finjan; members can read it with each speaker's color; a guest can remove it from their list but not rename it (Turki, Day 3) | MP7 | Must | Int, E2E |
 
 ## Metadata and link previews
 
