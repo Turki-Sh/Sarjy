@@ -197,6 +197,9 @@ export function useSarjy(
   const [lines, setLines] = useState<ChatLine[]>([]);
   /** In a Majlis: whose turn is on screen (they asked; Sarjy is answering them), by user id. */
   const [asker, setAsker] = useState<string | null>(null);
+  // At rest, or you talking: nobody's turn is on screen. One rule for every way a turn can end
+  // (finished, stopped, interrupted by a tap), so a seat is never left beside the cup.
+  if (asker && (state === "idle" || state === "listening")) setAsker(null);
 
   const player = useRef<Player | null>(null);
   const turn = useRef<Turn | null>(null);
@@ -542,6 +545,7 @@ export function useSarjy(
           conversing.current = false;
           setMicLook("ready");
           dispatch({ type: "CANCEL" });
+          roomRef.current?.onRest();
         }
       } else strandedAt = 0;
       const t = turn.current;
@@ -620,6 +624,8 @@ export function useSarjy(
         dispatch({ type: "CANCEL" });
         dispatch({ type: "SEND" });
       }
+      // Their own words first, in their own voice; Sarjy's answer queues up behind them.
+      if (event.type === "transcript" && event.voice) getPlayer().clip(event.voice);
       handle(event, t);
     },
     [closeEar, handle, lang],

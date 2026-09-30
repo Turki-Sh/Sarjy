@@ -107,6 +107,42 @@ export class Player {
     return run;
   }
 
+  /**
+   * In a Majlis: someone's own recorded words, played in turn like a segment (so Sarjy's answer
+   * follows it), but never part of Sarjy's caption. A clip that can't be fetched is skipped.
+   */
+  clip(url: string): void {
+    this.unlock();
+    this.pending++;
+    const generation = this.generation;
+    const fetched = fetch(url)
+      .then((res) => (res.ok ? res.arrayBuffer() : null))
+      .catch(() => null);
+    const run = this.chain
+      .then(async () => {
+        const wav = await fetched;
+        if (!wav || generation !== this.generation) return;
+        const audio = await this.ctx!.decodeAudioData(wav);
+        if (generation === this.generation) this.start(audio);
+      })
+      .finally(() => this.pending--);
+    this.chain = run.catch(() => {});
+  }
+
+  /** Starts decoded audio when everything before it has played. Returns when it starts, on the clock. */
+  private start(audio: AudioBuffer): number {
+    const ctx = this.ctx!;
+    const source = ctx.createBufferSource();
+    source.buffer = audio;
+    source.connect(this.analyser!);
+    const at = Math.max(ctx.currentTime + 0.03, this.queueEnd);
+    source.start(at);
+    this.sources.add(source);
+    source.onended = () => this.sources.delete(source);
+    this.queueEnd = at + audio.duration;
+    return at;
+  }
+
   private async schedule(
     seg: Segment,
     generation: number,
@@ -133,14 +169,7 @@ export class Player {
             backup: false,
           };
         }
-        const source = ctx.createBufferSource();
-        source.buffer = audio;
-        source.connect(this.analyser!);
-        const at = Math.max(ctx.currentTime + 0.03, this.queueEnd);
-        source.start(at);
-        this.sources.add(source);
-        source.onended = () => this.sources.delete(source);
-        this.queueEnd = at + audio.duration;
+        const at = this.start(audio);
         const timings = estimateWordTimings(words, audio.getChannelData(0), audio.sampleRate);
         return { index: seg.index, words, timings, startAt: at, endAt: this.queueEnd, backup: false };
       } catch {

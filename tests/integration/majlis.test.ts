@@ -172,4 +172,26 @@ describe("a Majlis", () => {
     const members = await listMembers(db, room);
     expect(members.map(spokenName)).toEqual(["Turki", "Guest 2"]);
   });
+
+  it("gives the room the speaker's own recording with their words", async () => {
+    const host = await person("Turki");
+    const room = await createRoom(db, host);
+    const heard: RoomEvent[] = [];
+    const stop = listenLocal(room.code, "listener", (e) => heard.push(e));
+    const outlet = roomOutlet({
+      db,
+      realtime: localRealtime,
+      room,
+      speakerId: host,
+      voiceUrl: Promise.resolve(`/api/rooms/${room.code}/media/clip`),
+    });
+    outlet.send({ type: "transcript", text: "Hello", lang: "en", ms: 300 });
+    outlet.send({ type: "memory_saved", memory: {} as never });
+    await outlet.flushed();
+    stop();
+    const turns = heard.flatMap((e) => (e.type === "turn" ? [e.event] : []));
+    expect(turns).toEqual([
+      { type: "transcript", text: "Hello", lang: "en", ms: 300, voice: `/api/rooms/${room.code}/media/clip` },
+    ]);
+  });
 });

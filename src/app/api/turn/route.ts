@@ -130,7 +130,23 @@ export async function POST(request: Request) {
         conversationId: room.conversationId,
         people: members.map((m) => ({ id: m.id, name: spokenName(m), host: m.host })),
       },
-      outlet: roomOutlet({ db, realtime, room, speakerId: user.id, pictureUrl }),
+      outlet: roomOutlet({
+        db,
+        realtime,
+        room,
+        speakerId: user.id,
+        pictureUrl,
+        // Everyone else hears what you said, in your own voice (Turki, Day 3). Kept while speech
+        // to text runs, so it costs the turn nothing.
+        voiceUrl:
+          audio instanceof Blob
+            ? audio
+                .arrayBuffer()
+                .then(async (wav) =>
+                  mediaUrl(room.code, await keepMedia(db, room.id, new Uint8Array(wav), "audio/wav")),
+                )
+            : null,
+      }),
     };
   }
 

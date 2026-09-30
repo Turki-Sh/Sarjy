@@ -271,6 +271,8 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [x] Menus open on the page's body, so a menu inside glass is placed right
 - [x] Turki's review: everyone sits around the finjan in their own profile picture; whoever has the mic comes in beside the cup with their name and a breathing ring, and the screen says who Sarjy is answering; the bar keeps only the name, count, Invite and the way out
 - [x] Turki's review: the finjan has a look for every state, and the Sarjy wave is now the coffee's surface, moving with the voice
+- [x] Fixed from Turki's review: a seat stuck beside the cup. Tapping to interrupt left the last turn marked; now whose turn it is clears whenever the screen rests or listens. An expired claim on the mic was never announced; now every screen lets it go by itself after 45 s
+- [x] Turki's question, "should people hear each other?": yes, walkie-talkie style. Everyone else hears the speaker's own recorded words, then Sarjy's answer
 - [ ] Live check on the deployed site with two phones (the container's Ably key is a placeholder, so tokens can only be tried on Vercel)
 
 ### Turki's touches (after every Must, in this order)

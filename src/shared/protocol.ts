@@ -62,6 +62,8 @@ export const TurnEvent = z.discriminatedUnion("type", [
     ms: z.number(),
     /** In a Majlis, where everyone else fetches the picture sent with it (it passed the guard). */
     image: z.string().optional(),
+    /** In a Majlis, the speaker's own recorded words, so everyone else hears them (Day 3). */
+    voice: z.string().optional(),
   }),
   z.object({ type: z.literal("tool_start"), id: z.string(), name: z.string(), label: z.string() }),
   z.object({ type: z.literal("tool_end"), id: z.string(), ok: z.boolean(), ms: z.number() }),

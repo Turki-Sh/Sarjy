@@ -12,6 +12,12 @@ export const SEATS = 8;
 export const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 export const isRoomCode = (code: string) => /^[2-9A-HJKMNP-Z]{5}$/.test(code);
 
+/**
+ * How long a claim on the mic lasts. The server frees an unused one after this, silently, so every
+ * screen also lets it go on its own this long after it last heard about it.
+ */
+export const FLOOR_MS = 45_000;
+
 /** The realtime channel a room's events travel on. */
 export const channelName = (code: string) => `room:${code}`;
 
@@ -55,6 +61,8 @@ export type RoomState = {
   hostName: string | null;
   members: Member[];
   floor: string | null;
+  /** How much longer the current claim on the mic lasts. */
+  floorMs: number | null;
   ended: boolean;
   transport: Transport;
   me: string;

@@ -5,7 +5,8 @@ import "server-only";
 // wrapped with who is speaking. Three changes on the way:
 //   - memory events stay private: a saved fact is the speaker's, and its card is only theirs
 //   - audio becomes a URL (kept in room_media), since realtime messages are small
-//   - the transcript carries the picture's URL, once the picture has passed the guard
+//   - the transcript carries the picture's URL, once the picture has passed the guard, and the
+//     speaker's own recording, so everyone else hears the question before the answer
 // Publishing never holds up or breaks the speaker's own turn.
 
 import type { TurnEvent } from "@/shared/protocol";
@@ -31,6 +32,8 @@ export function roomOutlet(input: {
   speakerId: string;
   /** Where the room fetches the picture sent with this turn, if there is one. */
   pictureUrl?: string | null;
+  /** The speaker's recording, being kept for the room while the turn starts (spoken turns only). */
+  voiceUrl?: Promise<string | null> | null;
 }): RoomOutlet {
   const { db, realtime, room, speakerId } = input;
   let chain = Promise.resolve();
@@ -40,7 +43,14 @@ export function roomOutlet(input: {
       const id = await keepMedia(db, room.id, Buffer.from(event.audio, "base64"), "audio/wav");
       return { ...event, audio: null, url: mediaUrl(room.code, id) };
     }
-    if (event.type === "transcript" && input.pictureUrl) return { ...event, image: input.pictureUrl };
+    if (event.type === "transcript") {
+      const voice = (await input.voiceUrl?.catch(() => null)) ?? undefined;
+      return {
+        ...event,
+        ...(input.pictureUrl ? { image: input.pictureUrl } : {}),
+        ...(voice ? { voice } : {}),
+      };
+    }
     return event;
   };
 

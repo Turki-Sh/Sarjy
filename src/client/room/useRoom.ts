@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TurnEvent } from "@/shared/protocol";
-import type { Member, RoomEvent, RoomState } from "@/shared/room";
+import { FLOOR_MS, type Member, type RoomEvent, type RoomState } from "@/shared/room";
 import { connectRoom, type LinkStatus, type RoomLink } from "./transport";
 
 /** Where you are: at the door, inside, or turned away. */
@@ -34,32 +34,54 @@ export function useRoom(
     handlers.current = on;
   });
   const floorRef = useRef<string | null>(null);
+  const floorTimer = useRef(0);
 
-  const apply = useCallback((event: RoomEvent) => {
-    switch (event.type) {
-      case "turn":
-        handlers.current.turn(event.speaker, event.event);
-        return;
-      case "floor": {
-        const previous = floorRef.current;
-        floorRef.current = event.holder;
-        setFloor(event.holder);
-        if (event.holder === null) handlers.current.floorFreed(previous);
-        return;
-      }
-      case "members":
-        setMembers(event.members);
-        return;
-      case "ended":
-        setPhase("ended");
-        link.current?.close();
-        link.current = null;
-        return;
-      case "presence":
-        setOnline(event.online);
-        return;
+  /**
+   * Who has the mic now. A claim runs out on the server without anyone being told (a phone that
+   * locked mid-turn), so this screen lets it go by itself when it would have expired.
+   */
+  const holdFloor = useCallback((holder: string | null, ms = FLOOR_MS) => {
+    const previous = floorRef.current;
+    floorRef.current = holder;
+    setFloor(holder);
+    window.clearTimeout(floorTimer.current);
+    if (holder) {
+      floorTimer.current = window.setTimeout(() => {
+        if (floorRef.current !== holder) return;
+        floorRef.current = null;
+        setFloor(null);
+        handlers.current.floorFreed(holder);
+      }, ms + 1000);
+    } else if (previous) {
+      handlers.current.floorFreed(previous);
     }
   }, []);
+  useEffect(() => () => window.clearTimeout(floorTimer.current), []);
+
+  const apply = useCallback(
+    (event: RoomEvent) => {
+      switch (event.type) {
+        case "turn":
+          handlers.current.turn(event.speaker, event.event);
+          return;
+        case "floor":
+          holdFloor(event.holder);
+          return;
+        case "members":
+          setMembers(event.members);
+          return;
+        case "ended":
+          setPhase("ended");
+          link.current?.close();
+          link.current = null;
+          return;
+        case "presence":
+          setOnline(event.online);
+          return;
+      }
+    },
+    [holdFloor],
+  );
 
   /** Comes in (with a name, if you gave one at the door), then starts listening to the room. */
   const join = useCallback(
@@ -77,8 +99,7 @@ export function useRoom(
       const { room: state } = (await res.json()) as { room: RoomState };
       setRoom(state);
       setMembers(state.members);
-      floorRef.current = state.floor;
-      setFloor(state.floor);
+      holdFloor(state.floor, state.floorMs ?? FLOOR_MS);
       if (state.ended) {
         setPhase("ended");
         return state;
@@ -92,7 +113,7 @@ export function useRoom(
       setPhase("in");
       return state;
     },
-    [apply, code],
+    [apply, code, holdFloor],
   );
 
   // Leaving the page leaves the room's presence.
@@ -102,10 +123,9 @@ export function useRoom(
   const takeFloor = useCallback(async (): Promise<boolean> => {
     const res = await fetch(`/api/rooms/${code}/floor`, { method: "POST" });
     const body = (await res.json().catch(() => ({}))) as { holder?: string | null };
-    floorRef.current = body.holder ?? null;
-    setFloor(body.holder ?? null);
+    holdFloor(body.holder ?? null);
     return res.ok;
-  }, [code]);
+  }, [code, holdFloor]);
 
   /** Gives the mic back without having said anything. */
   const dropFloor = useCallback(() => {

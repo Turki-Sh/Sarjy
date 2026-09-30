@@ -54,6 +54,7 @@ export async function roomState(db: Db, room: RoomRow, userId: string, title: st
     hostName: members.find((m) => m.host)?.name ?? null,
     members,
     floor: floorHolder(room),
+    floorMs: floorHolder(room) && room.floorExpiresAt ? room.floorExpiresAt.getTime() - Date.now() : null,
     ended: !!room.endedAt,
     transport: getRealtime().transport,
     me: userId,

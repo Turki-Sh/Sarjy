@@ -62,6 +62,9 @@ test("two people in one Majlis see every turn, each in their own color (AT-90, A
   await expect(screen(guest)).toHaveAttribute("data-state", "speaking", { timeout: 10_000 });
   await expect(screen(guest)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
   const answer = (await caption(guest).textContent()) ?? "";
+  // Once Sarjy has answered, Sara goes back to her seat on both screens.
+  await expect(screen(host)).toHaveAttribute("data-state", "idle", { timeout: 10_000 });
+  await expect(host.locator("main section li[data-active]")).toHaveCount(0);
   expect(answer).not.toBe("Hello from Sara");
   await expect(host.locator("main section li").filter({ hasText: "Hello from Sara" })).toBeVisible({
     timeout: 10_000,
