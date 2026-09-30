@@ -13,6 +13,9 @@ import { COOKIE, refractScale, type LangChoice, type ThemeChoice } from "@/share
 import { wallpaperUrl, type WallpaperChoice } from "@/shared/wallpapers";
 import { useRoom, type RoomPhase } from "../room/useRoom";
 import { chatLines, useSarjy, type FetchedChat, type RoomLinkForVoice } from "../voice/useSarjy";
+import { bondOf, type BondEvent, type RafeeqId } from "@/shared/rafeeq";
+import { BondPill } from "./rafeeq/BondPill";
+import { Rafeeq, type RafeeqCue } from "./rafeeq/Rafeeq";
 import { MajlisBar } from "./majlis/MajlisBar";
 import { MajlisDoor } from "./majlis/MajlisDoor";
 import { MajlisSeats } from "./majlis/MajlisSeats";
@@ -39,6 +42,8 @@ type Props = {
   initialSidebarOpen: boolean;
   initialGlass: number;
   initialWallpaper: WallpaperChoice;
+  /** Your Rafeeq for the first paint (from its cookie); none means the orb. */
+  initialRafeeq?: RafeeqId | null;
   /** In a Majlis: its code, whose it is, how many are in, and whether you already are. */
   room?: { code: string; hostName: string | null; people: number; member: boolean; phase: RoomPhase };
 };
@@ -53,6 +58,7 @@ export function VoiceScreen({
   initialSidebarOpen,
   initialGlass,
   initialWallpaper,
+  initialRafeeq = null,
   room,
 }: Props) {
   const router = useRouter();
@@ -96,7 +102,15 @@ export function VoiceScreen({
   const roomLink: RoomLinkForVoice | null = inRoom
     ? { code: room.code, me: me!, who: nameOf, onRest: majlis.dropFloor, to: () => talkToRef.current }
     : null;
-  const sarjy = useSarjy(lang, { onBackupVoice: () => flash(s.voiceResting, 5000), room: roomLink });
+  const sarjy = useSarjy(lang, {
+    onBackupVoice: () => flash(s.voiceResting, 5000),
+    onAnswered: (saved) => answered.current(saved),
+    onToolFailed: () => toolFailed.current(),
+    room: roomLink,
+  });
+  // (Filled in below, once the Rafeeq's state exists; the hook only calls them later.)
+  const answered = useRef<(saved: boolean) => void>(() => {});
+  const toolFailed = useRef<() => void>(() => {});
   useEffect(() => {
     voice.current = sarjy;
   });
@@ -120,6 +134,73 @@ export function VoiceScreen({
     }
   };
   const s = t(lang);
+
+  // Rafeeq, the companion (Turki, Day 3): in your own chats only, never in a Majlis. The cookie
+  // gives the first paint; your profile has the final word.
+  const [rafeeq, setRafeeq] = useState<RafeeqId | null>(initialRafeeq);
+  const profileRafeeq = sarjy.profile ? sarjy.profile.rafeeq : undefined;
+  const [syncedRafeeq, setSyncedRafeeq] = useState<RafeeqId | null | undefined>(undefined);
+  if (profileRafeeq !== undefined && profileRafeeq !== syncedRafeeq) {
+    setSyncedRafeeq(profileRafeeq);
+    setRafeeq(profileRafeeq);
+  }
+  const companion = room ? null : rafeeq;
+  const bond = sarjy.profile?.bond ?? 0;
+  const [cue, setCue] = useState<RafeeqCue | null>(null);
+  const [gain, setGain] = useState<{ n: number; at: number } | null>(null);
+  const [leveledUp, setLeveledUp] = useState(false);
+
+  /** A moment with your Rafeeq: the bond grows (within today's cap), and a new level is celebrated. */
+  const { growBond, playCue } = sarjy;
+  const grow = useCallback(
+    async (event: BondEvent) => {
+      const result = await growBond(event);
+      if (!result || result.after === result.before) return;
+      setGain({ n: result.after - result.before, at: Date.now() });
+      const before = bondOf(result.before).level;
+      const after = bondOf(result.after).level;
+      if (after > before) {
+        setCue({ kind: "levelup", at: -result.after });
+        setLeveledUp(true);
+        window.setTimeout(() => setLeveledUp(false), 2600);
+        playCue("level");
+        const words = t(lang).rafeeq;
+        setToast(words.levelUp(rafeeq ? words.names[rafeeq] : "", words.levels[after - 1]!));
+        window.setTimeout(() => setToast(null), 3200);
+      }
+    },
+    [growBond, lang, playCue, rafeeq],
+  );
+  const chooseRafeeq = (choice: RafeeqId | null) => {
+    setRafeeq(choice);
+    setSyncedRafeeq(choice);
+    void sarjy.chooseRafeeq(choice);
+  };
+
+  // Coming back grows the bond (once a day, the server decides).
+  const visited = useRef(false);
+  useEffect(() => {
+    if (!companion || !sarjy.profile || visited.current) return;
+    visited.current = true;
+    void grow("visit");
+  }, [companion, sarjy.profile, grow]);
+  /** Each answer, and each fact stitched in with one: it beams, and the bond grows. */
+  const cues = useRef(0);
+  const react = (kind: RafeeqCue["kind"]) => setCue({ kind, at: ++cues.current });
+  const onAnswered = (saved: boolean) => {
+    if (!companion) return;
+    void grow("turn");
+    if (!saved) return;
+    react("saved");
+    void grow("save");
+  };
+  const onToolFailed = () => {
+    if (companion) react("failed");
+  };
+  useEffect(() => {
+    answered.current = onAnswered;
+    toolFailed.current = onToolFailed;
+  });
 
   /** Light, dark, or follow the device (the script in layout.tsx keeps following it). */
   const chooseTheme = (choice: ThemeChoice) => {
@@ -404,6 +485,15 @@ export function VoiceScreen({
                 onLeave={() => router.push("/")}
                 onEnd={() => void majlis.end()}
               />
+            ) : companion ? (
+              <BondPill
+                lang={lang}
+                id={companion}
+                bond={bond}
+                gain={gain}
+                leveledUp={leveledUp}
+                onOpen={() => openSettings("rafeeq")}
+              />
             ) : undefined
           }
         />
@@ -422,12 +512,27 @@ export function VoiceScreen({
               onClick={() => void onMic()}
               disabled={!!room && !inRoom}
             >
-              <Orb
-                state={sarjy.state}
-                inputLevel={sarjy.inputLevel}
-                outputLevel={sarjy.outputLevel}
-                majlis={!!room}
-              />
+              {companion ? (
+                <Rafeeq
+                  id={companion}
+                  state={sarjy.state}
+                  inputLevel={sarjy.inputLevel}
+                  outputLevel={sarjy.outputLevel}
+                  level={bondOf(bond).level}
+                  cue={cue}
+                  onPet={() => {
+                    playCue("pet");
+                    void grow("pet");
+                  }}
+                />
+              ) : (
+                <Orb
+                  state={sarjy.state}
+                  inputLevel={sarjy.inputLevel}
+                  outputLevel={sarjy.outputLevel}
+                  majlis={!!room}
+                />
+              )}
             </button>
             {room && inRoom && (
               <MajlisSeats
@@ -512,6 +617,9 @@ export function VoiceScreen({
           avatar={sarjy.profile?.avatar ?? null}
           avatarImage={sarjy.profile?.avatarImage ?? null}
           memories={sarjy.memories}
+          rafeeq={rafeeq}
+          bond={bond}
+          onRafeeq={chooseRafeeq}
           voices={sarjy.profile?.voices ?? { en: "troy", ar: "abdullah" }}
           onVoice={(voiceLang, id) => void sarjy.setVoice(voiceLang, id)}
           onSection={setSection}

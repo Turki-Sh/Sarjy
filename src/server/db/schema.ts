@@ -30,6 +30,10 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   /** Your own picture, when avatar is "upload": a 192 px square, shrunk in the browser, as a data URL. */
   avatarImage: text("avatar_image"),
+  /** Your Rafeeq (shared/rafeeq.ts), if you picked one; empty means the orb. */
+  rafeeq: text("rafeeq"),
+  /** How far your bond with it has grown (shared/rafeeq.ts, bondOf). */
+  rafeeqBond: integer("rafeeq_bond").notNull().default(0),
   createdAt,
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });

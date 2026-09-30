@@ -598,3 +598,82 @@
     animation: none;
   }
 }
+
+/* Rafeeq (RafeeqPicker.tsx): five choices, each a live preview, then your bond. */
+.rafeeqs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+}
+.rafeeqChoice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: transparent;
+  color: var(--text);
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--t-base) var(--ease-rein),
+    background var(--t-base) var(--ease-rein);
+}
+.rafeeqChoice:hover {
+  background: var(--sunken);
+}
+.rafeeqChoice[aria-checked="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.rafeeqChoice .hint {
+  font-size: 12px;
+}
+.rafeeqPreview {
+  --orb-size: 84px;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+}
+.bondBar {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  overflow: hidden;
+}
+.bondBar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width var(--t-slow) var(--ease-rein);
+}
+.unlocks {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.unlocks li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.unlocks li span {
+  flex: none;
+  min-width: 64px;
+  font-weight: 600;
+}
+.unlocks li[data-open] {
+  color: var(--text);
+}
+.unlocks li[data-open] span {
+  color: var(--accent);
+}

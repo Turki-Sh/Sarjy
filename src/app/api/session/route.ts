@@ -13,6 +13,7 @@ import { listMemories } from "@/server/memory/repo";
 import { SESSION_COOKIE } from "@/server/session";
 import { wallpaperVersion } from "@/server/wallpaper/repo";
 import { COOKIE } from "@/shared/preferences";
+import { isRafeeq } from "@/shared/rafeeq";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,9 @@ export async function POST(request: Request) {
       voices: { en: voiceFor("en", user.voiceEn), ar: voiceFor("ar", user.voiceAr) },
       /** The version of your own wallpaper, if you uploaded one (Settings shows it as a choice). */
       wallpaper,
+      /** Your Rafeeq, if you picked one, and how far your bond with it has grown. */
+      rafeeq: isRafeeq(user.rafeeq) ? user.rafeeq : null,
+      bond: user.rafeeqBond,
     },
     memories,
     chats,

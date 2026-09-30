@@ -2,6 +2,7 @@
 // on the first paint (no flash of the wrong theme or direction).
 
 import { isLang, type Lang } from "./i18n";
+import { isRafeeq, type RafeeqId } from "./rafeeq";
 
 export const THEMES = ["light", "dark"] as const;
 /** The theme actually drawn. */
@@ -17,6 +18,7 @@ export const COOKIE = {
   sidebar: "sarjy_sidebar",
   glass: "sarjy_glass",
   wallpaper: "sarjy_wallpaper",
+  rafeeq: "sarjy_rafeeq",
 } as const;
 
 /**
@@ -55,6 +57,9 @@ export function readLang(saved: string | undefined, acceptLanguage: string | nul
   const first = acceptLanguage?.split(",")[0]?.trim().slice(0, 2).toLowerCase();
   return first === "ar" ? "ar" : "en";
 }
+
+/** Your Rafeeq for the first paint (the profile has the same choice); none means the orb. */
+export const readRafeeq = (value: string | undefined): RafeeqId | null => (isRafeeq(value) ? value : null);
 
 /** The sidebar is open unless you closed it. */
 export const readSidebarOpen = (value: string | undefined): boolean => value !== "closed";

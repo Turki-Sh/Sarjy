@@ -1,0 +1,83 @@
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-block: 7px;
+  padding-inline: 10px 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  color: var(--text);
+  font: 500 13px/1 var(--font-ui);
+  cursor: pointer;
+}
+.pill:lang(ar),
+:lang(ar) .pill {
+  font-family: var(--font-ar);
+}
+.icon {
+  width: 17px;
+  height: 17px;
+}
+.level {
+  color: var(--text-2);
+  font-size: 12px;
+}
+.bar {
+  width: 44px;
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width var(--t-slow) var(--ease-rein);
+}
+/* "+2", floating up and away. */
+.gain {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: -4px;
+  color: var(--accent);
+  font: 700 12px/1 var(--font-ui);
+  text-shadow: none;
+  pointer-events: none;
+  animation: gain 1.4s var(--ease-rein) both;
+}
+@keyframes gain {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+/* A new level: a warm glow for a moment. */
+.pill[data-up] {
+  animation: up 1.2s var(--ease-rein) 2;
+}
+@keyframes up {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--rafeeq-gold) 45%, transparent);
+  }
+}
+@media (max-width: 640px) {
+  .level {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gain,
+  .pill[data-up] {
+    animation: none;
+  }
+}

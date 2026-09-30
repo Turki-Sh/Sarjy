@@ -47,6 +47,26 @@
   --seat-7: #2f9fb3;
   --seat-8: #b07a4f;
 
+  /* Rafeeq, the companions (Turki, Day 3): desert tones from the palette, one family per companion.
+     The same in both themes: they are characters, not surfaces. */
+  --rafeeq-ink: #1d1f1e;
+  --rafeeq-shine: #ffffff;
+  --rafeeq-blush: #e47458;
+  --rafeeq-gold: #e3a72f;
+  --rider-body: #e3b04b;
+  --rider-shade: #d49a33;
+  --rider-cloth: #fbf7f2;
+  --rider-check: #e47458;
+  --keeper-body: #c4a5d8;
+  --keeper-shade: #b391ca;
+  --keeper-tuft: #b08ec6;
+  --keeper-frame: #835298;
+  --keeper-flame: #f6d27a;
+  --scout-body: #e8876c;
+  --scout-cream: #f7c9b8;
+  --drifter-body: #6bc7ab;
+  --drifter-shade: #4fae92;
+
   /* Behind a popup (settings): dims the page in both themes. */
   --scrim: rgba(0, 0, 0, 0.45);
   /* Destructive actions (Forget everything). */

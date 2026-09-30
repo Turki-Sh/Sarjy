@@ -38,6 +38,9 @@ export const ICONS = {
   /** A finjan, the small Arabic coffee cup: the Majlis. */
   finjan:
     '<path d="M5.5 10h13l-1.6 7.2a2 2 0 0 1-1.9 1.6H9a2 2 0 0 1-1.9-1.6z"/><path d="M10 3.5c-.9.8.9 1.7 0 2.7M14 3.5c-.9.8.9 1.7 0 2.7"/>',
+  /** A small round companion with a cat mouth: Rafeeq. */
+  rafeeq:
+    '<path d="M4.5 19.5c0-6.5 3.4-12 7.5-12s7.5 5.5 7.5 12z"/><path d="M9.8 13.2v.01M14.2 13.2v.01" stroke-width="2.4"/><path d="M10.4 15.8q.8.9 1.6 0q.8.9 1.6 0"/>',
   sidebar: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/>',
 } as const;
 

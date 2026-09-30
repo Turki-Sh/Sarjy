@@ -15,7 +15,7 @@ type Props = {
   /** Opens the sidebar as a sheet on a narrow screen (its button only shows there). */
   onOpenSheet: () => void;
   onNewChat: () => void;
-  /** On the reading end, in a Majlis: its bar. */
+  /** On the reading end: the Majlis bar, or your Rafeeq's bond. */
   end?: ReactNode;
   /** Elsewhere: start a Majlis. */
   onStartMajlis?: () => void;
@@ -58,13 +58,15 @@ export function TopBar({ lang, onOpenSidebar, onOpenSheet, onNewChat, end, onSta
           </>
         )}
       </div>
-      {end}
-      {!end && onStartMajlis && (
-        <button type="button" className={styles.majlis} onClick={onStartMajlis}>
-          <Icon name="finjan" />
-          {s.majlis.start}
-        </button>
-      )}
+      <div className={styles.actions}>
+        {end}
+        {onStartMajlis && (
+          <button type="button" className={styles.majlis} onClick={onStartMajlis}>
+            <Icon name="finjan" />
+            {s.majlis.start}
+          </button>
+        )}
+      </div>
     </header>
   );
 }

@@ -9,6 +9,7 @@ import {
   readGlass,
   readLang,
   readLangChoice,
+  readRafeeq,
   readSidebarOpen,
   readTheme,
   readThemeChoice,
@@ -26,5 +27,6 @@ export async function readPreferences() {
   /** You chose a glass level yourself: it wins over the device's "reduce transparency". */
   const glassSet = jar.has(COOKIE.glass);
   const wallpaper = readWallpaper(jar.get(COOKIE.wallpaper)?.value);
-  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass, glassSet, wallpaper };
+  const rafeeq = readRafeeq(jar.get(COOKIE.rafeeq)?.value);
+  return { lang, theme, themeChoice, langChoice, sidebarOpen, glass, glassSet, wallpaper, rafeeq };
 }

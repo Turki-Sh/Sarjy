@@ -1,6 +1,7 @@
 // Interface strings in English and Arabic. Sarjy's own words come from the model, not from here.
 // Arabic is everyday Saudi Arabic, as the brand book asks.
 
+import type { RafeeqId, UNLOCKS } from "./rafeeq";
 import type { VoiceState } from "./states";
 
 export const LANGS = ["en", "ar"] as const;
@@ -82,6 +83,7 @@ type Strings = {
     profile: string;
     memory: string;
     voice: string;
+    rafeeq: string;
     voiceHint: string;
     voiceEn: string;
     voiceAr: string;
@@ -121,6 +123,23 @@ type Strings = {
     forgetAllConfirm: string;
   };
   closeSidebar: string;
+  /** Rafeeq, the companion (shared/rafeeq.ts). */
+  rafeeq: {
+    intro: string;
+    none: string;
+    noneLine: string;
+    names: Record<RafeeqId, string>;
+    lines: Record<RafeeqId, string>;
+    /** The five bond levels, 1 to 5. */
+    levels: readonly string[];
+    level: (n: number) => string;
+    toNext: (points: number) => string;
+    maxed: string;
+    unlocks: Record<keyof typeof UNLOCKS, string>;
+    how: string;
+    levelUp: (name: string, level: string) => string;
+    open: string;
+  };
   /** The Majlis: several people, one Sarjy (architecture, section 13). */
   majlis: {
     start: string;
@@ -263,6 +282,7 @@ export const STRINGS: Record<Lang, Strings> = {
       profile: "Profile",
       memory: "Memory",
       voice: "Voice",
+      rafeeq: "Rafeeq",
       voiceHint:
         "Sarjy answers in the language you speak, in the voice you pick for it. Pick one to hear it.",
       voiceEn: "English",
@@ -303,6 +323,32 @@ export const STRINGS: Record<Lang, Strings> = {
       forgetAllConfirm: "Yes, forget everything",
     },
     closeSidebar: "Close sidebar",
+    rafeeq: {
+      intro:
+        "A companion for your chats, in place of the orb. It reacts to everything you and Sarjy do, and the more you talk, the closer you get.",
+      none: "No Rafeeq",
+      noneLine: "Just the orb.",
+      names: { rider: "Rider", keeper: "Keeper", scout: "Scout", drifter: "Drifter" },
+      lines: {
+        rider: "A sand dune in a shemagh. Bold and cheerful.",
+        keeper: "Keeps what you tell Sarjy, and lights its lantern for every memory.",
+        scout: "A fennec with big ears. Perks up for every search.",
+        drifter: "A wisp of desert wind. Dreamy, always floating by.",
+      },
+      levels: ["New friend", "Getting close", "Friend", "Close friend", "Rafeeq"],
+      level: (n) => `Level ${n}`,
+      toNext: (points) => `${points} more to the next level`,
+      maxed: "A true Rafeeq.",
+      unlocks: {
+        greet: "Greets you when you arrive",
+        purr: "Purrs and shows hearts when you pet it",
+        trick: "Does its own trick while it waits",
+        star: "Wears a gold star, and saves glow gold",
+      },
+      how: "Talk, save things, and pet it (stroke it with your pointer or finger) to grow your bond.",
+      levelUp: (name, level) => `${name} leveled up: ${level}!`,
+      open: "Your Rafeeq",
+    },
     majlis: {
       start: "Start a Majlis",
       name: (host) => (host ? `${host}'s Majlis` : "A Majlis"),
@@ -442,6 +488,7 @@ export const STRINGS: Record<Lang, Strings> = {
       profile: "ملفك",
       memory: "الذاكرة",
       voice: "الصوت",
+      rafeeq: "رفيق",
       voiceHint: "سرجي يرد باللغة اللي تتكلم فيها، بالصوت اللي تختاره لها. اختر صوت وتسمعه.",
       voiceEn: "الإنجليزي",
       voiceAr: "العربي",
@@ -480,6 +527,31 @@ export const STRINGS: Record<Lang, Strings> = {
       forgetAllConfirm: "إي، انسَ كل شي",
     },
     closeSidebar: "اقفل القائمة",
+    rafeeq: {
+      intro: "رفيق لسوالفك بدال الكرة. يتفاعل مع كل شي تسويه أنت وسرجي، وكل ما سولفت أكثر صرتوا أقرب.",
+      none: "بدون رفيق",
+      noneLine: "الكرة بس.",
+      names: { rider: "خيّال", keeper: "حافظ", scout: "كشّاف", drifter: "رحّال" },
+      lines: {
+        rider: "كثيب رمل لابس شماغ. جريء ومستانس.",
+        keeper: "يحفظ اللي تقوله لسرجي، ويولّع فانوسه مع كل ذكرى.",
+        scout: "فنك آذانه كبار. ينتبه مع كل بحث.",
+        drifter: "نسمة من هوا البر. سرحان ودايم يطفو.",
+      },
+      levels: ["ضيف", "معرفة", "صاحب", "خوي", "رفيق"],
+      level: (n) => `المستوى ${n.toLocaleString("ar-SA")}`,
+      toNext: (points) => `باقي ${points.toLocaleString("ar-SA")} للمستوى الجاي`,
+      maxed: "صار رفيقك صدق.",
+      unlocks: {
+        greet: "يسلّم عليك إذا جيت",
+        purr: "يخرخر ويطلّع قلوب إذا دلّعته",
+        trick: "يسوي حركته الخاصة وهو ينتظر",
+        star: "يلبس نجمة ذهبية، وكل حفظ يلمع ذهبي",
+      },
+      how: "سولف، واحفظ أشياء، ودلّعه (مرّر المؤشر أو إصبعك عليه) عشان تقوى علاقتكم.",
+      levelUp: (name, level) => `${name} صار ${level}!`,
+      open: "رفيقك",
+    },
     majlis: {
       start: "افتح مجلس",
       name: (host) => (host ? `مجلس ${host}` : "مجلس"),

@@ -12,11 +12,13 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { AvatarChoice, AvatarId } from "@/shared/avatars";
 import { t, type Lang } from "@/shared/i18n";
+import type { BondEvent, RafeeqId } from "@/shared/rafeeq";
 import type { Memory, Timings, TurnEvent } from "@/shared/protocol";
 import type { VoiceState } from "@/shared/states";
 import { encodeWav } from "@/shared/wav";
 import { wordsSpoken } from "@/shared/wordTiming";
 import { Mic, MicError } from "../audio/mic";
+import type { Cue } from "../audio/cues";
 import { Player, type PlayedSegment } from "../audio/player";
 import { listen as detectSpeech, type Listening } from "../audio/vad";
 import type { CaptionModel } from "../ui/Caption";
@@ -78,6 +80,9 @@ export type Profile = {
   voices: Record<Lang, string>;
   /** The version of your own wallpaper, if you uploaded one. */
   wallpaper: number | null;
+  /** Your Rafeeq (none: the orb), and how far your bond with it has grown. */
+  rafeeq: RafeeqId | null;
+  bond: number;
 };
 
 /** Everything about the turn in flight. Kept in a ref: it changes every frame, React doesn't need to know. */
@@ -174,7 +179,14 @@ const newTurn = (lang: Lang, extra: Partial<Turn> = {}): Turn => ({
 
 export function useSarjy(
   lang: Lang,
-  events: { onBackupVoice?: () => void; room?: RoomLinkForVoice | null } = {},
+  events: {
+    onBackupVoice?: () => void;
+    /** An answer finished playing; `saved` when a memory was stitched in with it. */
+    onAnswered?: (saved: boolean) => void;
+    /** A tool call failed (the chip turns to a failure). */
+    onToolFailed?: () => void;
+    room?: RoomLinkForVoice | null;
+  } = {},
 ) {
   const [state, dispatch] = useReducer(transition, "idle" as VoiceState);
   const [caption, setCaption] = useState<CaptionModel | null>(null);
@@ -224,9 +236,11 @@ export function useSarjy(
   const backupNoted = useRef(false);
   const onBackupVoice = useRef(events.onBackupVoice);
   const roomRef = useRef(events.room ?? null);
+  const listeners = useRef(events);
   useEffect(() => {
     onBackupVoice.current = events.onBackupVoice;
     roomRef.current = events.room ?? null;
+    listeners.current = events;
   });
 
   const getPlayer = () => (player.current ??= new Player());
@@ -321,6 +335,7 @@ export function useSarjy(
         case "tool_end":
           dispatch({ type: "TOOL_END" });
           setChip((c) => (c ? { ...c, ms: event.ms, failed: !event.ok } : c));
+          if (!event.ok) listeners.current.onToolFailed?.();
           return;
         case "memory_saved":
           t.changedMemory = true;
@@ -584,6 +599,7 @@ export function useSarjy(
           const keep = t.saved ? findKeep(t.words, t.saved) : undefined;
           setCaption((c) => (c ? { ...c, shown: c.words.length, keep } : c));
           dispatch({ type: "PLAYED", saved: t.changedMemory });
+          listeners.current.onAnswered?.(!!t.saved);
           // The stitch: the saved fact is underlined and its card lands, with one dry tick.
           if (t.changedMemory) p.cue("saved");
           if (t.changedMemory) window.setTimeout(() => dispatch({ type: "SETTLED" }), SETTLE_MS);
@@ -861,6 +877,27 @@ export function useSarjy(
     window.location.reload();
   }, [stop]);
 
+  /** Your Rafeeq, or none (the orb): shown at once, then saved. */
+  const chooseRafeeq = useCallback(async (rafeeq: RafeeqId | null) => {
+    setProfile((p) => (p ? { ...p, rafeeq } : p));
+    await fetch("/api/rafeeq", { method: "PATCH", body: JSON.stringify({ rafeeq }) });
+  }, []);
+
+  /** A moment that grows your bond with your Rafeeq: the bond before and after (equal past today's cap). */
+  const growBond = useCallback(
+    async (event: BondEvent): Promise<{ before: number; after: number } | null> => {
+      const res = await fetch("/api/rafeeq", { method: "POST", body: JSON.stringify({ event }) });
+      if (!res.ok) return null;
+      const { points, gained } = (await res.json()) as { points: number; gained: number };
+      setProfile((p) => (p ? { ...p, bond: points } : p));
+      return { before: points - gained, after: points };
+    },
+    [],
+  );
+
+  /** One of the sound cues, on Sarjy's own audio (so it shares the tap that unlocked sound). */
+  const playCue = useCallback((cue: Cue) => getPlayer().cue(cue), []);
+
   const outputLevel = useCallback(() => player.current?.level() ?? null, []);
   const inputLevel = useCallback(() => ear.current?.mic.level() ?? null, []);
 
@@ -908,6 +945,9 @@ export function useSarjy(
     enterRoom,
     refreshSession,
     whenReady,
+    chooseRafeeq,
+    growBond,
+    playCue,
     asker,
     voicing,
   };

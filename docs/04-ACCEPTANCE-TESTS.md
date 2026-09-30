@@ -147,12 +147,15 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-131 | Home city Riyadh saved; first open today | The page loads | The Morning card shows Riyadh's weather, the next prayer and one memory; tapping it has Sarjy read it; it does not show again today | H2 | Should | Int, E2E |
 | AT-132 | Any | I ask "When is maghrib in Jeddah today?" | A prayer times chip appears; the time matches the Umm al-Qura calendar | T5 | Should | Int, Live |
 
-## Rafeeq, the companion (stretch)
+## Rafeeq, the companion
 
 | ID | Given | When | Then | Req | Priority | Verified by |
 |---|---|---|---|---|---|---|
-| AT-110 | Rafeeq chosen in settings | A full turn runs | The companion's pose follows every state (breathing idle, leaning while listening, bouncing on save, drooping on a tool failure) with no face | A1 | Could | E2E (state attribute), Live |
-| AT-111 | Rafeeq's face skin chosen | A full turn runs | The mascot follows the same states; reduced motion holds a still pose | A2 | Could | Live |
+| AT-110 | A new visitor | I open Sarjy | The orb, no companion; Settings, Rafeeq offers No Rafeeq and the four, each as a live preview | A1 | Should | E2E |
+| AT-111 | Scout picked | A turn saves a fact, then I reload | Scout replaces the orb and follows the turn's states, beams when the fact is stitched in, the bond grows, and after reloading it is there from the first paint; No Rafeeq brings the orb back | A1, A2, A3 | Should | E2E |
+| AT-112 | A companion on screen | I stroke it back and forth | It is happy for a moment and the bond grows by 1; a tap still opens the mic | A2, A3 | Should | E2E |
+| AT-113 | A companion picked | I start a Majlis | The Majlis shows the finjan, not the companion | A1 | Should | E2E |
+| AT-114 | Any companion | Idle 45 s, a tool fails, the bond reaches a new level, reduced motion is on | It falls asleep and wakes with a start; it droops; it jumps with a chime and a toast; it holds a still pose | A2, A3 | Should | Unit (bond levels), Int (caps), Live |
 
 ## Guardrails
 

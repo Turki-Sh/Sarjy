@@ -198,14 +198,15 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | P9 | Share a moment: after an answer, Share makes a link to that one exchange (`/s/{code}`), read-only, link-only (noindex), deleted by Forget everything | Should |
 | P10 | The build notes (these documents) are served in the app as the Sarjy Handbook at `/handbook` (`/notes` forwards there) | Should |
 
-### Rafeeq, the companion (stretch, after all Musts)
+### Rafeeq, the companion
 
-Rafeeq (رفيق) is Arabic for a companion on the road. Sarjy is the saddle; Rafeeq rides along with you. Named by Turki.
+Rafeeq (رفيق) is Arabic for a companion on the road. Sarjy is the saddle; Rafeeq rides along with you. Named by Turki; designed by Turki on Day 3, replacing the first idea of a faceless creature made from the wave.
 
 | ID | Feature | Priority |
 |---|---|---|
-| A1 | Rafeeq, faceless: a pet-like creature made from Sarjy's own wave. It breathes when idle, perks up when you say its name, leans in while you talk, droops when it can't help, and bounces on a save. Personality through motion only | Could |
-| A2 | Rafeeq with a face, in the spirit of Meta's Muse companion, as an optional skin in settings. This overrides the brand book's "no face, no mascot" rule by Turki's decision | Could, after A1 |
+| A1 | Off by default. In Settings, pick one of four companions (Rider, Keeper, Scout, Drifter), inspired by the dunes and the culture, with a cute cat-like mouth; it replaces the orb in your own chats (not in a Majlis) and is the mic the same way | Should |
+| A2 | It feels alive: it breathes, blinks, follows your pointer, reads along as you type, follows every state, reacts to saves and failures, can be petted, falls asleep and wakes | Should |
+| A3 | A little gamified: a bond that grows with use (within daily caps) through five levels, each unlocking something (a greeting, purring, its own trick, a gold star), shown at the top with a progress bar | Should |
 
 ## 6. Out of scope
 

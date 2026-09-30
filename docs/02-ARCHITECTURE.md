@@ -108,7 +108,7 @@ Sarjy/
 │   │   │   ├── transport.ts        Ably, or the local event stream: events, presence, link status
 │   │   │   └── useRoom.ts          The door, who is here, the floor, remote events
 │   │   └── ui/                     React components: Orb, Caption, ToolChip, ControlBar,
-│   │                               Sidebar, MemoryCard, MajlisBar, MorningCard, Rafeeq, SettingsSheet, TextComposer, Logo
+│   │                               Sidebar, MemoryCard, MajlisBar, MorningCard, SettingsSheet, TextComposer, Logo; rafeeq/: the companion
 │   │
 │   ├── server/                     Runs on the server only; the only place keys exist
 │   │   ├── env.ts                  Reads and validates environment variables
@@ -547,13 +547,19 @@ Every link to Sarjy should look intentional when it is pasted into WhatsApp, Sla
 | Structured data | JSON-LD `SoftwareApplication` in the layout. |
 | Language | `<html lang dir>` from the interface language; `og:locale` `en_US` with `ar_SA` as alternate. |
 
-## 16. Rafeeq, the companion (stretch)
+## 16. Rafeeq, the companion
 
-Built only after every Must passes.
+Turki's design (Day 3), replacing the first plan of a faceless creature made from the wave. Rafeeq (رفيق, a companion on the road) is off by default; picked in Settings, Rafeeq, it takes the orb's place in your own chats and is the mic the same way. Never in a Majlis, where the finjan stays. It overrides the brand book's "no face, no mascot" rule, by Turki's decision.
 
-- **Faceless first.** Rafeeq (رفيق, a companion on the road) lives in `client/ui/Rafeeq.tsx`, is an alternative to the orb, chosen in settings. It is a small creature drawn from Sarjy's own wave: the same path, with a body and spring physics for squash and stretch. It reads exactly the same inputs as the orb (the state machine and the audio levels), so it needs no new server work. It breathes when idle, perks up when it hears its name in the live preview, leans in while you talk, droops when a tool fails, and bounces on a save.
-- **A face next.** A Rafeeq skin with a face in the spirit of Meta's Muse companion, drawn as SVG and animated with the same state-to-motion map. This deliberately overrides the brand book's "no face, no mascot" rule, by Turki's decision.
-- Both respect reduced motion: they hold a still pose.
+| Part | How it works |
+|---|---|
+| The four | Rider (خيّال): a sand dune in a red shemagh and black agal, bold and cheerful. Keeper (حافظ): keeper of what you tell Sarjy, in memory's Dusk, with a lantern that lights on every save. Scout (كشّاف): a fennec with big ears that perk up for every search. Drifter (رحّال): a wisp of wind-blown sand that always floats. One face for all: round eyes with a shine, blush, and a cat's mouth (ω) with a small open mouth under it. Drawn as SVG layers (`client/ui/rafeeq/characters.tsx`, `Face.tsx`); colors in tokens.css. |
+| Alive | `useRafeeqMotion.ts` runs once a frame, straight on the DOM like the orb: breathing, your voice while it listens and Sarjy's while it speaks (its mouth opens with the voice), eyes that follow your pointer, look down at the text box while you type, and glance around when left alone; it blinks at random. |
+| States | The same six as the orb, each a pose (`Rafeeq.module.css`): it leans in and swells with your voice while listening; tilts its head with dots overhead while thinking; looks around during a tool (Scout's ears swivel); talks while speaking; beams at the stitch of a saved fact. |
+| Moods | From what happens: happy with sparkles on a save, a droop when a tool fails, a wiggle when petted (stroke it with the pointer or a finger; a tap is still the mic), asleep with z's after 45 s of nothing, a start when you come back. |
+| Bond | Gamified (Turki: "maybe even a bit gamified"). Coming back (once a day), each answer, each save and petting grow a bond, each within a daily cap, so it grows with use and not with clicking (`server/rafeeq/bond.ts`). Five levels: New friend, Getting close, Friend, Close friend, and Rafeeq. Level 2 greets you on arrival, 3 purrs with hearts when petted, 4 does its own trick while waiting (a gallop, a lantern swing, an ear twitch, a loop in the air), 5 wears a gold star and saves glow gold. A pill at the top shows its name, level and progress; "+2" floats up as it grows; a new level gets a chime, a jump and a toast. Settings lists every level and what it unlocks. |
+| Stored | `users.rafeeq` and `users.rafeeq_bond`; the choice is also a cookie, so the first paint already shows it. `/api/rafeeq`: PATCH picks, POST records a moment. The screen reacts to moments as events from `useSarjy` (`onAnswered`, `onToolFailed`), at the moment they show, not when the server sends them. |
+| Reduced motion | It holds a still pose; eyes and moods still change. |
 
 ## 16a. Hijri, time of day and the Morning card
 

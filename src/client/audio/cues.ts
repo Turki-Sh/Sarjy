@@ -2,9 +2,11 @@
 //   open    two soft notes rising a fifth, D5 to A5, 160 ms: the mic opened
 //   close   the same two notes falling: the mic closed
 //   saved   one short, dry tick, 60 ms: a memory was saved or forgotten
+//   pet     a soft, low trill: your Rafeeq enjoyed that (Day 3)
+//   level   four rising notes: your bond with your Rafeeq grew a level (Day 3)
 // The numbers match the reference in docs/brand/sarjy-brand-v3.html.
 
-export type Cue = "open" | "close" | "saved";
+export type Cue = "open" | "close" | "saved" | "pet" | "level";
 
 const D5 = 587.33;
 const A5 = 880;
@@ -32,6 +34,11 @@ export function playCue(ctx: AudioContext, cue: Cue): void {
   } else if (cue === "close") {
     tone(ctx, A5, t, 0.09, 0.18, "sine");
     tone(ctx, D5, t + 0.07, 0.09, 0.18, "sine");
+  } else if (cue === "pet") {
+    // A purr is a flutter: the same low note, quickly, three times.
+    for (let i = 0; i < 3; i++) tone(ctx, 392 + i * 22, t + i * 0.07, 0.08, 0.1, "triangle");
+  } else if (cue === "level") {
+    [D5, 739.99, A5, D5 * 2].forEach((f, i) => tone(ctx, f, t + i * 0.09, 0.16, 0.16, "sine"));
   } else {
     tone(ctx, 1760, t, 0.05, 0.12, "triangle");
   }

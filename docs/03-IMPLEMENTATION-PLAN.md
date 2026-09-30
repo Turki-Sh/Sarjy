@@ -282,8 +282,10 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [ ] H2: the Morning card
 
 ### Stretch · Rafeeq, the companion
-- [ ] A1: Rafeeq, faceless, made from the wave, chosen in settings
-- [ ] A2: Rafeeq with a face
+- [x] Turki's design (Day 3): four companions, Rider, Keeper, Scout and Drifter, with one cat-mouthed face; off by default, picked in Settings (with live previews), replacing the orb in your own chats, never in a Majlis
+- [x] Alive: breathing, blinking, eyes on your pointer and on the text box as you type, glances, every state as a pose, the mouth moving with Sarjy's voice, a happy save, a droop on a failure, petting, sleep and waking
+- [x] Gamified: a bond from visits, answers, saves and petting within daily caps; five levels unlocking a greeting, purring with hearts, a trick each, and a gold star; a pill with "+2" and a level-up chime
+- [ ] Live look on a phone with real audio (the mouth follows the voice level, which headless tests can't hear)
 
 ---
 
@@ -291,17 +293,16 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 
 If we fall behind, cut in this order, top first. Musts are never cut.
 
-1. Rafeeq with a face (A2)
-2. Rafeeq, faceless (A1)
-3. The Morning card (H2)
-4. Prayer times tool (T5)
-5. Hijri and greetings (H1)
-6. Cost per turn and cost model (CM1)
-7. Details panel (U9)
-8. Host can end a Majlis (MP8)
-9. Barge-in (V6)
-10. Live word preview (V5)
-11. Recent chats (U8)
+1. Rafeeq: live look and feel on a phone (A1 to A3 are built)
+2. The Morning card (H2)
+3. Prayer times tool (T5)
+4. Hijri and greetings (H1)
+5. Cost per turn and cost model (CM1)
+6. Details panel (U9)
+7. Host can end a Majlis (MP8)
+8. Barge-in (V6)
+9. Live word preview (V5)
+10. Recent chats (U8)
 
 ## Communication
 

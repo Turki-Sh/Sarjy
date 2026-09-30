@@ -12,20 +12,23 @@ import type { LangChoice, ThemeChoice } from "@/shared/preferences";
 import type { Memory } from "@/shared/protocol";
 import { Icon } from "../Icon";
 import type { IconName } from "@/shared/brand/icons";
+import type { RafeeqId } from "@/shared/rafeeq";
 import type { WallpaperChoice } from "@/shared/wallpapers";
 import { Appearance } from "./Appearance";
 import { General } from "./General";
 import { MemoryList } from "./MemoryList";
 import { MENU_ESCAPE } from "./Picker";
 import { Profile } from "./Profile";
+import { RafeeqPicker } from "./RafeeqPicker";
 import { Voice } from "./Voice";
 import styles from "./Settings.module.css";
 
-export type SettingsSection = "general" | "appearance" | "voice" | "profile" | "memory";
+export type SettingsSection = "general" | "appearance" | "rafeeq" | "voice" | "profile" | "memory";
 
 const SECTIONS: { id: SettingsSection; icon: IconName }[] = [
   { id: "general", icon: "globe" },
   { id: "appearance", icon: "palette" },
+  { id: "rafeeq", icon: "rafeeq" },
   { id: "voice", icon: "mic" },
   { id: "profile", icon: "user" },
   { id: "memory", icon: "stitch" },
@@ -49,6 +52,10 @@ type Props = {
   avatar: AvatarChoice | null;
   avatarImage: string | null;
   memories: Memory[];
+  /** Your Rafeeq (none: the orb), and your bond with it. */
+  rafeeq: RafeeqId | null;
+  bond: number;
+  onRafeeq: (choice: RafeeqId | null) => void;
   voices: Record<Lang, string>;
   onVoice: (lang: Lang, id: string) => void;
   onSection: (section: SettingsSection) => void;
@@ -147,6 +154,9 @@ export function Settings(props: Props) {
               onWallpaper={props.onWallpaper}
               onUploadWallpaper={props.onUploadWallpaper}
             />
+          )}
+          {open && section === "rafeeq" && (
+            <RafeeqPicker lang={lang} choice={props.rafeeq} bond={props.bond} onChoice={props.onRafeeq} />
           )}
           {open && section === "voice" && <Voice lang={lang} voices={props.voices} onVoice={props.onVoice} />}
           {open && section === "profile" && (
