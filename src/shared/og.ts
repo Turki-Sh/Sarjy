@@ -1,7 +1,7 @@
 // Link previews (Open Graph cards). Every link picks a card by what it is about and the language
 // it is in: Turki's illustrated cards (public/og/), so a shared weather answer looks like weather
 // and a saved fact like a keepsake, and the cards drawn with the Rafeeqs in them (Day 5, by
-// scripts/og/) for the home page, a Majlis invite, the voice screen and the 404.
+// scripts/og/) for the home page, a Majlis invite, the voice screen, the films and the 404.
 //
 // The choice is deterministic: the same link always gets the same card (crawlers cache previews,
 // and a card should not change under someone's message), but different links get different cards.
@@ -16,6 +16,7 @@ export type CardKind =
   | "image" // a moment with a picture in it
   | "majlis" // an invite to a Majlis (multiplayer room)
   | "talk" // the voice screen, /talk
+  | "film" // the films, /film (and a film's poster when it has none of its own)
   | "lost" // the 404: a page that isn't there
   | "handbook"; // the Sarjy Handbook (the build notes)
 
@@ -135,6 +136,18 @@ export const CARDS: Card[] = [
     file: "talk-qulha-marra.png",
     alt: "قلها مرة وحدة: the orb, and Rider saying it kept it.",
     kinds: ["talk"],
+    lang: "ar",
+  },
+  {
+    file: "film-now-showing.png",
+    alt: "Now showing. An open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    kinds: ["film"],
+    lang: "en",
+  },
+  {
+    file: "film-yiradh-alhin.png",
+    alt: "يُعرض الحين: an open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    kinds: ["film"],
     lang: "ar",
   },
   {

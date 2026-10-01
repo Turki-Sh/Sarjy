@@ -12,6 +12,7 @@ const KINDS: CardKind[] = [
   "image",
   "majlis",
   "talk",
+  "film",
   "lost",
   "handbook",
 ];
@@ -45,6 +46,8 @@ describe("link preview cards", () => {
     expect(pickCard("home", "ar", "a").file).toBe("home-ala-maqas-farisah.png");
     expect(pickCard("talk", "en", "a").file).toBe("talk-tell-it-once.png");
     expect(pickCard("talk", "ar", "a").file).toBe("talk-qulha-marra.png");
+    expect(pickCard("film", "en", "a").file).toBe("film-now-showing.png");
+    expect(pickCard("film", "ar", "a").file).toBe("film-yiradh-alhin.png");
     expect(pickCard("lost", "en", "a").file).toBe("lost-not-a-real-page.png");
     expect(pickCard("lost", "ar", "a").file).toBe("lost-mo-mawjouda.png");
     expect(pickCard("image", "en", "a").file).toBe("little-things-big-picture.png");

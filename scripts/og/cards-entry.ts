@@ -294,6 +294,75 @@ function homeScene(mirror: boolean) {
 
 const homeCss = `.sky{position:absolute;left:0;top:0}`;
 
+// ---- The film: an open-air screening in the dunes at night. The screen shows the orb, glowing,
+// and five of them sit on cushions in front of it (one has fallen asleep already).
+
+/** The screen on its two poles: a frame of wood, the orb on it, a progress bar under it. */
+function screen(x: number, y: number, w: number) {
+  const h = Math.round((w * 9) / 16);
+  return `<svg class="screen" style="left:${x - 14}px;top:${y - 14}px" width="${w + 28}" height="${h + 250}" viewBox="0 0 ${w + 28} ${h + 250}">
+    <rect x="22" y="${h + 20}" width="12" height="230" rx="4" fill="var(--wood-dark)"/>
+    <rect x="${w - 6}" y="${h + 20}" width="12" height="230" rx="4" fill="var(--wood-dark)"/>
+    <rect x="0" y="0" width="${w + 28}" height="${h + 28}" rx="16" fill="var(--wood)"/>
+    <rect x="14" y="14" width="${w}" height="${h}" rx="6" fill="var(--sky-night-low)"/>
+    <rect x="${14 + w * 0.08}" y="${h - 18}" width="${w * 0.84}" height="6" rx="3" fill="var(--white)" opacity=".28"/>
+    <rect x="${14 + w * 0.08}" y="${h - 18}" width="${w * 0.3}" height="6" rx="3" fill="var(--saffron)"/>
+    <circle cx="${14 + w * 0.38}" cy="${h - 15}" r="9" fill="var(--white)"/>
+  </svg>`;
+}
+
+/** A striped popcorn box, the way the cinema ones look. */
+const popcorn = (
+  x: number,
+  y: number,
+) => `<svg class="popcorn" style="left:${x}px;top:${y}px" width="58" height="74" viewBox="0 0 58 74">
+  <g fill="var(--plush-cream-light)" stroke="var(--plush-cream-deep)" stroke-width="1.5">
+    <circle cx="12" cy="20" r="9"/><circle cx="26" cy="13" r="10"/><circle cx="41" cy="18" r="9"/><circle cx="20" cy="24" r="8"/><circle cx="35" cy="25" r="8"/>
+  </g>
+  <path d="M5 28 h48 l-6 44 h-36 Z" fill="var(--white)" stroke="var(--saddle)" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M15 28 l3 44 M29 28 v44 M43 28 l-3 44" stroke="var(--sadu-red)" stroke-width="6"/>
+</svg>`;
+
+/** Who came to the screening, left to right, and how they are taking it. */
+const AUDIENCE: [RafeeqId, Pose, number][] = [
+  ["rider", { mood: "happy" }, 132],
+  ["keeper", { mood: "petted" }, 124],
+  ["fennec", { hover: "near" }, 128],
+  ["drifter", { mood: "sleepy" }, 112],
+  ["lantern", { state: "speaking" }, 112],
+];
+
+function filmScene(mirror: boolean) {
+  const at = (x: number) => (mirror ? 1200 - x : x);
+  // The picture on the screen: where it sits, and how big.
+  const w = 442;
+  const h = Math.round((w * 9) / 16);
+  const left = mirror ? 1200 - 654 - w : 654;
+  const top = 94;
+  const seats = AUDIENCE.map(([id, pose, size], i) => {
+    const x = 636 + i * 118;
+    const y = 572;
+    const cushion = `<div class="cushion" style="left:${at(x) - size * 0.42}px;top:${y - size * 0.1}px;width:${size * 0.84}px;height:${size * 0.24}px;background:var(--seat-${i + 2})"></div>`;
+    return cushion + rafeeq(id, at(x), y, size, { ...pose, flip: mirror !== !!pose.flip });
+  });
+  return `<svg class="sky" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs><linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky-night-top)"/><stop offset="1" stop-color="var(--sky-night-low)"/></linearGradient></defs>
+    <rect width="1200" height="630" fill="url(#night)"/>
+    <g fill="var(--star)">${stars}</g>
+    <path d="M0 500 C200 470 380 466 600 488 C820 510 980 470 1200 478 V630 H0 Z" fill="var(--sand-night-far)"/>
+    <path d="M0 560 C240 536 520 540 760 556 C960 570 1080 550 1200 546 V630 H0 Z" fill="var(--sand-night-mid)"/>
+  </svg>
+  ${screen(left, top, w)}
+  ${orb(left + w / 2, top + h / 2 - 10, 180)}
+  ${seats.join("")}
+  ${popcorn(at(700) - 29, 530)}`;
+}
+
+const filmCss = `.sky{position:absolute;left:0;top:0}
+.screen,.popcorn,.orb{position:absolute}
+.screen{filter:drop-shadow(0 0 48px color-mix(in srgb, var(--sky-night-low) 90%, var(--frost)))}
+.cushion{position:absolute;border-radius:50%;box-shadow:inset 0 -6px 0 rgb(0 0 0 / .18)}`;
+
 // ---- The cards. File names say what each one shows, like Turki's.
 
 export const CARDS = [
@@ -415,6 +484,36 @@ export const CARDS = [
       },
       scene: talkScene(true, "حفظتها."),
       extraCss: talkCss,
+    }),
+  },
+  {
+    file: "film-now-showing.png",
+    html: page({
+      lang: "en",
+      bg: "var(--sky-night-top)",
+      ink: "var(--frost)",
+      copy: {
+        title: "Now showing.",
+        body: "A one-minute film about Sarjy, in Arabic. The Rafeeqs saved you a seat.",
+        kicker: "Sarjy / The film",
+      },
+      scene: filmScene(false),
+      extraCss: filmCss,
+    }),
+  },
+  {
+    file: "film-yiradh-alhin.png",
+    html: page({
+      lang: "ar",
+      bg: "var(--sky-night-top)",
+      ink: "var(--frost)",
+      copy: {
+        title: "يُعرض الحين.",
+        body: "فيلم قصير عن سرجي، دقيقة وحدة. الرفقاء حاجزين لك مكان.",
+        kicker: "سرجي · الفيلم",
+      },
+      scene: filmScene(true),
+      extraCss: filmCss,
     }),
   },
 ];

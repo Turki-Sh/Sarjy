@@ -1,24 +1,19 @@
-// The film page's words (Day 5: Turki's short film about Sarjy, in Arabic, shown on the site).
+// The film pages' own words (Day 5). Each film's title and description live with it, in films.ts.
 
 import type { Lang } from "./i18n";
 
-export const FILM: Record<Lang, { title: string; body: string; talk: string; home: string; label: string }> =
+export const FILM: Record<Lang, { talk: string; home: string; more: string; spoken: Record<Lang, string> }> =
   {
     en: {
-      title: "Sarjy, in a minute.",
-      body: "A short film about Sarjy, in Arabic.",
       talk: "Talk to Sarjy",
       home: "Home",
-      label: "The Sarjy film",
+      more: "More films",
+      spoken: { en: "In English", ar: "In Arabic" },
     },
     ar: {
-      title: "سرجي في دقيقة.",
-      body: "فيلم قصير عن سرجي.",
       talk: "كلّم سرجي",
       home: "الرئيسية",
-      label: "فيلم سرجي",
+      more: "أفلام ثانية",
+      spoken: { en: "بالإنجليزي", ar: "بالعربي" },
     },
   };
-
-/** The film itself: H.264 and AAC, set up to start playing before it has all arrived. */
-export const FILM_SRC = "/film/sarjy-film-ar.mp4";

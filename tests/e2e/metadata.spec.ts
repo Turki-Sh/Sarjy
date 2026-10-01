@@ -56,13 +56,19 @@ test("health reports configuration as booleans only", async ({ request }) => {
   }
 });
 
-test("the voice screen, a missing page and a Majlis link each have their own card (AT-126)", async ({
+test("the voice screen, the film, a missing page and a Majlis link each have their own card (AT-126)", async ({
   page,
   context,
 }) => {
   const image = () => page.locator('head meta[property="og:image"]');
   await page.goto("/talk");
   await expect(image()).toHaveAttribute("content", /\/og\/talk-tell-it-once\.png$/);
+  await page.goto("/film");
+  await expect(image()).toHaveAttribute("content", /\/og\/film-now-showing\.png$/);
+  await expect(page.locator('head meta[property="og:video"]')).toHaveAttribute(
+    "content",
+    /\/video\/sarjy-in-a-minute-ar\.mp4$/,
+  );
   await page.goto("/no-such-page");
   await expect(image()).toHaveAttribute("content", /\/og\/lost-not-a-real-page\.png$/);
   await page.goto("/majlis/ZZZZZ");
@@ -72,6 +78,8 @@ test("the voice screen, a missing page and a Majlis link each have their own car
   await context.addCookies([{ name: "sarjy_lang", value: "ar", url: "http://localhost:3100" }]);
   await page.goto("/talk");
   await expect(image()).toHaveAttribute("content", /\/og\/talk-qulha-marra\.png$/);
+  await page.goto("/film");
+  await expect(image()).toHaveAttribute("content", /\/og\/film-yiradh-alhin\.png$/);
   await page.goto("/no-such-page");
   await expect(image()).toHaveAttribute("content", /\/og\/lost-mo-mawjouda\.png$/);
   await page.goto("/majlis/ZZZZZ");
