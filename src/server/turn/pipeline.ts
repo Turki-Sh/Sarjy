@@ -34,7 +34,7 @@ import { weatherTool, type Units } from "../tools/weather";
 import { isStep, nextStep } from "./onboarding";
 import { buildSystemPrompt } from "./prompt";
 import { SEARCH_USD, turnCost, wavSeconds } from "./cost";
-import { SpeechChunker, tidy } from "./sentences";
+import { SpeechChunker, splitSentences, tidy, withoutNearRepeats } from "./sentences";
 
 export type TurnInput = {
   user: User;
@@ -384,9 +384,13 @@ export async function runTurn(
   let sent = 0;
   let sending = Promise.resolve();
   const voiced = { en: 0, ar: 0 };
+  /** Every sentence voiced so far, so one said twice in other words is said once. */
+  const voicedSentences: string[] = [];
   const speak = (raw: string, decline = false) => {
-    const text = tidy(raw, lang);
+    const text = withoutNearRepeats(tidy(raw, lang), voicedSentences);
     if (!text) return;
+    const { sentences, rest } = splitSentences(text);
+    voicedSentences.push(...sentences, ...(rest.trim() ? [rest.trim()] : []));
     segmentIndex++;
     // Normally the user's language; if the model slipped into the other one, the matching voice reads it.
     const voice = writtenIn(text, lang);
@@ -482,7 +486,7 @@ export async function runTurn(
     emit({ type: "error", code: "model_unavailable", say: SAY.model_unavailable[lang] });
     return;
   }
-  answer = tidy(answer, lang);
+  answer = withoutNearRepeats(tidy(answer, lang));
   const rest = chunker.flush();
   if (rest && !declined) speak(rest);
 

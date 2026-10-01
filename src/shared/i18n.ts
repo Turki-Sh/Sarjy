@@ -145,6 +145,8 @@ type Strings = {
     unlocks: Record<keyof typeof UNLOCKS, string>;
     how: string;
     levelUp: (name: string, level: string) => string;
+    /** Today's bond is full: it grows again tomorrow. */
+    fullDay: (name: string) => string;
     open: string;
   };
   /** The Majlis: several people, one Sarjy (architecture, section 13). */
@@ -398,6 +400,7 @@ export const STRINGS: Record<Lang, Strings> = {
       },
       how: "Talk, save things, and pet it (stroke it with your pointer or finger) to grow your bond.",
       levelUp: (name, level) => `${name} leveled up: ${level}!`,
+      fullDay: (name) => `${name}'s had a full day with you. The bond grows again tomorrow.`,
       open: "Your Rafeeq",
     },
     majlis: {
@@ -642,6 +645,7 @@ export const STRINGS: Record<Lang, Strings> = {
       },
       how: "سولف، واحفظ أشياء، ودلّعه (مرّر المؤشر أو إصبعك عليه) عشان تقوى علاقتكم.",
       levelUp: (name, level) => `${name} صار ${level}!`,
+      fullDay: (name) => `${name} شبع سوالف اليوم. الرابطة تكبر مرة ثانية بكرة.`,
       open: "رفيقك",
     },
     majlis: {

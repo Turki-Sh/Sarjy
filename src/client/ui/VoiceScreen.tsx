@@ -155,12 +155,19 @@ export function VoiceScreen({
   const [cue, setCue] = useState<RafeeqCue | null>(null);
   const [gain, setGain] = useState<{ n: number; at: number } | null>(null);
   const [leveledUp, setLeveledUp] = useState(false);
+  const toldFull = useRef(false);
 
   /** A moment with your Rafeeq: the bond grows (within today's cap), and a new level is celebrated. */
   const { growBond, playCue } = sarjy;
   const grow = useCallback(
     async (event: BondEvent) => {
       const result = await growBond(event);
+      // Today's growth is full: said once a visit, so the bond never seems stuck for no reason.
+      if (result?.capped && event === "turn" && !toldFull.current) {
+        toldFull.current = true;
+        setToast(t(lang).rafeeq.fullDay(t(lang).rafeeq.names[result.rafeeq]));
+        window.setTimeout(() => setToast(null), 3600);
+      }
       if (!result || result.after === result.before) return;
       setGain({ n: result.after - result.before, at: Date.now() });
       const before = bondOf(result.before).level;

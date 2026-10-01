@@ -19,12 +19,18 @@ describe("the bond", () => {
     const { user } = await resolveUser(db, undefined);
     await pick(user.id, "scout");
     expect(await growBond(db, user.id, "visit")).toEqual({ rafeeq: "scout", points: 5, gained: 5 });
-    // Coming back again the same day adds nothing more.
-    expect(await growBond(db, user.id, "visit")).toEqual({ rafeeq: "scout", points: 5, gained: 0 });
-    let last = { rafeeq: null as string | null, points: 0, gained: 0 };
+    // Coming back again the same day adds nothing more, and says it's today's cap (so the screen
+    // can say so, rather than the bond seeming stuck).
+    expect(await growBond(db, user.id, "visit")).toEqual({
+      rafeeq: "scout",
+      points: 5,
+      gained: 0,
+      capped: true,
+    });
+    let last: Awaited<ReturnType<typeof growBond>> = { rafeeq: null, points: 0, gained: 0 };
     for (let i = 0; i < 12; i++) last = await growBond(db, user.id, "pet");
     // Petting: 1 each, 10 a day at most.
-    expect(last).toEqual({ rafeeq: "scout", points: 15, gained: 0 });
+    expect(last).toEqual({ rafeeq: "scout", points: 15, gained: 0, capped: true });
     expect(await growBond(db, user.id, "save")).toEqual({ rafeeq: "scout", points: 18, gained: 3 });
   });
 

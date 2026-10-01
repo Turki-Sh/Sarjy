@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isSelfTalk, SpeechChunker, splitSentences, tidy, unglue } from "@/server/turn/sentences";
+import {
+  isNearRepeat,
+  isSelfTalk,
+  SpeechChunker,
+  splitSentences,
+  tidy,
+  unglue,
+  withoutNearRepeats,
+} from "@/server/turn/sentences";
 
 describe("splitSentences", () => {
   it("splits on sentence endings in both languages", () => {
@@ -113,5 +121,27 @@ describe("English filler in an Arabic answer (seen live, Day 5)", () => {
   it("keeps English that means something, and leaves English replies alone", () => {
     expect(tidy("جرب Elden Ring. Valorant.", "ar")).toBe("جرب Elden Ring. Valorant.");
     expect(tidy("Sure. It's 41 tomorrow.", "en")).toBe("Sure. It's 41 tomorrow.");
+  });
+});
+
+describe("a sentence said twice in other words (seen live, Day 5)", () => {
+  it("is said once", () => {
+    expect(
+      withoutNearRepeats(
+        "Partly cloudy, high of 40, low of 28, and 0 chance of rain in Riybah today. Partly cloudy, high of 40, low of 28, and zero chance of rain in Riyadh today.",
+      ),
+    ).toBe("Partly cloudy, high of 40, low of 28, and 0 chance of rain in Riybah today.");
+  });
+
+  it("keeps sentences that only look alike", () => {
+    const two = "High of 40 in Riyadh today. High of 43 in Jeddah tomorrow.";
+    expect(withoutNearRepeats(two)).toBe(two);
+    expect(withoutNearRepeats("Got it. Got it, Turki.")).toBe("Got it. Got it, Turki.");
+  });
+
+  it("drops what was already voiced in an earlier piece", () => {
+    expect(
+      isNearRepeat("Clear skies and a high of 41 in Riyadh.", ["Clear skies, and a high of 41 in Riyadh."]),
+    ).toBe(true);
   });
 });

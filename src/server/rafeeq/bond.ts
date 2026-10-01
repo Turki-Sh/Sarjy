@@ -18,13 +18,14 @@ export async function bondsOf(db: Db, userId: string): Promise<Partial<Record<Ra
 
 /**
  * Adds this moment to the bond with your current Rafeeq, if today's cap allows. Returns which
- * companion, its bond after, and what it added. With no Rafeeq picked, nothing grows.
+ * companion, its bond after, what it added, and whether today's cap stopped it (so the screen can
+ * say so, rather than the bond seeming stuck). With no Rafeeq picked, nothing grows.
  */
 export async function growBond(
   db: Db,
   userId: string,
   event: BondEvent,
-): Promise<{ rafeeq: RafeeqId | null; points: number; gained: number }> {
+): Promise<{ rafeeq: RafeeqId | null; points: number; gained: number; capped?: boolean }> {
   const [user] = await db.select({ rafeeq: users.rafeeq }).from(users).where(eq(users.id, userId));
   const rafeeq = isRafeeq(user?.rafeeq) ? user.rafeeq : null;
   if (!rafeeq) return { rafeeq: null, points: 0, gained: 0 };
@@ -46,5 +47,5 @@ export async function growBond(
     .select({ points: rafeeqBonds.points })
     .from(rafeeqBonds)
     .where(and(eq(rafeeqBonds.userId, userId), eq(rafeeqBonds.rafeeq, rafeeq)));
-  return { rafeeq, points: row?.points ?? 0, gained: 0 };
+  return { rafeeq, points: row?.points ?? 0, gained: 0, capped: true };
 }

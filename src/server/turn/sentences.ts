@@ -68,6 +68,43 @@ export function tidy(text: string, lang?: "en" | "ar"): string {
   return kept.join(" ");
 }
 
+const wordsOf = (s: string) =>
+  new Set(
+    s
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+      .split(/\s+/)
+      .filter(Boolean),
+  );
+
+/**
+ * A sentence that says again what an earlier one in the same answer said, nearly word for word
+ * (Day 5, a stand-in model: "...in Riybah today. Partly cloudy, high of 40 ... in Riyadh today.").
+ * Seven in ten words shared, among sentences of four words or more; a different day, number or
+ * place in a short sentence is enough to keep it.
+ */
+export function isNearRepeat(sentence: string, earlier: string[]): boolean {
+  const a = wordsOf(sentence);
+  if (a.size < 4) return false;
+  return earlier.some((e) => {
+    const b = wordsOf(e);
+    if (b.size < 4) return false;
+    let shared = 0;
+    for (const w of a) if (b.has(w)) shared++;
+    return shared / (a.size + b.size - shared) >= 0.7;
+  });
+}
+
+/** The text without sentences that repeat one already said (in `earlier`, or earlier in it). */
+export function withoutNearRepeats(text: string, earlier: string[] = []): string {
+  const { sentences, rest } = splitSentences(text);
+  const kept: string[] = [];
+  for (const s of [...sentences, rest.trim()]) {
+    if (s && !isNearRepeat(s, [...earlier, ...kept])) kept.push(s);
+  }
+  return kept.join(" ");
+}
+
 /** Splits text into complete sentences and the unfinished rest. */
 export function splitSentences(text: string): { sentences: string[]; rest: string } {
   const sentences: string[] = [];

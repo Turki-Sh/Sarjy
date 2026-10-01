@@ -888,18 +888,34 @@ export function useSarjy(
    * A moment that grows your bond with the Rafeeq you have now: which one, and its bond before and
    * after (equal past today's cap).
    */
+  /**
+   * The bond shown for each companion. Moments are sent together (an answer that saves a fact
+   * sends "turn" and "save" at once) and their replies can come back in either order; each reply
+   * carries the bond as it stood when that moment landed, so an older one arriving last would
+   * pull the bar back and replay a "+2" or a level-up (Turki, Day 5: "feels like bugs after a
+   * while"). The bond only ever goes up, so whatever is lower than what is shown is stale.
+   */
+  const shownBonds = useRef<Partial<Record<RafeeqId, number>>>({});
   const growBond = useCallback(
-    async (event: BondEvent): Promise<{ rafeeq: RafeeqId; before: number; after: number } | null> => {
+    async (
+      event: BondEvent,
+    ): Promise<{ rafeeq: RafeeqId; before: number; after: number; capped?: boolean } | null> => {
       const res = await fetch("/api/rafeeq", { method: "POST", body: JSON.stringify({ event }) });
       if (!res.ok) return null;
-      const { rafeeq, points, gained } = (await res.json()) as {
+      const { rafeeq, points, capped } = (await res.json()) as {
         rafeeq: RafeeqId | null;
         points: number;
-        gained: number;
+        capped?: boolean;
       };
       if (!rafeeq) return null;
-      setProfile((p) => (p ? { ...p, bonds: { ...p.bonds, [rafeeq]: points } } : p));
-      return { rafeeq, before: points - gained, after: points };
+      const before = shownBonds.current[rafeeq] ?? profileRef.current?.bonds[rafeeq] ?? 0;
+      if (capped) return { rafeeq, before, after: before, capped };
+      if (points <= before) return null;
+      shownBonds.current[rafeeq] = points;
+      setProfile((p) =>
+        p ? { ...p, bonds: { ...p.bonds, [rafeeq]: Math.max(points, p.bonds[rafeeq] ?? 0) } } : p,
+      );
+      return { rafeeq, before, after: points };
     },
     [],
   );
