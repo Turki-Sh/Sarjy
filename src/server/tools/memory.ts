@@ -12,11 +12,14 @@ import { deleteMemoryByKey, normalizeKey } from "../memory/repo";
 const SECRET_WORDS =
   /pass(word|code|phrase)?|pin\b|otp|cvv|iban|card|credit|national.?id|iqama|passport|ssn|secret|token|api.?key|كلمة.?(السر|المرور)|رقم.?(البطاقة|الهوية|الإقامة|الجواز)|الرقم.?السري/i;
 const LONG_NUMBER = /\d[\d\s-]{7,}\d/;
+// Dates are not secrets: "2002-06-03" is a birthday, not a card number (Day 5: a birthday was
+// refused as a long number). They are taken out before looking for long numbers.
+const DATES = /\b\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\b|\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b/g;
 
 /** True when something looks like a secret Sarjy must not keep. */
 export function looksSecret(parts: string[]): boolean {
   const text = parts.join(" ");
-  return SECRET_WORDS.test(text) || LONG_NUMBER.test(text);
+  return SECRET_WORDS.test(text) || LONG_NUMBER.test(text.replace(DATES, " "));
 }
 
 /**

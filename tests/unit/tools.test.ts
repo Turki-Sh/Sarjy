@@ -49,6 +49,13 @@ describe("secrets", () => {
     expect(looksSecret(["كلمة السر", "كلمة السر", "abc"])).toBe(true);
     expect(looksSecret(["favorite_color", "Favorite color", "Green"])).toBe(false);
   });
+
+  it("keeps a birthday written as a date (Day 5: it was refused as a long number)", () => {
+    expect(looksSecret(["birthday", "Birthday", "2002-06-03", "Your birthday is 2002-06-03."])).toBe(false);
+    expect(looksSecret(["birthday", "يوم ميلادك", "3/6/2002", "يوم ميلادك 3/6/2002."])).toBe(false);
+    // A date doesn't hide a real number next to it.
+    expect(looksSecret(["note", "Note", "2002-06-03", "card 4111 1111 1111 1111"])).toBe(true);
+  });
 });
 
 describe("toldWhen", () => {

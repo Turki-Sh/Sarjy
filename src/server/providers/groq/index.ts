@@ -162,7 +162,12 @@ export function createGroqProviders(
     })),
     // The small model first: deciding what to remember is a short, structured job, and it has its
     // own per-minute quota, so it never takes tokens from the answer.
-    writer: [GROQ_MODELS.reserve, GROQ_MODELS.main].map((id) => ({ id, model: groq(id) })),
+    // Qwen last: when both gpt-oss models are out of quota, a fact is still kept rather than
+    // silently lost (Day 5).
+    writer: [GROQ_MODELS.reserve, GROQ_MODELS.main, GROQ_MODELS.fallback].map((id) => ({
+      id,
+      model: groq(id),
+    })),
     web: groqWeb(apiKey),
     guard: groqGuard(groq(GROQ_MODELS.fallback), GROQ_MODELS.fallback),
     policy: groqPolicy(groq(POLICY_MODEL)),
