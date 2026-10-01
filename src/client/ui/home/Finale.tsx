@@ -70,12 +70,12 @@ export function Finale({ lang }: { lang: Lang }) {
               key={p.id}
               style={
                 {
-                  "--x": `${p.x}%`,
-                  "--y": `${p.y}%`,
+                  "--x": p.x,
+                  "--y": p.y,
                   "--s": p.s,
                   "--r": `${p.r}deg`,
-                  "--mx": `${p.mx}%`,
-                  "--my": `${p.my}%`,
+                  "--mx": p.mx,
+                  "--my": p.my,
                   "--i": i,
                   "--seat": p.seat,
                 } as CSSProperties

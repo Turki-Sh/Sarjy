@@ -1,8 +1,8 @@
 import "server-only";
 
 // The live providers, all on Groq with one key (architecture, section 8):
-//   speech to text  whisper-large-v3-turbo
-//   the model       openai/gpt-oss-120b, falling back to qwen/qwen3.8-27b, then openai/gpt-oss-20b
+//   speech to text  whisper-large-v3, falling back to whisper-large-v3-turbo
+//   the model       openai/gpt-oss-120b, falling back to openai/gpt-oss-20b, then qwen/qwen3.8-27b
 //   the voice       Orpheus: English, and a native Saudi Arabic voice
 //   picture guard   qwen/qwen3.8-27b, the one model here that sees, with a strict policy
 // Whisper and Orpheus are two plain HTTP calls; the model goes through the AI SDK.
@@ -17,7 +17,10 @@ import { groqWeb } from "./web";
 const API = "https://api.groq.com/openai/v1";
 
 export const GROQ_MODELS = {
-  stt: "whisper-large-v3-turbo",
+  // The full model first: far fewer mistakes in Saudi Arabic than turbo (Turki, Day 5: "STT makes
+  // a lot of mistakes"), for a fraction of a cent more per turn. Turbo takes over if it fails;
+  // each has its own quota on Groq.
+  stt: ["whisper-large-v3", "whisper-large-v3-turbo"],
   main: "openai/gpt-oss-120b",
   fallback: "qwen/qwen3.8-27b",
   reserve: "openai/gpt-oss-20b",
@@ -32,6 +35,17 @@ export const DEFAULT_VOICES: Record<Lang, string> = DEFAULT_VOICE;
 // come back garbled ("وشلوني المفبر" for "وش لوني المفضل؟"); with it, they come back right, and
 // English is still detected as English.
 const STT_PROMPT = "Sarjy, سرجي. هلا، وش لوني المفضل؟ كيف الجو بكرة بالرياض؟ What's the weather tomorrow?";
+
+/**
+ * Whisper's prompt for one turn: the sample above, then what this turn is about (your name, your
+ * city, what Sarjy just said). Whisper reads it as the conversation so far, so an answer to Sarjy's
+ * question ("اسمي تركي" after "وش اسمك؟") and the names you use come back right. Whisper reads only
+ * the last 224 tokens of a prompt, so the context is kept short and goes last.
+ */
+export function sttPrompt(context?: string): string {
+  const tail = context?.replace(/\s+/g, " ").trim().slice(-240);
+  return tail ? `${STT_PROMPT} ${tail}` : STT_PROMPT;
+}
 
 /**
  * The language you spoke, from the letters Whisper wrote down. Whisper also names a language, but
@@ -62,22 +76,27 @@ export function unsureOf(segments: Segment[] | undefined): boolean {
 }
 
 function groqStt(apiKey: string): SpeechToText {
+  const once = async (model: string, audio: Blob, prompt: string) => {
+    const form = new FormData();
+    form.append("file", audio, "turn.wav");
+    form.append("model", model);
+    form.append("response_format", "verbose_json");
+    form.append("temperature", "0");
+    form.append("prompt", prompt);
+    const res = await fetch(`${API}/audio/transcriptions`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${apiKey}` },
+      body: form,
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) throw new Error(`Groq speech to text (${model}) failed: ${res.status}`);
+    return (await res.json()) as { text: string; language?: string; segments?: Segment[] };
+  };
   return {
-    async transcribe(audio, hint) {
-      const form = new FormData();
-      form.append("file", audio, "turn.wav");
-      form.append("model", GROQ_MODELS.stt);
-      form.append("response_format", "verbose_json");
-      form.append("temperature", "0");
-      form.append("prompt", STT_PROMPT);
-      const res = await fetch(`${API}/audio/transcriptions`, {
-        method: "POST",
-        headers: { authorization: `Bearer ${apiKey}` },
-        body: form,
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!res.ok) throw new Error(`Groq speech to text failed: ${res.status}`);
-      const data = (await res.json()) as { text: string; language?: string; segments?: Segment[] };
+    async transcribe(audio, hint, context) {
+      const prompt = sttPrompt(context);
+      const [best, backup] = GROQ_MODELS.stt;
+      const data = await once(best, audio, prompt).catch(() => once(backup, audio, prompt));
       const text = data.text.trim();
       return { text, lang: spokenLang(text, data.language, hint), unsure: unsureOf(data.segments) };
     },
@@ -117,7 +136,9 @@ export function createGroqProviders(
   return {
     stt: groqStt(apiKey),
     tts: groqTts(apiKey, voices),
-    models: [GROQ_MODELS.main, GROQ_MODELS.fallback, GROQ_MODELS.reserve].map((id) => ({
+    // The smaller gpt-oss before Qwen: measured on Day 5, its Saudi Arabic stays clean where Qwen's
+    // drifts into English fillers and garbled words. Qwen stays in the chain for pictures.
+    models: [GROQ_MODELS.main, GROQ_MODELS.reserve, GROQ_MODELS.fallback].map((id) => ({
       id,
       model: groq(id),
       // Of the three, only Qwen reads pictures (checked on Day 2).

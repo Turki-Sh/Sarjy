@@ -10,8 +10,8 @@ describe("cost per turn", () => {
       audioSeconds: 3,
       voiced: { en: 80, ar: 0 },
     });
-    // 2000 x 0.15/M + 60 x 0.60/M = 0.000336; 3 s of Whisper = 0.0000333; 80 chars x 22/M = 0.00176
-    expect(usd).toBeCloseTo(0.000336 + 0.0000333 + 0.00176, 7);
+    // 2000 x 0.15/M + 60 x 0.60/M = 0.000336; 3 s of Whisper (large-v3, $0.111 an hour) = 0.0000925; 80 chars x 22/M = 0.00176
+    expect(usd).toBeCloseTo(0.000336 + 0.0000925 + 0.00176, 7);
   });
 
   it("prices the Saudi voice at its own rate", () => {

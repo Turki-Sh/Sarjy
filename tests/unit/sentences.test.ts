@@ -104,3 +104,14 @@ describe("self-talk", () => {
     }
   });
 });
+
+describe("English filler in an Arabic answer (seen live, Day 5)", () => {
+  it("drops filler sentences from an Arabic reply", () => {
+    expect(tidy("تركي؟ حلو الاسم. Okay? Ready. Anything else? Okay.", "ar")).toBe("تركي؟ حلو الاسم.");
+  });
+
+  it("keeps English that means something, and leaves English replies alone", () => {
+    expect(tidy("جرب Elden Ring. Valorant.", "ar")).toBe("جرب Elden Ring. Valorant.");
+    expect(tidy("Sure. It's 41 tomorrow.", "en")).toBe("Sure. It's 41 tomorrow.");
+  });
+});

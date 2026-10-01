@@ -12,6 +12,7 @@ import { isStepCount, streamText, type ModelMessage } from "ai";
 import { eq } from "drizzle-orm";
 import type { Memory, TurnEvent } from "@/shared/protocol";
 import {
+  lastReply,
   openConversation,
   pictureBytes,
   picturesOf,
@@ -114,6 +115,11 @@ export async function runTurn(
   const since = () => Math.round(performance.now() - started);
   const timings: Record<string, number | string> = {};
 
+  // Your memories, loaded once and from the start: the listener uses your name and city below, and
+  // the model gets all of them in step 2.
+  const memoriesLoading = listMemories(db, input.user.id);
+  memoriesLoading.catch(() => {}); // a failure surfaces in step 2, where it is awaited
+
   // 1. Hear.
   let heard = input.text?.trim() ?? "";
   /** Whisper doubted what it heard: answer it, but remember nothing from it. */
@@ -121,7 +127,18 @@ export async function runTurn(
   let lang: Lang = detectLang(heard, input.uiLang);
   if (input.audio) {
     try {
-      const result = await providers.stt.transcribe(input.audio, input.uiLang);
+      // What the listener should know going in: who you are, where you live, what Sarjy just said.
+      const [known, last] = await Promise.all([
+        memoriesLoading.catch(() => [] as Memory[]),
+        lastReply(
+          db,
+          input.room?.conversationId ?? input.conversationId,
+          input.room ? null : input.user.id,
+        ).catch(() => null),
+      ]);
+      const value = (key: string) => known.find((m) => m.key === key)?.value;
+      const context = [value("name"), value("home_city"), last].filter(Boolean).join(". ");
+      const result = await providers.stt.transcribe(input.audio, input.uiLang, context);
       heard = result.text;
       lang = result.lang;
       unsure = result.unsure ?? false;
@@ -176,7 +193,7 @@ export async function runTurn(
   // 2. Recall. Only the speaker's memories, in a Majlis too: that is what keeps each person's private.
   const room = input.room;
   const [memories, conversation] = await Promise.all([
-    listMemories(db, input.user.id),
+    memoriesLoading,
     room
       ? roomConversation(db, room.conversationId, heard)
       : openConversation(db, input.user.id, input.conversationId, heard),
@@ -308,12 +325,12 @@ export async function runTurn(
 
   // 4. Speak. The first sentence is voiced the moment it is complete; the rest when the text ends.
   // Segments are sent strictly in order, whichever voice request finishes first.
-  const chunker = new SpeechChunker();
+  let chunker = new SpeechChunker();
   let segmentIndex = 0;
   let sending = Promise.resolve();
   const voiced = { en: 0, ar: 0 };
   const speak = (raw: string) => {
-    const text = tidy(raw);
+    const text = tidy(raw, lang);
     if (!text) return;
     const index = segmentIndex++;
     // Normally the user's language; if the model slipped into the other one, the matching voice reads it.
@@ -347,6 +364,10 @@ export async function runTurn(
       providerOptions: modelOptions(modelId),
       maxOutputTokens: modelId.startsWith("openai/gpt-oss") ? undefined : PLAIN_MAX_OUTPUT,
     });
+    // A model that failed partway hands over nothing: whatever it had written and not yet said is
+    // dropped, so its half answer is never glued to the next model's (Day 5: an Arabic answer,
+    // "Sure.", then the same answer again).
+    chunker = new SpeechChunker();
     let text = "";
     for await (const part of result.fullStream) {
       if (part.type === "text-delta") {
@@ -395,7 +416,7 @@ export async function runTurn(
     emit({ type: "error", code: "model_unavailable", say: SAY.model_unavailable[lang] });
     return;
   }
-  answer = tidy(answer);
+  answer = tidy(answer, lang);
   const rest = chunker.flush();
   if (rest) speak(rest);
 

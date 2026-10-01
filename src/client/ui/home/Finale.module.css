@@ -16,12 +16,13 @@
 .stage {
   position: sticky;
   top: 0;
-  container-type: inline-size;
   display: grid;
   place-items: center;
   height: 100svh;
   min-height: 640px;
   overflow: clip;
+  /* Its own size is known (the window), so what is on it can be placed in cqw and cqh. */
+  container-type: size;
 }
 .words {
   position: relative;
@@ -68,17 +69,19 @@
   padding: 0;
   list-style: none;
 }
+/* Each one is placed and sized with transforms only (translate, scale, rotate), so the trip from
+   its spot to its seat runs on the GPU and stays smooth on a phone. Positions are in the stage's
+   own units (cqw across, cqh down); sizes are numbers of cqw. */
 .scatter li {
   /* Where it starts, and how big (per screen size, below). */
   --from-x: var(--x);
   --from-y: var(--y);
-  --from-s: calc(var(--s) * 1cqw);
+  --from-s: var(--s);
   /* Its seat in the line: evenly spaced around the middle, standing on the bottom edge with
      about a quarter of it below. */
-  --step: 10.6cqw;
-  --to-s: 14cqw;
-  --to-x: calc(50% + (var(--seat) - 3.5) * var(--step));
-  --to-y: calc(100% - var(--to-s) * 0.24);
+  --step: 10.6;
+  --to-s: 14;
+  --to-x: calc(50 + (var(--seat) - 3.5) * var(--step));
   /* How far along it is, each starting a little after the one before. It goes down first and
      across after (--ey leads --ex), so the ones at the top come down the sides and slide into
      the line along the bottom, instead of cutting across the words. Each eased (smoothstep). */
@@ -88,26 +91,34 @@
   --ey: calc(var(--ty) * var(--ty) * (3 - 2 * var(--ty)));
   --tx: clamp(0, var(--t) * 1.5 - 0.5, 1);
   --ex: calc(var(--tx) * var(--tx) * (3 - 2 * var(--tx)));
+  --at-x: calc((var(--from-x) + (var(--to-x) - var(--from-x)) * var(--ex)) * 1cqw);
+  --at-y: calc(var(--from-y) * 1cqh + (100cqh - var(--to-s) * 0.24cqw - var(--from-y) * 1cqh) * var(--ey));
+  --size: calc(var(--from-s) + (var(--to-s) - var(--from-s)) * var(--e));
 
+  /* Physical, not logical: the spots are drawn left to right in both languages. */
   position: absolute;
-  left: calc(var(--from-x) + (var(--to-x) - var(--from-x)) * var(--ex));
-  top: calc(var(--from-y) + (var(--to-y) - var(--from-y)) * var(--ey));
-  width: calc(var(--from-s) + (var(--to-s) - var(--from-s)) * var(--e));
-  min-width: 84px;
-  translate: -50% -50%;
+  left: 0;
+  top: 0;
+  width: calc(var(--to-s) * 1cqw);
+  translate: calc(var(--at-x) - 50%) calc(var(--at-y) - 50%);
+  scale: calc(var(--size) / var(--to-s));
   rotate: calc(var(--r) * (1 - var(--e)));
+}
+/* While scattered they drift on their own beats; seated, they hold still. */
+.pick {
   animation: drift 7s ease-in-out infinite;
   animation-delay: calc(var(--i) * -0.9s);
 }
-/* They drift while scattered and settle as they take their seats. */
 @keyframes drift {
   50% {
-    translate: -50% calc(-50% - 10px * (1 - var(--e)));
-    rotate: calc(var(--r) * -0.4 * (1 - var(--e)));
+    translate: 0 calc(-10px * (1 - var(--e)));
+    rotate: calc(var(--r) * -0.6 * (1 - var(--e)));
   }
 }
 .scatter li:hover {
   z-index: 3;
+}
+.scatter li:hover .pick {
   animation-play-state: paused;
 }
 .pick {
@@ -174,13 +185,16 @@
   .stage {
     min-height: 760px;
   }
+  .finale {
+    /* A longer scroll on a phone, so the trip isn't rushed. */
+    height: 240svh;
+  }
   .scatter li {
     --from-x: var(--mx);
     --from-y: var(--my);
-    --from-s: calc(var(--s) * 2.3cqw);
-    --step: 11.4cqw;
-    --to-s: 17cqw;
-    min-width: 0;
+    --from-s: calc(var(--s) * 2.3);
+    --step: 11.4;
+    --to-s: 17;
   }
 }
 @media (prefers-reduced-motion: reduce) {

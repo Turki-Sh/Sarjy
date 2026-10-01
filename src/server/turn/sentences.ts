@@ -25,6 +25,13 @@ const SELF_TALK = [
 ];
 export const isSelfTalk = (sentence: string) => SELF_TALK.some((p) => p.test(sentence.trim()));
 
+// English filler a model sometimes tacks onto an Arabic answer ("تركي؟ حلو الاسم. Okay? Ready.
+// Anything else?"). In an Arabic reply, a sentence made only of these words is dropped; English
+// that carries meaning (a name, a title, a number) is kept.
+const FILLER =
+  /^(?:(?:sure|okay|ok|ready|alright|all right|got it|noted|done|yes|yeah|no problem|of course|great|cool|perfect|anything else|let me know|here you go|hope that helps|thanks)[\s,.!?]*)+$/i;
+export const isFiller = (sentence: string) => FILLER.test(sentence.trim());
+
 /**
  * Markdown the model sometimes writes despite the prompt (Turki's review, Day 2: "*Horizon
  * Forbidden West*" on screen). It would show as symbols and be read out, so only the words stay:
@@ -45,15 +52,18 @@ export const plain = (text: string) =>
  * markdown, leaked planning, glued sentences, long dashes (a comma reads and sounds the same),
  * "on today".
  */
-export function tidy(text: string): string {
+export function tidy(text: string, lang?: "en" | "ar"): string {
   const cleaned = unglue(plain(text))
     .replace(/\s*[\u2014\u2013]\s*/g, ", ")
     .replace(/\bon (today|yesterday)\b/gi, "$1");
   const { sentences, rest } = splitSentences(cleaned);
   const kept: string[] = [];
   for (const s of [...sentences, rest.trim()]) {
-    // Skip planning, and a sentence said twice in a row ("Got it. Got it.").
-    if (s && !isSelfTalk(s) && s !== kept.at(-1)) kept.push(s);
+    // Skip planning, English filler in an Arabic answer, and a sentence said twice in a row
+    // ("Got it. Got it.").
+    if (!s || isSelfTalk(s) || s === kept.at(-1)) continue;
+    if (lang === "ar" && isFiller(s)) continue;
+    kept.push(s);
   }
   return kept.join(" ");
 }

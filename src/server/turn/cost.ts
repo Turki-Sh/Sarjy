@@ -8,7 +8,7 @@ import "server-only";
 //   gpt-oss-120b      $0.15 in, $0.60 out per million tokens
 //   gpt-oss-20b       $0.075 in, $0.30 out per million tokens
 //   qwen3.8-27b       not listed yet: Qwen3 32B's $0.29 in, $0.59 out is used as an estimate
-//   whisper turbo     $0.04 per hour of audio
+//   whisper-large-v3  $0.111 per hour of audio (turbo, the backup, is $0.04)
 //   Orpheus voices    $22 (English) and $40 (Saudi Arabic) per million characters
 //   web search        $5 (basic) to $8 (advanced) per 1,000 searches: $8 is used, to be safe
 
@@ -17,7 +17,8 @@ const PER_MILLION_TOKENS: Record<string, { input: number; output: number }> = {
   "openai/gpt-oss-20b": { input: 0.075, output: 0.3 },
   "qwen/qwen3.8-27b": { input: 0.29, output: 0.59 },
 };
-const STT_PER_HOUR = 0.04;
+// Priced as the full model, which hears nearly every turn; when turbo steps in this errs high.
+const STT_PER_HOUR = 0.111;
 /** One browser search on Groq, in dollars (the tokens it reads are counted separately). */
 export const SEARCH_USD = 0.008;
 const VOICE_PER_MILLION_CHARS = { en: 22, ar: 40 } as const;

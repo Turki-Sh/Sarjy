@@ -192,16 +192,19 @@ export async function POST(request: Request) {
             uiLang === "ar" ? "صار خلل عندي. تجرب مرة ثانية؟" : "Something went wrong on my side. Try again?",
         });
       } finally {
-        if (open && !request.signal.aborted) controller.close();
-        // In a Majlis: once everything has reached the room, the mic is free again.
+        // In a Majlis: once everything has reached the room, the mic is free again. This happens
+        // before the response ends, not after: on Vercel a function can be frozen the moment its
+        // response is complete, and then the mic stayed taken (Day 5: the speaker had to tap the
+        // finjan twice to let it go).
         if (room && majlis) {
-          await majlis.outlet.flushed();
+          await majlis.outlet.flushed().catch(() => {});
           if (await releaseFloor(db, room.id, user.id).catch(() => false)) {
             await getRealtime()
               .publish(room.code, { type: "floor", holder: null })
               .catch(() => {});
           }
         }
+        if (open && !request.signal.aborted) controller.close();
       }
     },
   });

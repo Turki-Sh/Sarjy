@@ -97,9 +97,10 @@ export function useReducedMotion(): boolean {
 
 /**
  * How far you have scrolled through a tall section whose stage stays pinned while you do, as a
- * CSS variable on the section (0 as the stage pins, 1 as it lets go). Written straight to CSS on
- * each frame you scroll, so what is on the stage moves with your scroll without re-rendering.
- * 1 with reduced motion: the end of the story, held still.
+ * CSS variable on the section (0 as the stage pins, 1 as it lets go). Written straight to CSS, so
+ * what is on the stage moves with your scroll without re-rendering, and eased toward where you
+ * are rather than jumping there: a phone's scroll arrives in coarse steps, and the motion should
+ * still glide (Turki, Day 5). 1 with reduced motion: the end of the story, held still.
  */
 export function usePinnedProgress(ref: RefObject<HTMLElement | null>, name: string) {
   useEffect(() => {
@@ -110,15 +111,22 @@ export function usePinnedProgress(ref: RefObject<HTMLElement | null>, name: stri
       return;
     }
     let raf = 0;
-    const measure = () => {
-      raf = 0;
+    let shown = -1;
+    const target = () => {
       const r = el.getBoundingClientRect();
       const span = r.height - window.innerHeight;
-      const p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 1;
-      el.style.setProperty(name, p.toFixed(3));
+      return span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 1;
     };
-    const onScroll = () => (raf ||= requestAnimationFrame(measure));
-    measure();
+    const tick = () => {
+      const aim = target();
+      // A fifth of the way there each frame: quick to follow, never a jump.
+      shown = shown < 0 ? aim : shown + (aim - shown) * 0.2;
+      if (Math.abs(aim - shown) < 0.0005) shown = aim;
+      el.style.setProperty(name, shown.toFixed(4));
+      raf = shown === aim ? 0 : requestAnimationFrame(tick);
+    };
+    const onScroll = () => (raf ||= requestAnimationFrame(tick));
+    tick();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {

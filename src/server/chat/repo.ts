@@ -79,6 +79,32 @@ export async function roomConversation(db: Db, id: string, firstText: string) {
   return named!;
 }
 
+/**
+ * What Sarjy said last in a chat, for the listener's context (speech to text). Only from your own
+ * chat, or the Majlis you are in (`owner` null: the route has already checked membership).
+ */
+export async function lastReply(
+  db: Db,
+  conversationId: string | null,
+  owner: string | null,
+): Promise<string | null> {
+  if (!conversationId || !/^[0-9a-f-]{36}$/i.test(conversationId)) return null;
+  const [row] = await db
+    .select({ text: messages.text })
+    .from(messages)
+    .innerJoin(conversations, eq(conversations.id, messages.conversationId))
+    .where(
+      and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.role, "assistant"),
+        owner ? eq(conversations.userId, owner) : undefined,
+      ),
+    )
+    .orderBy(desc(messages.createdAt))
+    .limit(1);
+  return row?.text ?? null;
+}
+
 /** The last few messages, oldest first, for the model's context. */
 export async function recentMessages(db: Db, conversationId: string, limit = 12): Promise<MessageRow[]> {
   const rows = await db

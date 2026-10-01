@@ -68,3 +68,21 @@ test("the voice screen, a missing page and a Majlis link each have their own car
   await page.goto("/majlis/ZZZZZ");
   await expect(image()).toHaveAttribute("content", /\/og\/majlis-hayyak\.png$/);
 });
+
+test("a link-preview bot gets the 404 card with a 200, so the card shows; people still get a 404 (AT-126)", async ({
+  request,
+}) => {
+  expect((await request.get("/no-such-page")).status()).toBe(404);
+  for (const ua of [
+    "WhatsApp/2.24.1 A",
+    "Mozilla/5.0 (compatible; Discordbot/2.0)",
+    "facebookexternalhit/1.1",
+  ]) {
+    const res = await request.get("/no-such-page", { headers: { "user-agent": ua } });
+    expect(res.status(), ua).toBe(200);
+    expect(await res.text()).toMatch(/og:image" content="[^"]+\/og\/lost-not-a-real-page\.png"/);
+  }
+  // Search engines are not preview bots: still a 404.
+  const google = await request.get("/no-such-page", { headers: { "user-agent": "Googlebot/2.1" } });
+  expect(google.status()).toBe(404);
+});

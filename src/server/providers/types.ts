@@ -8,8 +8,16 @@ import type { LanguageModel } from "ai";
 export type Lang = "en" | "ar";
 
 export interface SpeechToText {
-  /** Audio in, text and detected language out. `hint` is the interface language. */
-  transcribe(audio: Blob, hint: Lang): Promise<{ text: string; lang: Lang; unsure?: boolean }>;
+  /**
+   * Audio in, text and detected language out. `hint` is the interface language; `context` is what
+   * the listener knows going in (your name, your city, what Sarjy just said), so names and replies
+   * to a question come back spelled right.
+   */
+  transcribe(
+    audio: Blob,
+    hint: Lang,
+    context?: string,
+  ): Promise<{ text: string; lang: Lang; unsure?: boolean }>;
 }
 
 /** What a web search found, as a few plain sentences, and what it took. */
