@@ -21,6 +21,7 @@ const CHAPTER_INFO = {
   "04": { eyebrow: "QUALITY NOTES", blurb: "The conditions for shipping" },
   "05": { eyebrow: "RELEASE NOTES", blurb: "From repository to public URL" },
   "06": { eyebrow: "AUDIT NOTES", blurb: "Every line of the brief, and how we answer it" },
+  "07": { eyebrow: "WRITE-UP", blurb: "Why it is built this way, and what we measured" },
 };
 
 const escapeHtml = (s) =>

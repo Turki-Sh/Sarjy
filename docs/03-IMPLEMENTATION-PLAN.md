@@ -20,9 +20,9 @@ The build, day by day. Each milestone ends with something you can open in a brow
 | Rafeeq, the companions: eight, each with a personality, a smile, a story and its own bond | Done (Days 3 and 4) |
 | Pages: the home page at `/` (the voice screen moved to `/talk`) and the 404, both following day and night | Done (Days 4 and 5) |
 | Turki's touches | H1 (Hijri and time of day) done in the prompt; the prayer-times tool (T5) and the Morning card (H2) not built (see below) |
-| M7: harden and submit | Open: latency numbers, cost write-up, red-team run on the live stack, link-preview check, Loom, submission |
+| M7: harden and submit | Live at https://sarjy-three.vercel.app (Day 5). Done: the topic policy and the red-team suite, the write-up (`docs/07-WRITEUP.md`) with measured latency and cost, link previews. Open: Turki's phone checks, the Loom, the submission |
 | CI | Green on every push to `main` (typecheck, lint, format, unit and integration, build, bundle secret scan, end-to-end in Chromium, gitleaks) |
-| Tests | 190 unit and integration tests, 61 end-to-end tests |
+| Tests | 225 unit and integration tests (the 25 red-team cases among them), 63 end-to-end tests |
 
 ## What you do in parallel
 
