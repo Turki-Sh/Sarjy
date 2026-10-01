@@ -7,11 +7,22 @@ import type { Metadata } from "next";
 import { Lost } from "@/client/ui/lost/Lost";
 import { readPreferences } from "@/server/preferences";
 import { LOST } from "@/shared/lost-copy";
+import { cardImage, pickCard } from "@/shared/og";
 import { freshSeed } from "@/shared/random";
+import { SITE_NAME } from "@/shared/site";
 
+// A wrong link shared somewhere still gets a preview: a playful one saying the page isn't real.
 export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await readPreferences();
-  return { title: LOST[lang].title, robots: { index: false } };
+  const { title, body: description } = LOST[lang];
+  const card = cardImage(pickCard("lost", lang, "404"));
+  return {
+    title,
+    description,
+    robots: { index: false },
+    openGraph: { type: "website", siteName: SITE_NAME, title, description, images: [card] },
+    twitter: { card: "summary_large_image", title, description, images: [card] },
+  };
 }
 
 export default async function NotFound() {

@@ -10,6 +10,8 @@ const KINDS: CardKind[] = [
   "chat",
   "image",
   "majlis",
+  "talk",
+  "lost",
   "handbook",
 ];
 
@@ -36,8 +38,12 @@ describe("link preview cards", () => {
   it("matches the card to the link", () => {
     expect(pickCard("weather_tomorrow", "en", "a").file).toBe("tomorrow-at-a-glance.png");
     expect(pickCard("handbook", "en", "a").file).toBe("notes-from-building.png");
-    expect(pickCard("majlis", "ar", "a").file).toBe("hafazt-kalamak.png");
-    expect(pickCard("majlis", "en", "a").file).toBe("thought-and-reply.png");
+    expect(pickCard("majlis", "ar", "a").file).toBe("majlis-hayyak.png");
+    expect(pickCard("majlis", "en", "a").file).toBe("majlis-pull-up-a-cushion.png");
+    expect(pickCard("talk", "en", "a").file).toBe("talk-tell-it-once.png");
+    expect(pickCard("talk", "ar", "a").file).toBe("talk-qulha-marra.png");
+    expect(pickCard("lost", "en", "a").file).toBe("lost-not-a-real-page.png");
+    expect(pickCard("lost", "ar", "a").file).toBe("lost-mo-mawjouda.png");
     expect(pickCard("image", "en", "a").file).toBe("little-things-big-picture.png");
     expect(["cassette-sunday.png", "record-sunday.png", "thought-and-reply.png"]).toContain(
       pickCard("recall", "en", "z").file,

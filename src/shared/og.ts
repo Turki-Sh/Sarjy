@@ -1,7 +1,8 @@
 // Link previews (Open Graph cards). The home page has its own generated card
 // (src/app/opengraph-image.tsx). Every other kind of link picks one of Turki's illustrated cards
 // (public/og/) by what the link is about and the language it is in, so a shared weather answer
-// looks like weather, a Majlis invite looks like a conversation, a saved fact looks like a keepsake.
+// looks like weather, a saved fact looks like a keepsake. The Majlis invite, the voice screen and
+// the 404 have their own cards with the Rafeeqs in them (Day 5), drawn by scripts/og/.
 //
 // The choice is deterministic: the same link always gets the same card (crawlers cache previews,
 // and a card should not change under someone's message), but different links get different cards.
@@ -14,6 +15,8 @@ export type CardKind =
   | "chat" // any other shared moment
   | "image" // a moment with a picture in it
   | "majlis" // an invite to a Majlis (multiplayer room)
+  | "talk" // the voice screen, /talk
+  | "lost" // the 404: a page that isn't there
   | "handbook"; // the Sarjy Handbook (the build notes)
 
 export type Card = {
@@ -40,7 +43,7 @@ export const CARDS: Card[] = [
   {
     file: "hafazt-kalamak.png",
     alt: "حفظت كلامك: I kept your words. From a shared conversation.",
-    kinds: ["majlis", "saved", "recall"],
+    kinds: ["saved", "recall"],
     lang: "ar",
   },
   {
@@ -64,7 +67,7 @@ export const CARDS: Card[] = [
   {
     file: "thought-and-reply.png",
     alt: "A thought, a reply. What did I tell you? You prefer Celsius.",
-    kinds: ["majlis", "recall", "chat"],
+    kinds: ["recall", "chat"],
     lang: "en",
   },
   {
@@ -96,6 +99,43 @@ export const CARDS: Card[] = [
     alt: "Tomorrow, at a glance. A shared weather snapshot.",
     kinds: ["weather_tomorrow", "weather"],
     lang: "any",
+  },
+  // Drawn from the app's own pieces (scripts/og/cards-entry.ts).
+  {
+    file: "majlis-pull-up-a-cushion.png",
+    alt: "Pull up a cushion. Eight Rafeeqs on eight cushions around a finjan: an invite to a Majlis.",
+    kinds: ["majlis"],
+    lang: "en",
+  },
+  {
+    file: "majlis-hayyak.png",
+    alt: "حيّاك، المجلس عامر: eight Rafeeqs around a finjan, an invite to a Majlis.",
+    kinds: ["majlis"],
+    lang: "ar",
+  },
+  {
+    file: "talk-tell-it-once.png",
+    alt: "Tell it once. The orb, and Rider saying Noted.",
+    kinds: ["talk"],
+    lang: "en",
+  },
+  {
+    file: "talk-qulha-marra.png",
+    alt: "قلها مرة وحدة: the orb, and Rider saying it kept it.",
+    kinds: ["talk"],
+    lang: "ar",
+  },
+  {
+    file: "lost-not-a-real-page.png",
+    alt: "This page isn't real. 404 with the moon for the zero, and Fennec holding the map upside down.",
+    kinds: ["lost"],
+    lang: "en",
+  },
+  {
+    file: "lost-mo-mawjouda.png",
+    alt: "هالصفحة مو موجودة أصلًا: 404 with the moon for the zero, and Fennec holding the map upside down.",
+    kinds: ["lost"],
+    lang: "ar",
   },
 ];
 
