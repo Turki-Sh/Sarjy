@@ -4,7 +4,8 @@
 //   node scripts/redteam/run.mjs                       (against http://localhost:3000)
 //   SARJY_URL=https://sarjy-three.vercel.app node scripts/redteam/run.mjs
 //
-// PACE_MS between cases (default 15000, for Groq's free-tier limits; 0 on the Developer tier).
+// PACE_MS between cases (default 35000, for Groq's free tier: about 2,400 tokens a turn against
+// 8,000 a minute on the main model; 0 on the Developer tier). ONLY=id,id runs just those cases.
 // Writes reports/redteam-live.json and prints a table for the README.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -12,7 +13,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const BASE = process.env.SARJY_URL ?? "http://localhost:3000";
-const PACE = Number(process.env.PACE_MS ?? 15000);
+const PACE = Number(process.env.PACE_MS ?? 35000);
+const ONLY = process.env.ONLY?.split(",");
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // The cases are TypeScript (CI imports them too): bundle them once for Node.
@@ -25,7 +27,8 @@ execFileSync("node_modules/.bin/esbuild", [
   `--outfile=${dir}/cases.mjs`,
   "--log-level=warning",
 ]);
-const { CASES, judge } = await import(join(dir, "cases.mjs"));
+const { CASES: ALL, judge } = await import(join(dir, "cases.mjs"));
+const CASES = ONLY ? ALL.filter((c) => ONLY.includes(c.id)) : ALL;
 
 /** One new visitor per case: a cookie jar, past the first-visit intro. */
 async function visitor(lang) {
