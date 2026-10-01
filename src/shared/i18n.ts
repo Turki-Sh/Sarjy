@@ -180,6 +180,8 @@ type Strings = {
     back: string;
     here: (n: number) => string;
     reconnecting: string;
+    /** The Majlis let go of its connection after a quiet spell; the next tap brings it back. */
+    asleep: string;
     people: string;
   };
   sharedMoment: string;
@@ -429,6 +431,7 @@ export const STRINGS: Record<Lang, Strings> = {
       back: "Back to Sarjy",
       here: (n) => (n === 1 ? "1 here" : `${n} here`),
       reconnecting: "Reconnecting",
+      asleep: "Dozed off · tap to come back",
       people: "Who's here",
     },
     sharedMoment: "A moment with Sarjy",
@@ -672,6 +675,7 @@ export const STRINGS: Record<Lang, Strings> = {
       back: "ارجع لسرجي",
       here: (n) => `${n.toLocaleString("ar-SA")} موجودين`,
       reconnecting: "يرجع يتصل",
+      asleep: "غفى شوي · المس عشان ترجع",
       people: "مين موجود",
     },
     sharedMoment: "لحظة مع سرجي",

@@ -18,6 +18,7 @@ type Props = {
   online: string[];
   me: string;
   reconnecting: boolean;
+  asleep: boolean;
   onInvite: () => void;
   onLeave: () => void;
   onEnd: () => void;
@@ -30,6 +31,7 @@ export function MajlisBar({
   online,
   me,
   reconnecting,
+  asleep,
   onInvite,
   onLeave,
   onEnd,
@@ -43,7 +45,7 @@ export function MajlisBar({
       <Icon name="finjan" className={styles.mark} />
       <span className={styles.title}>{s.name(hostName)}</span>
       <span className={styles.count} aria-live="polite">
-        {reconnecting ? s.reconnecting : s.here(here)}
+        {asleep ? s.asleep : reconnecting ? s.reconnecting : s.here(here)}
       </span>
       <button type="button" className={styles.invite} onClick={onInvite}>
         <Icon name="share" />

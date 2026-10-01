@@ -169,13 +169,13 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 
 ### M7 · Harden and submit
 - [ ] Every Must in the acceptance tests passes; E2E green in CI
-- [ ] Record latency (p50 and p90 over 20 turns, with and without the weather tool) in the README
-- [ ] Latency write-up: where the time goes, what we tried, what worked, what didn't, next week
-- [ ] Cost model for 1,000 daily users in the write-up
-- [ ] Red-team suite run against the live stack; results in the README
-- [ ] Write-up sections: the API justification, why bilingual, the deep dives, why not telephony or MCP yet, what's next
-- [ ] Link previews checked in WhatsApp, X, Slack and LinkedIn
-- [ ] README: live URL, what it is, how to run, architecture summary, the API justification, the deep dives, what we would do next
+- [x] Record latency (p50 and p90, with and without the weather tool) in the README: measured on 8 turns of each kind on Day 5 (to stay inside the free tier's daily limit); `scripts/eval/latency.mjs` re-runs it with `N=20`
+- [x] Latency write-up: where the time goes, what we tried, what worked, what didn't, next week (`docs/07-WRITEUP.md`, section 5)
+- [x] Cost model for 1,000 daily users in the write-up (about $900 a month; section 6)
+- [x] Red-team suite run against the live stack; results in the README (25 of 25 after one prompt fix; section 7)
+- [x] Write-up sections: the API justification, why bilingual, the deep dives, why not telephony or MCP yet, what's next
+- [x] Link previews checked (Turki, Day 5)
+- [x] README: live URL, what it is, how to run, architecture summary, the API justification, the deep dives, what we would do next
 - [ ] 3 to 5 minute Loom and a PDF of the docs reader, sent to Sarj at least a day before the meeting
 - [ ] Final check of secrets: gitleaks clean, client bundle clean, Vercel env only
 - [x] `main` is the default branch and holds everything
@@ -193,6 +193,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] A high-quality home page that introduces Sarjy, with a clear way into the voice screen (Day 4: the voice screen moves to `/talk`; the Rafeeqs live in the hero, a scroll-told promise, a day with Sarjy, a gallery, the Majlis, the reins, a finale to pick one; a companion rides along; greets you by name)
 - [x] A custom, animated 404 page in the brand, bilingual, with a way back (Day 4: lost Rafeeqs around a campfire, four scenes shuffled each visit, a squabble in a dust cloud, the moon as the zero)
 - [x] Turki's review of the pages (Day 4): no dash lines on the section labels; a hello from your Rafeeq in a bubble, random, following light and dark; the sun and moon switch the theme; new hero and Rafeeqs ledes; no level on the headline, no notes, no Play button; a smoother timeline; the gallery shows each name once, upright; the finale scattered like the dots page with a Talk with Sarjy button; no handbook links for now; on the 404 the moon changes the scene and the fire is a secret; the app opens on a fresh-chat line and its logo leads home; the prompt says the Now line is the only source for the time (AT-124)
+- [x] A quiet Majlis lets go of its Ably connection (10 minutes idle, or 2 in a background tab) and comes back with a tap
 - [x] The home page's link-preview card drawn like the others: the caravan of Rafeeqs under a big sun, "Shaped to its rider." (Turki, Day 5)
 - [x] The version at the foot of the home page, `v0.7.N`: MAJOR.MINOR from `package.json` (0 until the submission, MINOR the milestone), PATCH the number of commits, worked out at build time (git, or GitHub's API on Vercel's shallow clone), linked to its commit
 - [x] Speech to text and replies (Turki, Day 5: "STT makes a lot of mistakes", "why does it switch Arabic and English"): `whisper-large-v3` with turbo as backup; Whisper is told your name, your city and what Sarjy just said; a model that fails partway no longer leaves its half answer glued to the next one's; gpt-oss-20b stands in before Qwen; English filler is dropped from Arabic replies. Measured live: on Groq's free tier the main model runs out after two or three quick turns (about 2,400 tokens a turn against 8,000 a minute), and the stand-ins are where the mixed languages came from, so the Developer tier is the real fix

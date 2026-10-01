@@ -8,7 +8,9 @@
 
 import { RoomEvent, channelName, type RoomState } from "@/shared/room";
 
-export type LinkStatus = "live" | "reconnecting";
+/** live: connected. reconnecting: the link dropped and is coming back. asleep: let go on purpose
+ * after a quiet spell (useRoom), back with the next tap. */
+export type LinkStatus = "live" | "reconnecting" | "asleep";
 
 export type RoomHandlers = {
   onEvent: (event: RoomEvent) => void;

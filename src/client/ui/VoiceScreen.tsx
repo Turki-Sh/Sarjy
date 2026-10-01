@@ -488,6 +488,7 @@ export function VoiceScreen({
                 online={majlis.online}
                 me={me!}
                 reconnecting={majlis.status === "reconnecting"}
+                asleep={majlis.status === "asleep"}
                 onInvite={() => void invite()}
                 onLeave={() => router.push(TALK)}
                 onEnd={() => void majlis.end()}

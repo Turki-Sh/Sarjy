@@ -134,8 +134,12 @@ test("a picture that fails the guard is never shown to the room (AT-99b)", async
   await guest.route("**/api/turn", (route) =>
     route.continue({ headers: { ...route.request().headers(), "x-sarjy-fake-unsafe-picture": "1" } }),
   );
-  await guest.locator('form input[type="file"]').setInputFiles("public/wallpapers/sunlit.jpg");
-  await expect(guest.getByRole("button", { name: "Remove the picture" })).toBeVisible();
+  // Attach until the preview shows: right after joining, the room's screen can still re-render and
+  // drop a picture picked in that instant (CI caught it twice). What is checked doesn't change.
+  await expect(async () => {
+    await guest.locator('form input[type="file"]').setInputFiles("public/wallpapers/sunlit.jpg");
+    await expect(guest.getByRole("button", { name: "Remove the picture" })).toBeVisible({ timeout: 4000 });
+  }).toPass({ timeout: 20_000 });
   await say(guest, "Look at this");
   await expect(caption(guest)).toHaveText("I didn't share that picture with the Majlis.", {
     timeout: 10_000,
@@ -168,4 +172,29 @@ test("an invite link says whose Majlis it is, and is never indexed (AT-102)", as
   expect(html).toContain("Join Turki&#x27;s Majlis on Sarjy");
   expect(html).toMatch(/<meta name="robots" content="noindex, nofollow"/);
   expect(html).toMatch(/og:image" content="[^"]+\.png/);
+});
+
+test("a quiet Majlis lets go of its connection, and a tap brings it back", async ({ browser }) => {
+  // Turki, Day 5: a tab left open must not hold a realtime connection forever.
+  const host = await (await browser.newContext()).newPage();
+  const guest = await (await browser.newContext()).newPage();
+  await Promise.all([host.waitForResponse("**/api/session"), host.goto("/talk")]);
+  await host.getByRole("button", { name: "Start a Majlis" }).click();
+  await expect(host).toHaveURL(/\/majlis\/[2-9A-Z]{5}$/);
+
+  await guest.clock.install();
+  await Promise.all([guest.waitForResponse("**/api/session"), guest.goto(host.url())]);
+  await guest.getByRole("textbox", { name: "What should everyone call you?" }).fill("Sara");
+  await guest.getByRole("button", { name: "Come in" }).click();
+  await expect(bar(host)).toContainText("2 here");
+
+  // Ten quiet minutes later, the guest's tab has let go: the host sees one fewer here.
+  await guest.clock.fastForward("11:00");
+  await expect(bar(guest)).toContainText("Dozed off");
+  await expect(bar(host)).toContainText("1 here");
+
+  // One tap and it is back.
+  await guest.mouse.click(10, 300);
+  await expect(bar(guest)).toContainText("2 here");
+  await expect(bar(host)).toContainText("2 here");
 });

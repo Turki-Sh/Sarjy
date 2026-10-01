@@ -4,6 +4,8 @@
 
 **A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.** In English and everyday Saudi Arabic.
 
+**Live: [sarjy-three.vercel.app](https://sarjy-three.vercel.app)** (the app is at [/talk](https://sarjy-three.vercel.app/talk); no sign-up). The write-up, with measured latency, cost and red-team results: [docs/07-WRITEUP.md](docs/07-WRITEUP.md).
+
 > Shaped to its rider. على مقاس فارسه.
 
 Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one rider and breaks in to them over time. Tell Sarjy something once, and the next answer fits a little better.
@@ -30,9 +32,16 @@ Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one ri
 
 ## Where it stands
 
-Built: the full voice loop, memory, weather and web search, images in the chat, the interface deep dive (liquid glass, captions, the details panel with timings and cost), the Majlis, the Rafeeqs, the home page and the 404. Still open: measured latency numbers, the cost write-up, a red-team run on the live stack, prayer times as a tool, and the Morning card. The live progress log is [the implementation plan](docs/03-IMPLEMENTATION-PLAN.md).
+Built and live: the full voice loop, memory, weather and web search, images in the chat, the interface deep dive (liquid glass, captions, the details panel with timings and cost), the Majlis, the Rafeeqs, the home page and the 404, and the guardrails (a topic policy checked alongside the model, and a 25-case red-team suite). Not built yet: prayer times as a tool, the Morning card, and live voice in the Majlis. The live progress log is [the implementation plan](docs/03-IMPLEMENTATION-PLAN.md); the version it is on shows at the foot of the home page.
 
-The app lives at `/talk`; `/` is the home page.
+Measured on the live site ([the write-up](docs/07-WRITEUP.md) has the detail):
+
+| | |
+|---|---|
+| First audio, a plain voice question | 1.2 s on the server (p50), 1.3 s (p90); about 2.5 s as a person feels it, end of speech included |
+| First audio, with the weather tool | 1.6 s on the server (p50), 2.2 s (p90) |
+| Cost per turn | About $0.002 (voice) to $0.004 (with a tool); about $900 a month for 1,000 daily users at 10 turns each |
+| Red team | 25 of 25 handled: harmful asks, self-harm, jailbreaks, prompt extraction, memory injection, invented numbers, and no false refusals |
 
 ## Run it on your machine
 
@@ -77,9 +86,9 @@ Every push to `main` and every pull request runs on GitHub Actions, with stand-i
 | Step | Checks |
 |---|---|
 | Typecheck, lint, format | TypeScript strict, ESLint, Prettier |
-| Unit and integration | About 190 Vitest tests: the turn pipeline end to end with fake providers and an in-memory Postgres, memory, the Majlis, prompts, captions, the Rafeeqs' rules, the pages' scenes |
+| Unit and integration | 225 Vitest tests: the turn pipeline end to end with fake providers and an in-memory Postgres, memory, the Majlis, the topic policy and the 25 red-team cases, prompts, captions, the Rafeeqs' rules, the pages' scenes |
 | Build, then a bundle scan | A production build, then the browser bundle is searched for anything that looks like a key |
-| End to end | About 60 Playwright tests in Chromium against the built app: turns, memory, settings, both languages, the mic with a fake microphone, two and three people in one Majlis, the Rafeeqs, the home page and the 404 |
+| End to end | 63 Playwright tests in Chromium against the built app: turns, memory, settings, both languages, the mic with a fake microphone, two and three people in one Majlis, the Rafeeqs, the home page and the 404 |
 | Secrets | Gitleaks over the whole git history |
 
 Each run's page lists every test, passed or failed, and keeps a Playwright report with a trace for any failure. Deployment is Vercel's: every push to `main` builds and ships, running the database migrations first.
@@ -94,8 +103,8 @@ Each run's page lists every test, passed or failed, and keeps a Playwright repor
                                                               └──► in a room, the same events go to everyone (Ably)
 ```
 
-More in the docs: [what it is and why](docs/01-PRD.md), [how it works](docs/02-ARCHITECTURE.md) (including [what we optimize](docs/02-ARCHITECTURE.md#18b-what-we-optimize)), [the plan and progress](docs/03-IMPLEMENTATION-PLAN.md), [acceptance tests](docs/04-ACCEPTANCE-TESTS.md), [deployment](docs/05-DEPLOYMENT.md), [brief coverage](docs/06-BRIEF-COVERAGE.md), and [the brand](docs/brand/).
+More in the docs: [what it is and why](docs/01-PRD.md), [how it works](docs/02-ARCHITECTURE.md) (including [what we optimize](docs/02-ARCHITECTURE.md#18b-what-we-optimize)), [the plan and progress](docs/03-IMPLEMENTATION-PLAN.md), [acceptance tests](docs/04-ACCEPTANCE-TESTS.md), [deployment](docs/05-DEPLOYMENT.md), [brief coverage](docs/06-BRIEF-COVERAGE.md), [the write-up](docs/07-WRITEUP.md), and [the brand](docs/brand/).
 
 ## Stack
 
-Next.js on Vercel · Groq (Whisper, gpt-oss-120b, Orpheus) · Open-Meteo · Ably · Postgres on Neon · pnpm · Vitest and Playwright
+Next.js on Vercel · Groq (Whisper large-v3, gpt-oss-120b, gpt-oss-safeguard-20b, Orpheus) · Open-Meteo · Ably · Postgres on Neon · pnpm · Vitest and Playwright
