@@ -67,7 +67,7 @@ test("the voice screen, the film, a missing page and a Majlis link each have the
   await expect(image()).toHaveAttribute("content", /\/og\/film-now-showing\.png$/);
   await expect(page.locator('head meta[property="og:video"]')).toHaveAttribute(
     "content",
-    /\/video\/sarjy-in-a-minute-ar\.mp4$/,
+    /\/video\/sarjy-in-a-minute-ar-1080\.mp4$/,
   );
   await page.goto("/no-such-page");
   await expect(image()).toHaveAttribute("content", /\/og\/lost-not-a-real-page\.png$/);

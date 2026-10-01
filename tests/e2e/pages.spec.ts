@@ -173,13 +173,15 @@ test("the film plays on its own page, linked from the foot of the home page", as
   await expect(page).toHaveURL(/\/film$/);
   await expect(page.getByRole("heading", { name: "Sarjy, in a minute." })).toBeVisible();
   const video = page.getByLabel("Sarjy, in a minute.");
-  await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-ar.mp4");
+  await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-ar-1080.mp4");
   await expect(video).toHaveAttribute("poster", "/og/film-now-showing.png");
   await expect(video).toHaveAttribute("controls", "");
   // One film so far, so no list of others under it.
   await expect(page.getByRole("heading", { name: "More films" })).toHaveCount(0);
   // The file itself is served, and can be fetched in parts (so it starts before it has all arrived).
-  const head = await request.get("/video/sarjy-in-a-minute-ar.mp4", { headers: { range: "bytes=0-99" } });
+  const head = await request.get("/video/sarjy-in-a-minute-ar-1080.mp4", {
+    headers: { range: "bytes=0-99" },
+  });
   expect(head.status()).toBe(206);
   expect(head.headers()["content-type"]).toContain("video/mp4");
 });

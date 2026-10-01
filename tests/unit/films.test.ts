@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FEATURED, FILMS, filmById, othersThan, runningTime } from "@/shared/films";
 
@@ -7,6 +7,18 @@ describe("the films", () => {
     for (const f of FILMS) {
       expect(existsSync(`public${f.src}`), f.src).toBe(true);
       if (f.poster) expect(existsSync(`public${f.poster}`), f.poster).toBe(true);
+    }
+  });
+
+  it("every film plays on iPhones and iPads: H.264 at level 4.1 or lower, its index at the front", () => {
+    for (const f of FILMS) {
+      const bytes = readFileSync(`public${f.src}`);
+      // The decoder setup (avcC) holds the profile and the level; Safari refuses levels above 5.2.
+      const avcC = bytes.indexOf("avcC");
+      expect(avcC, `${f.src}: not H.264`).toBeGreaterThan(0);
+      expect(bytes[avcC + 7], `${f.src}: H.264 level x10`).toBeLessThanOrEqual(41);
+      // The index (moov) before the picture (mdat), so it starts playing before it has all arrived.
+      expect(bytes.indexOf("moov"), f.src).toBeLessThan(bytes.indexOf("mdat"));
     }
   });
 

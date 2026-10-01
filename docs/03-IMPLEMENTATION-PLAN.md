@@ -22,7 +22,7 @@ The build, day by day. Each milestone ends with something you can open in a brow
 | Turki's touches | H1 (Hijri and time of day) done in the prompt; the prayer-times tool (T5) and the Morning card (H2) not built (see below) |
 | M7: harden and submit | Live at https://sarjy-three.vercel.app (Day 5). Done: the topic policy and the red-team suite, the write-up (`docs/07-WRITEUP.md`) with measured latency and cost, link previews. Open: Turki's phone checks, the Loom, the submission |
 | CI | Green on every push to `main` (typecheck, lint, format, unit and integration, build, bundle secret scan, end-to-end in Chromium, gitleaks) |
-| Tests | 234 unit and integration tests (the 25 red-team cases among them), 66 end-to-end tests |
+| Tests | 235 unit and integration tests (the 25 red-team cases among them), 66 end-to-end tests |
 
 ## What you do in parallel
 
@@ -168,7 +168,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ## Day 4 · Friday morning: harden and submit
 
 ### M7 · Harden and submit
-- [x] Every Must in the acceptance tests passes; E2E green in CI (Day 5: 234 unit and integration, 66 end to end)
+- [x] Every Must in the acceptance tests passes; E2E green in CI (Day 5: 235 unit and integration, 66 end to end)
 - [x] Record latency (p50 and p90, with and without the weather tool) in the README: measured on 8 turns of each kind on Day 5 (to stay inside the free tier's daily limit); `scripts/eval/latency.mjs` re-runs it with `N=20`
 - [x] Latency write-up: where the time goes, what we tried, what worked, what didn't, next week (`docs/07-WRITEUP.md`, section 5)
 - [x] Cost model for 1,000 daily users in the write-up (about $900 a month; section 6)
@@ -196,6 +196,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] The bond (Turki, Day 5: "feels like bugs after a while"): replies to moments sent together could arrive out of order and pull the bar back or replay a level-up; the screen now only moves it up. Today's cap is said once a visit instead of the bond just stopping
 - [x] The film at `/film`, linked from the home page's foot (Turki's 68-second film, in Arabic)
 - [x] The film's own link card ("Now showing.", an open-air screening with the Rafeeqs), and the page ready for more films: a catalog, a page per film at `/film/<id>`, the others listed under the one playing
+- [x] The film plays on iPhone and iPad (Day 5: Safari showed a crossed-out play button): re-encoded from 4K at H.264 level 6.0 to 1080p at level 4.1 (24 MB to 10 MB, the same picture), with a test that checks every film's level
 - [x] A birthday is kept (Day 5: "I was born 2002/6/3" wasn't): the secret check no longer reads a date as a long number, the writer's rules name birthdays, and Qwen is the writer's last stand-in
 - [x] An answer said twice in other words (a stand-in model, Day 5: "...in Riybah today. ...in Riyadh today.") is said once
 - [x] A quiet Majlis lets go of its Ably connection (10 minutes idle, or 2 in a background tab) and comes back with a tap
