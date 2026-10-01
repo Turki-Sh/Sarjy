@@ -39,11 +39,8 @@
   display: block;
   width: fit-content;
 }
+/* "rider." in the headline's own face, upright (Turki, Day 5: no italic). */
 .em {
-  font-family: var(--font-voice);
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -0.02em;
   padding-inline-end: 0.04em;
 }
 .em:lang(ar) {

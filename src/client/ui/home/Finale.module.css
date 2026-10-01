@@ -1,16 +1,27 @@
 /*
  * "Who rides with you?": the words in the middle and all eight scattered around them, tilted and
- * drifting, some half off the page's edge (the section clips them).
+ * drifting, some half off the page's edge (the stage clips them). The section is taller than
+ * the window and its stage stays pinned while you scroll through it; as you do (--gather, 0 to 1,
+ * from usePinnedProgress) each one travels from its spot to its seat in a line along the bottom,
+ * growing, straightening and settling, a little after the one before it.
  */
 
 .finale {
   position: relative;
+  height: 190svh;
+  /* clip, not hidden: hidden would make this a scroll box and unpin the stage. */
+  overflow: clip;
+  text-align: center;
+}
+.stage {
+  position: sticky;
+  top: 0;
   container-type: inline-size;
   display: grid;
   place-items: center;
-  min-height: clamp(640px, 100svh, 940px);
-  overflow: hidden;
-  text-align: center;
+  height: 100svh;
+  min-height: 640px;
+  overflow: clip;
 }
 .words {
   position: relative;
@@ -58,20 +69,41 @@
   list-style: none;
 }
 .scatter li {
+  /* Where it starts, and how big (per screen size, below). */
+  --from-x: var(--x);
+  --from-y: var(--y);
+  --from-s: calc(var(--s) * 1cqw);
+  /* Its seat in the line: evenly spaced around the middle, standing on the bottom edge with
+     about a quarter of it below. */
+  --step: 10.6cqw;
+  --to-s: 14cqw;
+  --to-x: calc(50% + (var(--seat) - 3.5) * var(--step));
+  --to-y: calc(100% - var(--to-s) * 0.24);
+  /* How far along it is, each starting a little after the one before. It goes down first and
+     across after (--ey leads --ex), so the ones at the top come down the sides and slide into
+     the line along the bottom, instead of cutting across the words. Each eased (smoothstep). */
+  --t: clamp(0, var(--gather, 0) * 1.3 - var(--i) * 0.04, 1);
+  --e: calc(var(--t) * var(--t) * (3 - 2 * var(--t)));
+  --ty: clamp(0, var(--t) * 1.5, 1);
+  --ey: calc(var(--ty) * var(--ty) * (3 - 2 * var(--ty)));
+  --tx: clamp(0, var(--t) * 1.5 - 0.5, 1);
+  --ex: calc(var(--tx) * var(--tx) * (3 - 2 * var(--tx)));
+
   position: absolute;
-  left: var(--x);
-  top: var(--y);
-  width: calc(var(--s) * 1cqw);
+  left: calc(var(--from-x) + (var(--to-x) - var(--from-x)) * var(--ex));
+  top: calc(var(--from-y) + (var(--to-y) - var(--from-y)) * var(--ey));
+  width: calc(var(--from-s) + (var(--to-s) - var(--from-s)) * var(--e));
   min-width: 84px;
   translate: -50% -50%;
-  rotate: var(--r);
+  rotate: calc(var(--r) * (1 - var(--e)));
   animation: drift 7s ease-in-out infinite;
   animation-delay: calc(var(--i) * -0.9s);
 }
+/* They drift while scattered and settle as they take their seats. */
 @keyframes drift {
   50% {
-    translate: -50% calc(-50% - 10px);
-    rotate: calc(var(--r) * -0.4);
+    translate: -50% calc(-50% - 10px * (1 - var(--e)));
+    rotate: calc(var(--r) * -0.4 * (1 - var(--e)));
   }
 }
 .scatter li:hover {
@@ -139,13 +171,16 @@
 
 /* A phone: they keep to the top and bottom, and leave the words the middle. */
 @media (max-width: 700px) {
-  .finale {
+  .stage {
     min-height: 760px;
   }
   .scatter li {
-    left: var(--mx);
-    top: var(--my);
-    width: calc(var(--s) * 2.3cqw);
+    --from-x: var(--mx);
+    --from-y: var(--my);
+    --from-s: calc(var(--s) * 2.3cqw);
+    --step: 11.4cqw;
+    --to-s: 17cqw;
+    min-width: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {

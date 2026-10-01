@@ -94,3 +94,37 @@ export function useReducedMotion(): boolean {
   }, []);
   return reduce;
 }
+
+/**
+ * How far you have scrolled through a tall section whose stage stays pinned while you do, as a
+ * CSS variable on the section (0 as the stage pins, 1 as it lets go). Written straight to CSS on
+ * each frame you scroll, so what is on the stage moves with your scroll without re-rendering.
+ * 1 with reduced motion: the end of the story, held still.
+ */
+export function usePinnedProgress(ref: RefObject<HTMLElement | null>, name: string) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.style.setProperty(name, "1");
+      return;
+    }
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const span = r.height - window.innerHeight;
+      const p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 1;
+      el.style.setProperty(name, p.toFixed(3));
+    };
+    const onScroll = () => (raf ||= requestAnimationFrame(measure));
+    measure();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [ref, name]);
+}

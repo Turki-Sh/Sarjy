@@ -87,7 +87,7 @@ export function Hero({ lang, visitor, cast }: Props) {
             </span>
           </span>{" "}
           <span className={styles.lineB}>
-            <em className={styles.em}>{s.titleB}</em>
+            <span className={styles.em}>{s.titleB}</span>
             <span className={styles.perch} aria-hidden="true">
               <Rafeeq id={cast.perch} state={state} level={yours ? visitor!.level : 4} />
               {hello && (
