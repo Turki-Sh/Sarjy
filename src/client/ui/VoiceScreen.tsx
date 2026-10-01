@@ -47,6 +47,8 @@ type Props = {
   initialRafeeq?: RafeeqId | null;
   /** In a Majlis: its code, whose it is, how many are in, and whether you already are. */
   room?: { code: string; hostName: string | null; people: number; member: boolean; phase: RoomPhase };
+  /** Which fresh-chat line a new visit opens on, picked by the server (a different one each time). */
+  initialFreshLine?: number;
 };
 
 /** The language "Auto detect" resolves to: the browser's own. */
@@ -60,6 +62,7 @@ export function VoiceScreen({
   initialGlass,
   initialWallpaper,
   initialRafeeq = null,
+  initialFreshLine = 0,
   room,
 }: Props) {
   const router = useRouter();
@@ -216,7 +219,7 @@ export function VoiceScreen({
   };
 
   /** Which of the new-chat lines to show; a new one, at random, each time you start a chat. */
-  const [freshLine, setFreshLine] = useState(0);
+  const [freshLine, setFreshLine] = useState(initialFreshLine);
   const newChat = () => {
     setSheet(false);
     if (room) return router.push(TALK);
@@ -387,7 +390,7 @@ export function VoiceScreen({
   const showChip = sarjy.state === "tool" || sarjy.state === "speaking" || sarjy.state === "thinking";
   // At rest, the line under the orb says where you are: a new chat, or one picked back up.
   const note =
-    sarjy.state === "idle" && sarjy.chatNote
+    sarjy.state === "idle" && sarjy.chatNote && !room
       ? sarjy.chatNote === "fresh"
         ? s.freshChat[freshLine % s.freshChat.length]
         : s.continuing

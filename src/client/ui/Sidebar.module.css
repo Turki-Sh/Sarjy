@@ -298,3 +298,14 @@
     animation: none;
   }
 }
+
+/* The logo is the way home. */
+.home {
+  display: flex;
+  color: inherit;
+  border-radius: var(--r-s);
+}
+.home:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}

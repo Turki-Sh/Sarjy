@@ -8,6 +8,7 @@ import { useState } from "react";
 import type { Lang } from "@/shared/i18n";
 import { t } from "@/shared/i18n";
 import type { Memory } from "@/shared/protocol";
+import Link from "next/link";
 import { Logo } from "./brand/Logo";
 import { Icon } from "./Icon";
 import { Menu } from "./Menu";
@@ -78,7 +79,10 @@ export function Sidebar({
   return (
     <aside className={`${styles.side} glass-panel`} aria-label={s.memory}>
       <div className={styles.brand}>
-        <Logo lang={lang} className={styles.logo} />
+        {/* The logo leads home (Turki, Day 4). */}
+        <Link href="/" className={styles.home} aria-label="Sarjy">
+          <Logo lang={lang} className={styles.logo} />
+        </Link>
         <button
           type="button"
           className={styles.close}

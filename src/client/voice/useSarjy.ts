@@ -206,7 +206,8 @@ export function useSarjy(
   const pictureRef = useRef<{ blob: Blob; url: string } | null>(null);
   /** The chat on screen (null: a new one, not yet started), and what the stage says about it. */
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [chatNote, setChatNote] = useState<"fresh" | "continuing" | null>(null);
+  // A new visit is a new, empty chat: it opens on one of the fresh-chat lines (Turki, Day 4).
+  const [chatNote, setChatNote] = useState<"fresh" | "continuing" | null>("fresh");
   /** Every line of the chat on screen, oldest first. */
   const [lines, setLines] = useState<ChatLine[]>([]);
   /** In a Majlis: whose turn is on screen (they asked; Sarjy is answering them), by user id. */

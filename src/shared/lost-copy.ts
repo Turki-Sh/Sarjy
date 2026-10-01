@@ -9,8 +9,8 @@ type LostCopy = {
   body: string;
   home: string;
   talk: string;
+  /** The moon's label (it changes the scene). */
   shuffle: string;
-  hint: string;
   scene: string;
   /** What each one says while lost, in character. */
   lines: Record<RafeeqId, readonly string[]>;
@@ -25,7 +25,6 @@ export const LOST: Record<Lang, LostCopy> = {
     home: "Take me home",
     talk: "Talk to Sarjy",
     shuffle: "Ask someone else for directions",
-    hint: "Tap the fire to keep it going.",
     scene: "Night in the dunes. A few Rafeeqs sit around a campfire, lost.",
     lines: {
       rider: [
@@ -61,7 +60,6 @@ export const LOST: Record<Lang, LostCopy> = {
     home: "رجعني للرئيسية",
     talk: "كلّم سرجي",
     shuffle: "اسأل أحد ثاني عن الطريق",
-    hint: "اضغط على النار عشان تولّع.",
     scene: "ليل بين الطعوس، وكم رفيق قاعدين حول النار، ضايعين.",
     lines: {
       rider: ["نمشي مع الفجر. بس وين الفجر؟", "خلكم قريبين، أنا معكم.", "كل بير له اسم، إلا هذا."],

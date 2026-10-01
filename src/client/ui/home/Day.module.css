@@ -129,41 +129,19 @@
   gap: 20px;
   padding-block: 56px 8px;
 }
-.play {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.play:hover {
-  background: var(--sunken);
-}
-.playIcon {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-.pauseIcon {
-  width: 10px;
-  height: 12px;
-  border-inline: 3.5px solid currentColor;
-}
 .track {
   position: relative;
   flex: 1;
-  height: 36px;
-  cursor: pointer;
+  height: 48px;
+  cursor: grab;
   touch-action: none;
+}
+.track[data-dragging] {
+  cursor: grabbing;
+}
+/* While dragging, the pill and the needle stay under your finger; let go and they glide home. */
+.track[data-dragging] :is(.needle, .pill) {
+  transition: none;
 }
 .track::before {
   content: "";
@@ -282,14 +260,9 @@
 [dir="rtl"] .on {
   rotate: 90deg;
 }
-:is(.play, .arrow, .time):focus-visible {
+:is(.arrow, .time):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-}
-.sample {
-  margin: 12px 0 0;
-  color: var(--text-2);
-  font-size: 13px;
 }
 
 /* On a phone the exchange goes under the picture. */
@@ -315,9 +288,6 @@
     align-items: stretch;
     gap: 56px;
     padding-block-start: 24px;
-  }
-  .play {
-    align-self: flex-start;
   }
   /* The pill sits centered over the track (at the ends it would run off the screen). */
   .pill,

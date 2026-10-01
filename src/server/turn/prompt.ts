@@ -4,7 +4,7 @@ import "server-only";
 // provider can cache it: who Sarjy is and how it speaks (from the brand book, section 5), the
 // language rule, tool rules, memory rules, then this turn's context and the user's memories.
 
-import { dayPart, gregorianDate, hijriDate, localTime } from "@/shared/hijri";
+import { clock12, dayPart, gregorianDate, hijriDate, localTime } from "@/shared/hijri";
 import { noteOf } from "@/shared/memory";
 import type { Memory } from "@/shared/protocol";
 import type { OnboardingStep } from "./onboarding";
@@ -117,7 +117,10 @@ function majlisBlock(room: NonNullable<PromptContext["room"]>): string {
 export function buildSystemPrompt(ctx: PromptContext): string {
   const { now, timeZone } = ctx;
   const context = [
-    `Now: ${gregorianDate(now, "en", timeZone)}, ${localTime(now, timeZone)} (${timeZone}), the ${dayPart(now, timeZone)}.`,
+    `Now: ${gregorianDate(now, "en", timeZone)}, ${localTime(now, timeZone)} (${clock12(now, timeZone)}, ${timeZone}), the ${dayPart(now, timeZone)}.`,
+    // Turki, Day 4: asked the time late at night, it once answered with an afternoon time. The
+    // clock above is the only source: not an earlier answer in this chat, not a web page.
+    "For the current time or date, use the Now line above, exactly: the conversation may have started hours ago, so never repeat a time from an earlier message, and never search the web for it.",
     `Hijri date (Umm al-Qura): ${hijriDate(now, "en", timeZone)} / ${hijriDate(now, "ar", timeZone)}.`,
     `Interface language: ${ctx.uiLang === "ar" ? "Arabic" : "English"}.`,
     ctx.userName ? `The user's name: ${ctx.userName}.` : "You don't know the user's name yet.",

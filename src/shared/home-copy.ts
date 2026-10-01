@@ -19,7 +19,6 @@ export type DayStop = {
   sarjy: string;
   tool: string;
 };
-export type PartOfDay = "morning" | "afternoon" | "evening" | "night";
 
 type HomeCopy = {
   nav: {
@@ -27,20 +26,22 @@ type HomeCopy = {
     day: string;
     rafeeqs: string;
     majlis: string;
-    handbook: string;
     talk: string;
     otherLang: string;
     dark: string;
     light: string;
   };
   hero: {
-    hello: (part: PartOfDay, name: string | null) => string;
+    /**
+     * A hello from your Rafeeq, by the page's light: a few to pick from at random in the light
+     * theme, and night ones in the dark (Turki, Day 4).
+     */
+    hello: Record<"light" | "dark", readonly ((name: string | null) => string)[]>;
     titleA: string;
     titleB: string;
     lede: string;
     talk: string;
     meet: string;
-    note: string;
     scene: string;
   };
   promise: {
@@ -54,7 +55,6 @@ type HomeCopy = {
     ask: string;
     recall: string;
     card: { topic: string; value: string };
-    caption: string;
   };
   day: {
     kicker: string;
@@ -62,9 +62,6 @@ type HomeCopy = {
     lede: string;
     stops: readonly DayStop[];
     you: string;
-    sample: string;
-    play: string;
-    pause: string;
     earlier: string;
     later: string;
     slider: string;
@@ -73,10 +70,8 @@ type HomeCopy = {
     kicker: string;
     title: string;
     lede: string;
-    number: (n: number) => string;
     ride: (name: string) => string;
     yours: string;
-    hint: string;
   };
   majlis: {
     kicker: string;
@@ -102,7 +97,7 @@ type HomeCopy = {
     pick: (name: string) => string;
     orb: string;
   };
-  footer: { tagline: string; talk: string; handbook: string; made: string };
+  footer: { tagline: string; made: string };
   /** The little one that rides along the page with you, one line per section. */
   companion: { label: string; lines: Record<"promise" | "day" | "rafeeqs" | "majlis" | "reins", string> };
 };
@@ -114,24 +109,33 @@ export const HOME: Record<Lang, HomeCopy> = {
       day: "A day with it",
       rafeeqs: "Rafeeqs",
       majlis: "Majlis",
-      handbook: "Handbook",
       talk: "Talk to Sarjy",
       otherLang: "العربية",
       dark: "Dark",
       light: "Light",
     },
     hero: {
-      hello: (part, name) => {
-        const greet = { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" };
-        if (part === "night") return name ? `Up late, ${name}?` : "Up late?";
-        return name ? `${greet[part]}, ${name}.` : `${greet[part]}.`;
+      hello: {
+        light: [
+          (name) => (name ? `Hey ${name}, good to see you.` : "Hey, good to see you."),
+          (name) => (name ? `Welcome back, ${name}.` : "Welcome in."),
+          (name) => (name ? `Where to today, ${name}?` : "Where to today?"),
+          (name) => (name ? `Ready when you are, ${name}.` : "Ready when you are."),
+          (name) => (name ? `Good day for a ride, ${name}.` : "Good day for a ride."),
+        ],
+        dark: [
+          (name) => (name ? `Up late, ${name}?` : "Up late?"),
+          (name) => (name ? `Quiet night, ${name}.` : "Quiet night."),
+          (name) => (name ? `Still awake, ${name}?` : "Still awake?"),
+          (name) => (name ? `The stars are out, ${name}.` : "The stars are out."),
+          (name) => (name ? `Night owl, ${name}?` : "Night owl?"),
+        ],
       },
       titleA: "Shaped to its",
       titleB: "rider.",
-      lede: "A voice assistant that remembers what you tell it, answers from real tools, and brings a friend along for the ride.",
+      lede: "Every journey starts with a word. Sarjy remembers the rest, finds what you need, and brings a friend along.",
       talk: "Talk to Sarjy",
       meet: "Meet the Rafeeqs",
-      note: "No sign-up. English and Arabic.",
       scene: "The Rafeeqs crossing the dunes, one sitting on the headline, one peeking over it.",
     },
     promise: {
@@ -145,8 +149,6 @@ export const HOME: Record<Lang, HomeCopy> = {
       ask: "What's my favorite color?",
       recall: "Green. You told me on Sunday.",
       card: { topic: "Favorite color", value: "green" },
-      caption:
-        "Keeper carries it for you. Every save is said out loud and shown on screen, so you always know what it knows.",
     },
     day: {
       kicker: "A day with Sarjy",
@@ -206,9 +208,6 @@ export const HOME: Record<Lang, HomeCopy> = {
         },
       ],
       you: "You",
-      sample: "Sample exchanges. Figures are illustrative.",
-      play: "Play the day",
-      pause: "Pause",
       earlier: "Earlier",
       later: "Later",
       slider: "Time of day",
@@ -216,11 +215,9 @@ export const HOME: Record<Lang, HomeCopy> = {
     rafeeqs: {
       kicker: "The Rafeeqs",
       title: "Eight companions. One rides with you.",
-      lede: "Rafeeq means a companion on the road. Pick one and it takes the orb's place: it listens, thinks and talks with Sarjy's voice, and grows closer the more you ride together.",
-      number: (n) => `No. ${String(n).padStart(2, "0")}`,
+      lede: "A Rafeeq makes the road feel a little lighter. Choose one, and it becomes your companion with Sarjy: listening, understanding, and joining you in its own way. The more you travel together, the more familiar it becomes.",
       ride: (name) => `Ride with ${name}`,
       yours: "Rides with you",
-      hint: "Rest your pointer on one, or stroke it. Each takes it its own way.",
     },
     majlis: {
       kicker: "The Majlis",
@@ -262,12 +259,10 @@ export const HOME: Record<Lang, HomeCopy> = {
       title: "Who rides with you?",
       lede: "Pick a Rafeeq and start talking. You can change your mind any time in Settings.",
       pick: (name) => `Ride with ${name}`,
-      orb: "Just the orb, thanks",
+      orb: "Talk with Sarjy",
     },
     footer: {
       tagline: "Shaped to its rider.",
-      talk: "Talk to Sarjy",
-      handbook: "The Sarjy Handbook",
       made: "Made by Turki Alshuaibi.",
     },
     companion: {
@@ -287,24 +282,33 @@ export const HOME: Record<Lang, HomeCopy> = {
       day: "يوم معه",
       rafeeqs: "الرفاق",
       majlis: "المجلس",
-      handbook: "الدليل",
       talk: "كلّم سرجي",
       otherLang: "English",
       dark: "داكن",
       light: "فاتح",
     },
     hero: {
-      hello: (part, name) => {
-        if (part === "night") return name ? `سهران يا ${name}؟` : "سهران؟";
-        const greet = part === "morning" ? "صباح الخير" : "مساء الخير";
-        return name ? `${greet} يا ${name}.` : `${greet}.`;
+      hello: {
+        light: [
+          (name) => (name ? `هلا والله يا ${name}.` : "هلا والله."),
+          (name) => (name ? `نورت يا ${name}.` : "نورت."),
+          (name) => (name ? `وين وجهتك اليوم يا ${name}؟` : "وين وجهتك اليوم؟"),
+          (name) => (name ? `حيّاك يا ${name}، جاهزين.` : "حيّاك، جاهزين."),
+          (name) => (name ? `يوم حلو للمشوار يا ${name}.` : "يوم حلو للمشوار."),
+        ],
+        dark: [
+          (name) => (name ? `سهران يا ${name}؟` : "سهران؟"),
+          (name) => (name ? `ليلة هادية يا ${name}.` : "ليلة هادية."),
+          (name) => (name ? `للحين صاحي يا ${name}؟` : "للحين صاحي؟"),
+          (name) => (name ? `النجوم طالعة الليلة يا ${name}.` : "النجوم طالعة الليلة."),
+          (name) => (name ? `سهرة حلوة يا ${name}؟` : "سهرة حلوة؟"),
+        ],
       },
       titleA: "على مقاس",
       titleB: "فارسه.",
-      lede: "مساعد صوتي يتذكر اللي تقوله، ويجاوبك من أدوات حقيقية، ويجيب معه رفيق للمشوار.",
+      lede: "كل مشوار يبدأ بكلمة. سرجي يتذكّر الباقي، يجيب لك اللي تحتاجه، ويجيب معه رفيق.",
       talk: "كلّم سرجي",
       meet: "تعرّف على الرفاق",
-      note: "بدون تسجيل. عربي وإنجليزي.",
       scene: "الرفاق يمشون بين الطعوس، واحد قاعد على العنوان وواحد يطل من وراه.",
     },
     promise: {
@@ -318,7 +322,6 @@ export const HOME: Record<Lang, HomeCopy> = {
       ask: "وش لوني المفضل؟",
       recall: "أخضر. قلت لي يوم الأحد.",
       card: { topic: "اللون المفضل", value: "أخضر" },
-      caption: "حافظ يشيلها عنك. كل شي ينحفظ ينقال بصوت ويبان قدامك، عشان تعرف دايم وش يعرف.",
     },
     day: {
       kicker: "يوم مع سرجي",
@@ -378,9 +381,6 @@ export const HOME: Record<Lang, HomeCopy> = {
         },
       ],
       you: "أنت",
-      sample: "محادثات للتوضيح، والأرقام أمثلة.",
-      play: "شغّل اليوم",
-      pause: "وقّف",
       earlier: "قبل",
       later: "بعد",
       slider: "وقت اليوم",
@@ -388,11 +388,9 @@ export const HOME: Record<Lang, HomeCopy> = {
     rafeeqs: {
       kicker: "الرفاق",
       title: "ثمانية رفاق. واحد منهم يمشي معك.",
-      lede: "رفيق يعني صاحبك بالطريق. اختر واحد وياخذ مكان الدائرة: يسمعك ويفكر ويتكلم بصوت سرجي، ويقرب منك كل ما مشيتوا مع بعض.",
-      number: (n) => `رقم ${n.toLocaleString("ar-SA")}`,
+      lede: "الرفيق هو اللي يهوّن الطريق. اختر واحد منهم، ويصير صاحبك مع سرجي: يسمعك، يفهمك، ويرافقك بطريقته. ومع كل مشوار، تكبر بينكم الألفة شوي شوي.",
       ride: (name) => `خذ ${name} معك`,
       yours: "يمشي معك",
-      hint: "وقّف المؤشر على واحد، أو مسّح عليه. كل واحد وله طبعه.",
     },
     majlis: {
       kicker: "المجلس",
@@ -426,12 +424,10 @@ export const HOME: Record<Lang, HomeCopy> = {
       title: "مين يمشي معك؟",
       lede: "اختر رفيقك وابدأ السوالف. تقدر تغيّره وقت ما تبي من الإعدادات.",
       pick: (name) => `خذ ${name} معك`,
-      orb: "بس الدائرة، شكرًا",
+      orb: "كلّم سرجي",
     },
     footer: {
       tagline: "على مقاس فارسه.",
-      talk: "كلّم سرجي",
-      handbook: "دليل سرجي",
       made: "من تطوير تركي الشعيبي.",
     },
     companion: {

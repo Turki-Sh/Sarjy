@@ -33,6 +33,16 @@ export function localTime(date: Date, timeZone = "Asia/Riyadh"): string {
   }).format(date);
 }
 
+/** The same time on a 12-hour clock ("11:30 PM"), the way people say it. */
+export function clock12(date: Date, timeZone = "Asia/Riyadh"): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone,
+  }).format(date);
+}
+
 export function dayPart(date: Date, timeZone = "Asia/Riyadh"): DayPart {
   const hour = Number(
     new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone }).format(date),

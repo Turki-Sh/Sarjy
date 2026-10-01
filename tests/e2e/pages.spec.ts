@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { t } from "@/shared/i18n";
 
 // The home page and the 404 (Turki, Day 4). The home page introduces Sarjy with the Rafeeqs living
 // in it and leads to the voice screen at /talk; the 404 is a campfire scene of lost Rafeeqs that
@@ -9,7 +10,16 @@ test("the home page introduces Sarjy, alive, and leads to the voice screen (AT-1
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Shaped to its rider.");
   // The Rafeeqs are in the picture, not in a showcase: on the headline and on the dunes.
   await expect(page.locator("#hero [data-rafeeq]")).toHaveCount(8);
-  await expect(page.getByText(/^Good (morning|afternoon|evening)\.$|^Up late\?$/)).toBeVisible();
+  // Its Rafeeq says hello, in words for the light theme; click the sun and the words turn to night.
+  const hello = page.locator("#hero [data-hello]").filter({ hasText: /^(Hey|Welcome|Where|Ready|Good day)/ });
+  await expect(hello).toBeVisible();
+  await page.locator("#hero").getByRole("button", { name: "Dark" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(
+    page
+      .locator("#hero [data-hello]")
+      .filter({ hasText: /^(Up late|Quiet night|Still awake|The stars|Night owl)/ }),
+  ).toBeVisible();
   // Hovering "Talk to Sarjy" makes them lean in to listen.
   const talk = page.locator("#hero").getByRole("link", { name: "Talk to Sarjy" });
   await talk.hover();
@@ -39,9 +49,10 @@ test("a returning visitor is greeted by name, with their own Rafeeq on the headl
   await page.request.patch("/api/profile", { data: { name: "Turki" } });
   await page.request.patch("/api/rafeeq", { data: { rafeeq: "lantern" } });
   await page.goto("/");
-  await expect(page.getByText(/Turki[.?]$/)).toBeVisible();
+  await expect(page.locator("#hero [data-hello]").filter({ hasText: /Turki/ })).toBeVisible();
   await expect(page.locator("#hero [data-rafeeq='lantern']")).toBeVisible();
-  await expect(page.locator("#hero").getByText("Lantern · Lv 1")).toBeVisible();
+  // No level on the headline: it is a hello, not a scoreboard.
+  await expect(page.locator("#hero").getByText(/Lv \d/)).toHaveCount(0);
 });
 
 test("the home page in Arabic mirrors and says it all in Arabic (AT-120)", async ({ page, context }) => {
@@ -82,9 +93,11 @@ test("a missing page is a campfire of lost Rafeeqs, a new scene every time (AT-1
   // Someone always says something, in their own words.
   await expect(stage.getByRole("paragraph")).toBeVisible({ timeout: 8000 });
 
-  // Asking for directions plays another scene.
+  // A small secret: the moon plays another scene.
   const before = await stage.getAttribute("data-vignette");
-  await page.getByRole("button", { name: "Ask someone else for directions" }).click();
+  // The moon hangs and sways, never still enough to click by position: press it from the keyboard.
+  await page.getByRole("button", { name: "Ask someone else for directions" }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.locator("[data-vignette]")).not.toHaveAttribute("data-vignette", before!);
 
   // Stoking the fire cheers everyone up (except whoever is mid-brawl).
@@ -102,4 +115,16 @@ test("the 404 speaks Arabic too (AT-123)", async ({ page, context }) => {
   await page.goto("/majlis-that-never-was/really");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("ضعنا.");
   await expect(page.getByRole("link", { name: "رجعني للرئيسية" })).toBeVisible();
+});
+
+test("the voice screen opens on a fresh-chat line, and its logo leads home (AT-124)", async ({ page }) => {
+  await page.goto("/talk");
+  // Not the generic "Tap Sarjy to talk": one of the lines for a new chat.
+  await expect(page.getByText("Tap Sarjy to talk")).toHaveCount(0);
+  const fresh = t("en")
+    .freshChat.map((line) => line.replace(/[.?]/g, "\\$&"))
+    .join("|");
+  await expect(page.getByText(new RegExp(`^(${fresh})$`))).toBeVisible();
+  await page.getByRole("complementary").getByRole("link", { name: "Sarjy" }).click();
+  await expect(page).toHaveURL(/\/$/);
 });

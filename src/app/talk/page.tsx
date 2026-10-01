@@ -4,6 +4,7 @@
 import type { Metadata } from "next";
 import { VoiceScreen } from "@/client/ui/VoiceScreen";
 import { readPreferences } from "@/server/preferences";
+import { freshSeed } from "@/shared/random";
 import { TALK } from "@/shared/site";
 
 export const metadata: Metadata = { alternates: { canonical: TALK } };
@@ -19,6 +20,7 @@ export default async function Talk() {
       initialGlass={glass}
       initialWallpaper={wallpaper}
       initialRafeeq={rafeeq}
+      initialFreshLine={freshSeed()}
     />
   );
 }

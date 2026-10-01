@@ -3,8 +3,8 @@
 // The 404 (Turki, Day 4): night in the dunes, the moon for the zero, and a few Rafeeqs lost around
 // a campfire. Every visit draws a different scene and cast (vignettes.ts): a story by the fire, a
 // squabble over the map in a cloud of dust, one walking in circles, a map held upside down. They
-// talk, each in its own voice; tap the fire and it flares up and they cheer; ask someone else for
-// directions and a new scene plays. The way home is always right there.
+// talk, each in its own voice. Two small secrets: tap the fire and it flares up and they cheer;
+// tap the moon and another scene plays. The way home is always right there.
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
@@ -96,10 +96,11 @@ export function Lost({ lang, seed }: { lang: Lang; seed: number }) {
       </header>
 
       <div className={styles.sky}>
-        <p className={styles.digits} aria-hidden="true" dir="ltr">
-          <span>4</span>
-          <span className={styles.moon} />
-          <span>4</span>
+        <p className={styles.digits} dir="ltr">
+          <span aria-hidden="true">4</span>
+          {/* A small secret: the moon changes the scene. */}
+          <button type="button" className={styles.moon} onClick={reshuffle} aria-label={s.shuffle} />
+          <span aria-hidden="true">4</span>
         </p>
         <section className={styles.copy}>
           <h1 className={styles.title}>{s.title}</h1>
@@ -141,13 +142,6 @@ export function Lost({ lang, seed }: { lang: Lang; seed: number }) {
         {staged.map && <MapProp {...staged.map} />}
         {speaker && line && <Bubble key={turn} x={speaker.x} y={speaker.y} size={speaker.size} text={line} />}
       </div>
-
-      <footer className={styles.foot}>
-        <button type="button" className={styles.shuffle} onClick={reshuffle}>
-          {s.shuffle}
-        </button>
-        <p className={styles.hint}>{s.hint}</p>
-      </footer>
     </main>
   );
 }

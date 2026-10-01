@@ -8,7 +8,7 @@
   min-height: 100dvh;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(clamp(250px, 42vh, 520px), 1fr) auto;
+  grid-template-rows: auto auto minmax(clamp(250px, 42vh, 520px), 1fr);
   color: var(--frost);
   background: var(--sky-night-top);
   font-family: var(--font-ui);
@@ -60,6 +60,11 @@
   user-select: none;
 }
 .moon {
+  position: relative;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  font-size: inherit;
   width: 0.62em;
   aspect-ratio: 1;
   margin-inline: 0.06em;
@@ -70,15 +75,13 @@
     radial-gradient(circle at 58% 28%, var(--moon-shade) 5%, transparent 6%),
     radial-gradient(circle at 30% 70%, var(--moon-shade) 4%, transparent 5%),
     radial-gradient(circle at 35% 30%, var(--moon), var(--moon-shade));
-  box-shadow:
-    0 0 0.3em 0.05em var(--moon-glow),
-    0 0 1.2em 0.3em var(--moon-glow);
+  /* A modest glow (a very large blurred shadow draws as a box on some screens). */
+  filter: drop-shadow(0 0 0.14em var(--moon-glow)) drop-shadow(0 0 0.05em var(--moon-glow));
   animation: hang 7s ease-in-out infinite;
 }
 @keyframes hang {
   50% {
     translate: 0 -0.05em;
-    rotate: 6deg;
   }
 }
 .copy {
@@ -120,8 +123,7 @@
   margin-block-start: 8px;
 }
 .primary,
-.secondary,
-.shuffle {
+.secondary {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -140,23 +142,20 @@
   background: var(--oasis);
   color: var(--ink);
 }
-.secondary,
-.shuffle {
+.secondary {
   border: 1px solid color-mix(in srgb, var(--frost) 28%, transparent);
   background: color-mix(in srgb, var(--frost) 6%, transparent);
   color: var(--frost);
   backdrop-filter: blur(8px);
 }
 .primary:hover,
-.secondary:hover,
-.shuffle:hover {
+.secondary:hover {
   transform: translateY(-1px);
 }
-.secondary:hover,
-.shuffle:hover {
+.secondary:hover {
   background: color-mix(in srgb, var(--frost) 12%, transparent);
 }
-:is(.primary, .secondary, .shuffle):focus-visible {
+:is(.primary, .secondary, .moon):focus-visible {
   outline: 2px solid var(--oasis);
   outline-offset: 3px;
 }
@@ -456,22 +455,6 @@
     opacity: 0;
     scale: 0.96;
   }
-}
-
-/* ---- Below the stage ---- */
-
-.foot {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 18px 16px 28px;
-  /* The sand goes on under the stage, with no seam. */
-  background: var(--dune-shade);
-}
-.hint {
-  margin: 0;
-  color: var(--ash);
-  font-size: 13px;
 }
 
 @media (prefers-reduced-motion: reduce) {

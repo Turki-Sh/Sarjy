@@ -98,10 +98,19 @@ describe("the pages' words", () => {
     for (const id of RAFEEQS) expect(LOST.ar.lines[id].length).toBe(LOST.en.lines[id].length);
   });
 
-  it("greets you by the time of day, and by name when it knows it", () => {
-    expect(HOME.en.hero.hello("evening", "Turki")).toBe("Good evening, Turki.");
-    expect(HOME.en.hero.hello("morning", null)).toBe("Good morning.");
-    expect(HOME.ar.hero.hello("night", "تركي")).toBe("سهران يا تركي؟");
+  it("says hello with the page's light, several ways, by name when it knows it", () => {
+    for (const lang of ["en", "ar"] as const) {
+      for (const theme of ["light", "dark"] as const) {
+        const lines = HOME[lang].hero.hello[theme];
+        expect(lines.length).toBeGreaterThanOrEqual(4);
+        for (const line of lines) {
+          expect(line("Turki")).toContain("Turki");
+          expect(line(null)).not.toContain("null");
+        }
+      }
+    }
+    expect(HOME.ar.hero.hello.dark[0]!("تركي")).toBe("سهران يا تركي؟");
+    expect(HOME.en.hero.hello.dark[0]!(null)).toBe("Up late?");
   });
 
   it("never uses an em dash", () => {

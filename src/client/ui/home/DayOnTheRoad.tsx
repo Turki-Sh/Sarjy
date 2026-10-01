@@ -5,11 +5,11 @@
 // Scout on a dune at first light, Fennec with its ears up for a search, Keeper beaming at a save,
 // friends in a Majlis at dusk, Lantern keeping watch while the others sleep. Each moment shows
 // the exchange, the tool Sarjy used, and its reply as it is said. It plays by itself while you
-// watch; drag the timeline (or use the arrows) to go through the day yourself.
+// watch, until you take the timeline and drag through the day yourself (the sun follows you).
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { Lang } from "@/shared/i18n";
-import { HOME } from "@/shared/home-copy";
+import { HOME, type DayStop } from "@/shared/home-copy";
 import type { Mood, RafeeqId } from "@/shared/rafeeq";
 import type { VoiceState } from "@/shared/states";
 import { Actor } from "../scene/Actor";
@@ -57,6 +57,16 @@ const CAST: Part[][] = [
     { id: "keeper", x: 42, y: 91, size: 9, act: "sleepy", facing: -1 },
   ],
 ];
+/** Where the sun (or moon) is at an hour between two moments: between their places, in step. */
+function arcAt(stops: readonly DayStop[], hour: number): number {
+  const next = stops.findIndex((s) => s.at >= hour);
+  if (next <= 0) return stops[next === 0 ? 0 : stops.length - 1]!.arc;
+  const [a, b] = [stops[next - 1]!, stops[next]!];
+  // Night wraps the moon back to the east, so blend only within the same sky.
+  if (a.sky === "night" || b.sky === "night") return b.arc;
+  return a.arc + ((hour - a.at) / (b.at - a.at)) * (b.arc - a.arc);
+}
+
 /** How long each moment plays on its own. */
 const MOMENT_MS = 7000;
 
@@ -69,6 +79,8 @@ export function DayOnTheRoad({ lang }: { lang: Lang }) {
 
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
+  // While you drag, the sun follows your finger between the moments.
+  const [scrub, setScrub] = useState<number | null>(null);
   useEffect(() => {
     if (!playing || !inView) return;
     const t = window.setTimeout(() => setIndex((i) => (i + 1) % s.stops.length), MOMENT_MS);
@@ -76,6 +88,7 @@ export function DayOnTheRoad({ lang }: { lang: Lang }) {
   }, [playing, inView, index, s.stops.length]);
 
   const stop = s.stops[index]!;
+  const arc = scrub === null ? stop.arc : arcAt(s.stops, scrub);
   const reply = useTyped(stop.sarjy, inView);
   const talking = inView && reply.length > 0 && reply.length < stop.sarjy.length;
   const go = (i: number) => {
@@ -94,7 +107,7 @@ export function DayOnTheRoad({ lang }: { lang: Lang }) {
       </div>
 
       <div ref={root} className={`${scene.scene} ${styles.stage}`} data-time={stop.sky}>
-        <Sky arc={stop.arc} stars={80} seed={5} />
+        <Sky arc={arc} stars={80} seed={5} />
         <Dunes uid={uid} />
         {CAST[index]!.map((p, i) => (
           <Actor
@@ -133,11 +146,12 @@ export function DayOnTheRoad({ lang }: { lang: Lang }) {
           stops={s.stops}
           index={index}
           onChange={go}
-          playing={playing}
-          onToggle={() => setPlaying((p) => !p)}
+          onScrub={(hour) => {
+            setPlaying(false);
+            setScrub(hour);
+          }}
           labels={s}
         />
-        <p className={styles.sample}>{s.sample}</p>
       </div>
     </section>
   );

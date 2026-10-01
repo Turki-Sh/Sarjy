@@ -2,8 +2,8 @@
 
 // The eight Rafeeqs, as a gallery you walk through: on a wide screen the page scrolls down and
 // the gallery slides sideways (the section is as tall as the gallery is wide); on a phone you
-// swipe. Each companion gets a room of its own: its name huge behind it, its number, its name in
-// the other script, its traits and story, and itself, alive (rest your pointer on it, stroke it).
+// swipe. Each companion gets a room of its own: its name (and its name in the other script), its
+// traits and story, and itself, alive (rest your pointer on it, stroke it).
 // "Ride with ..." picks it and takes you to talk.
 
 import { useRouter } from "next/navigation";
@@ -18,8 +18,6 @@ import { useScrollProgress } from "../scene/hooks";
 import styles from "./Gallery.module.css";
 import home from "./Home.module.css";
 import { pickRafeeq } from "./pick";
-
-const PLUSH = new Set(["rider", "keeper", "scout", "drifter"]);
 
 export function Gallery({ lang, visitor }: { lang: Lang; visitor: Visitor | null }) {
   const s = HOME[lang].rafeeqs;
@@ -63,15 +61,11 @@ export function Gallery({ lang, visitor }: { lang: Lang; visitor: Visitor | null
               {s.title}
             </h2>
             <p className={home.lede}>{s.lede}</p>
-            <p className={styles.hint}>{s.hint}</p>
           </div>
-          {RAFEEQS.map((id, i) => {
+          {RAFEEQS.map((id) => {
             const yours = visitor?.rafeeq === id;
             return (
               <article key={id} className={styles.room} data-rafeeq={id} aria-labelledby={`room-${id}`}>
-                <span className={styles.giant} aria-hidden="true">
-                  {r.names[id]}
-                </span>
                 <div className={styles.figure}>
                   <span className={styles.halo} />
                   <span className={styles.plinth} />
@@ -80,9 +74,6 @@ export function Gallery({ lang, visitor }: { lang: Lang; visitor: Visitor | null
                   </div>
                 </div>
                 <div className={styles.label}>
-                  <p className={styles.number}>
-                    {s.number(i + 1)} · {PLUSH.has(id) ? r.groups.plush : r.groups.classic}
-                  </p>
                   <h3 id={`room-${id}`} className={styles.name}>
                     {r.names[id]}{" "}
                     <span className={styles.otherName} lang={lang === "ar" ? "en" : "ar"}>
@@ -92,9 +83,7 @@ export function Gallery({ lang, visitor }: { lang: Lang; visitor: Visitor | null
                   <p className={styles.traits}>{r.traits[id]}</p>
                   <p className={styles.story}>{r.stories[id]}</p>
                   {yours ? (
-                    <p className={styles.yours}>
-                      {s.yours} · {r.short(visitor!.level)}
-                    </p>
+                    <p className={styles.yours}>{s.yours}</p>
                   ) : (
                     <button
                       type="button"

@@ -102,4 +102,10 @@ describe("system prompt", () => {
     // Alone, there is no Majlis block at all.
     expect(prompt).not.toContain("Majlis.");
   });
+
+  it("gives the time on both clocks, and says it is the only source for the time", () => {
+    // 06:00 UTC is 9:00 in Riyadh.
+    expect(prompt).toContain("09:00 (9:00 AM, Asia/Riyadh)");
+    expect(prompt).toContain("never repeat a time from an earlier message");
+  });
 });

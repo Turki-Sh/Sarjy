@@ -1,49 +1,82 @@
-/* "Who rides with you?": the words, then all eight peeking up from the page's bottom edge. */
+/*
+ * "Who rides with you?": the words in the middle and all eight scattered around them, tilted and
+ * drifting, some half off the page's edge (the section clips them).
+ */
 
 .finale {
   position: relative;
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  min-height: clamp(640px, 100svh, 940px);
   overflow: hidden;
-  padding-block-start: clamp(80px, 14vh, 160px);
   text-align: center;
 }
 .words {
+  position: relative;
+  z-index: 2;
   display: grid;
   justify-items: center;
-  padding-inline: 16px;
+  max-width: 1200px;
+  padding: 0 16px;
 }
 .title {
   max-width: none;
-  font-size: clamp(52px, 9vw, 150px);
+  font-size: clamp(44px, 7vw, 116px);
 }
 .words p {
   margin-inline: auto;
 }
-.orb {
-  margin-block-start: 18px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-  color: var(--text-2);
-  font-size: 15px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+.talk {
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  margin-block-start: 28px;
+  padding: 0 26px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 30%, transparent);
+  transition: transform var(--t-quick) var(--ease-rein);
 }
-.orb:hover {
-  color: var(--text);
+.talk:hover {
+  transform: translateY(-2px);
+}
+.talk:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
 
-.lineup {
-  display: flex;
-  justify-content: center;
-  margin: clamp(40px, 8vh, 80px) 0 0;
+.scatter {
+  position: absolute;
+  inset: 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
-.lineup li {
-  flex: 0 1 190px;
-  margin-inline: -1.2%;
+.scatter li {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--s) * 1cqw);
+  min-width: 84px;
+  translate: -50% -50%;
+  rotate: var(--r);
+  animation: drift 7s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.9s);
+}
+@keyframes drift {
+  50% {
+    translate: -50% calc(-50% - 10px);
+    rotate: calc(var(--r) * -0.4);
+  }
+}
+.scatter li:hover {
+  z-index: 3;
+  animation-play-state: paused;
 }
 .pick {
   position: relative;
@@ -53,16 +86,11 @@
   border: 0;
   background: none;
   cursor: pointer;
-  /* Peeking: the bottom third is below the edge; each bobs on its own beat. */
-  translate: 0 30%;
-  transition: translate 0.5s var(--ease-rein);
-  animation: bob 3.2s ease-in-out infinite;
-  animation-delay: calc(var(--i) * -0.4s);
+  transition: scale 0.4s var(--ease-rein);
 }
 .pick:hover,
 .pick:focus-visible {
-  translate: 0 6%;
-  animation-play-state: paused;
+  scale: 1.1;
   outline: none;
 }
 .figure {
@@ -75,7 +103,7 @@
 .name {
   position: absolute;
   left: 50%;
-  bottom: 100%;
+  bottom: 96%;
   translate: -50% 8px;
   padding: 6px 12px;
   border-radius: var(--r-pill);
@@ -85,6 +113,7 @@
   font-weight: 600;
   white-space: nowrap;
   opacity: 0;
+  pointer-events: none;
   transition:
     opacity var(--t-base),
     translate var(--t-base) var(--ease-rein);
@@ -99,11 +128,6 @@
   outline-offset: 2px;
   border-radius: 50%;
 }
-@keyframes bob {
-  50% {
-    margin-block-start: -6px;
-  }
-}
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -113,21 +137,19 @@
   white-space: nowrap;
 }
 
+/* A phone: they keep to the top and bottom, and leave the words the middle. */
 @media (max-width: 700px) {
-  .lineup {
-    flex-wrap: wrap;
-    row-gap: 0;
+  .finale {
+    min-height: 760px;
   }
-  .lineup li {
-    flex-basis: 25%;
-    margin-inline: 0;
-  }
-  .pick {
-    translate: 0 12%;
+  .scatter li {
+    left: var(--mx);
+    top: var(--my);
+    width: calc(var(--s) * 2.3cqw);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pick {
+  .scatter li {
     animation: none;
   }
 }

@@ -116,7 +116,8 @@ test("pick a rug or your own picture as the background, and keep it", async ({ p
   await page.getByRole("button", { name: "Open settings" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Appearance", exact: true }).click();
   await page.getByRole("dialog").locator('input[type="file"]').setInputFiles("public/wallpapers/sunlit.jpg");
-  await expect(layer).toHaveAttribute("data-wallpaper", /^own-\d+$/);
+  // The photo is shrunk in the browser and uploaded first: slower than a click when the machine is busy.
+  await expect(layer).toHaveAttribute("data-wallpaper", /^own-\d+$/, { timeout: 15_000 });
   await expect(page.getByRole("radio", { name: "Your picture" })).toHaveAttribute("aria-checked", "true");
   const url = (await layer.getAttribute("style"))!.match(/url\("([^"]+)"\)/)![1]!;
   const mine = await page.request.get(url);

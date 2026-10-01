@@ -66,7 +66,6 @@ export function PromiseStory({ lang }: { lang: Lang }) {
                 {s.recall}
               </li>
             </ol>
-            <p className={styles.caption}>{s.caption}</p>
           </div>
 
           <div className={styles.figure} aria-hidden="true">

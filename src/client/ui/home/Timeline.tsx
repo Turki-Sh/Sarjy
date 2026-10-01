@@ -1,11 +1,12 @@
 "use client";
 
 // The day's timeline: hour ticks from 5 in the morning to midnight, a dot for each moment, and a
-// pill that sits on the current one with its time and arrows either side. Drag along it (it
-// snaps to the nearest moment), click it, or use the arrow keys on the pill. It runs with the
-// reading direction, so in Arabic the day flows from right to left.
+// pill with the time and arrows either side. Grab it anywhere and drag: the pill follows your
+// finger smoothly through the hours (and the sun moves with it), the moment changes as you pass
+// each one, and when you let go it settles on the nearest. Or click, or use the arrow keys. It
+// runs with the reading direction, so in Arabic the day flows from right to left.
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { DayStop } from "@/shared/home-copy";
 import { Icon } from "../Icon";
 import styles from "./Day.module.css";
@@ -18,43 +19,51 @@ type Props = {
   stops: readonly DayStop[];
   index: number;
   onChange: (i: number) => void;
-  playing: boolean;
-  onToggle: () => void;
-  labels: { play: string; pause: string; earlier: string; later: string; slider: string };
+  /** Where the pointer is while dragging, in hours; null once let go. */
+  onScrub: (hour: number | null) => void;
+  labels: { earlier: string; later: string; slider: string };
 };
 
-export function Timeline({ stops, index, onChange, playing, onToggle, labels }: Props) {
+export function Timeline({ stops, index, onChange, onScrub, labels }: Props) {
   const track = useRef<HTMLDivElement>(null);
+  const [dragAt, setDragAt] = useState<number | null>(null);
   const stop = stops[index]!;
+  const at = place(dragAt ?? stop.at);
 
-  /** The moment nearest to where the pointer is along the track. */
-  const nearest = (clientX: number) => {
+  const rtl = () => getComputedStyle(track.current!).direction === "rtl";
+  /** The hour under the pointer, along the track. */
+  const hourAt = (clientX: number) => {
     const r = track.current!.getBoundingClientRect();
-    let f = (clientX - r.left) / r.width;
-    if (getComputedStyle(track.current!).direction === "rtl") f = 1 - f;
-    const hour = FIRST + f * (LAST - FIRST);
-    let best = 0;
-    stops.forEach((s, i) => {
-      if (Math.abs(s.at - hour) < Math.abs(stops[best]!.at - hour)) best = i;
-    });
-    return best;
+    const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    return FIRST + (rtl() ? 1 - f : f) * (LAST - FIRST);
+  };
+  const nearest = (hour: number) =>
+    stops.reduce((best, s, i) => (Math.abs(s.at - hour) < Math.abs(stops[best]!.at - hour) ? i : best), 0);
+
+  const follow = (clientX: number) => {
+    const hour = hourAt(clientX);
+    setDragAt(hour);
+    onScrub(hour);
+    const i = nearest(hour);
+    if (i !== index) onChange(i);
   };
   const onPointerDown = (e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) return;
     track.current!.setPointerCapture(e.pointerId);
-    onChange(nearest(e.clientX));
+    follow(e.clientX);
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!track.current!.hasPointerCapture(e.pointerId)) return;
-    const i = nearest(e.clientX);
-    if (i !== index) onChange(i);
+    if (track.current!.hasPointerCapture(e.pointerId)) follow(e.clientX);
+  };
+  const letGo = () => {
+    setDragAt(null);
+    onScrub(null);
   };
   const onKeyDown = (e: React.KeyboardEvent) => {
-    const rtl = getComputedStyle(track.current!).direction === "rtl";
-    const back = rtl ? "ArrowRight" : "ArrowLeft";
-    const on = rtl ? "ArrowLeft" : "ArrowRight";
-    if (e.key === back || e.key === "ArrowDown") onChange(index - 1);
-    else if (e.key === on || e.key === "ArrowUp") onChange(index + 1);
+    const back = rtl() ? "ArrowRight" : "ArrowLeft";
+    const on = rtl() ? "ArrowLeft" : "ArrowRight";
+    if (e.key === back || e.key === "ArrowDown") onChange(Math.max(0, index - 1));
+    else if (e.key === on || e.key === "ArrowUp") onChange(Math.min(stops.length - 1, index + 1));
     else if (e.key === "Home") onChange(0);
     else if (e.key === "End") onChange(stops.length - 1);
     else return;
@@ -63,15 +72,15 @@ export function Timeline({ stops, index, onChange, playing, onToggle, labels }: 
 
   return (
     <div className={styles.timeline}>
-      <button type="button" className={styles.play} onClick={onToggle} aria-pressed={playing}>
-        {playing ? (
-          <span className={styles.pauseIcon} aria-hidden="true" />
-        ) : (
-          <Icon name="play" className={styles.playIcon} />
-        )}
-        <span>{playing ? labels.pause : labels.play}</span>
-      </button>
-      <div ref={track} className={styles.track} onPointerDown={onPointerDown} onPointerMove={onPointerMove}>
+      <div
+        ref={track}
+        className={styles.track}
+        data-dragging={dragAt !== null || undefined}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={letGo}
+        onPointerCancel={letGo}
+      >
         {Array.from({ length: (LAST - FIRST) * 2 + 1 }, (_, i) => (
           <span
             key={i}
@@ -88,8 +97,8 @@ export function Timeline({ stops, index, onChange, playing, onToggle, labels }: 
             style={{ insetInlineStart: `${place(s.at)}%` }}
           />
         ))}
-        <span className={styles.needle} style={{ insetInlineStart: `${place(stop.at)}%` }} />
-        <div className={styles.pill} style={{ insetInlineStart: `${place(stop.at)}%` }}>
+        <span className={styles.needle} style={{ insetInlineStart: `${at}%` }} />
+        <div className={styles.pill} style={{ insetInlineStart: `${at}%` }}>
           <button
             type="button"
             className={styles.arrow}

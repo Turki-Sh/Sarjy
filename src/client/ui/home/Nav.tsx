@@ -15,6 +15,7 @@ import { TALK } from "@/shared/site";
 import { Logo } from "../brand/Logo";
 import { Icon } from "../Icon";
 import styles from "./Home.module.css";
+import { toggleTheme } from "./theme";
 
 const YEAR = 60 * 60 * 24 * 365;
 const remember = (name: string, value: string) => {
@@ -39,13 +40,6 @@ export function Nav({ lang }: { lang: Lang }) {
     document.documentElement.dir = dir(next);
     router.refresh();
   };
-  const switchTheme = () => {
-    const html = document.documentElement;
-    const next = html.dataset.theme === "dark" ? "light" : "dark";
-    remember(COOKIE.theme, next);
-    html.dataset.themeChoice = next;
-    html.dataset.theme = next;
-  };
 
   return (
     <header className={styles.nav} data-scrolled={scrolled || undefined}>
@@ -57,13 +51,12 @@ export function Nav({ lang }: { lang: Lang }) {
         <a href="#day">{s.day}</a>
         <a href="#rafeeqs">{s.rafeeqs}</a>
         <a href="#majlis">{s.majlis}</a>
-        <a href="/handbook">{s.handbook}</a>
       </nav>
       <div className={styles.tools}>
         <button type="button" className={styles.tool} onClick={switchLang} lang={lang === "ar" ? "en" : "ar"}>
           {s.otherLang}
         </button>
-        <button type="button" className={`${styles.tool} ${styles.icon}`} onClick={switchTheme}>
+        <button type="button" className={`${styles.tool} ${styles.icon}`} onClick={toggleTheme}>
           <Icon name="moon" className={styles.moonIcon} />
           <Icon name="sun" className={styles.sunIcon} />
           <span className={styles.visuallyHidden}>
