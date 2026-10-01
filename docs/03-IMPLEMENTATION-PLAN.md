@@ -37,8 +37,8 @@ These need your accounts, so only you can do them. Never paste a key into the ch
 
 **Before deploying** (you already have Vercel)
 
-- [ ] Import the repository in Vercel; add Neon Postgres from the Marketplace (Frankfurt).
-- [ ] Add `GROQ_API_KEY`, `ABLY_API_KEY` and `SESSION_SECRET` in Vercel, marked Sensitive.
+- [x] Import the repository in Vercel; add Neon Postgres from the Marketplace (Frankfurt).
+- [x] Add `GROQ_API_KEY`, `ABLY_API_KEY` and `SESSION_SECRET` in Vercel, marked Sensitive.
 
 A suggestion, your call: connecting Vercel early costs nothing and gives a preview URL on every push, which is the only way to test the mic on your phone and to test rooms across two devices before Friday.
 
