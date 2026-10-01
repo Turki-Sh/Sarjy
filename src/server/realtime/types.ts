@@ -9,4 +9,6 @@ export type Realtime = {
    * there, never to publish. Null when the transport needs none (the local stream checks the cookie).
    */
   token(code: string, userId: string): Promise<unknown>;
+  /** Who has the room open right now (user ids), or null when it can't be told. */
+  present(code: string): Promise<string[] | null>;
 };

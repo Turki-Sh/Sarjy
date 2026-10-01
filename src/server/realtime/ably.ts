@@ -28,6 +28,17 @@ export function ablyRealtime(key: string): Realtime {
       if (!res.ok) throw new Error(`Ably publish failed: ${res.status}`);
     },
 
+    // Who is in the room now: the browsers that entered the channel's presence (each as its user id).
+    async present(code) {
+      const res = await fetch(`${REST}/channels/${encodeURIComponent(channelName(code))}/presence`, {
+        headers: { authorization: auth },
+        signal: AbortSignal.timeout(1500),
+      });
+      if (!res.ok) return null;
+      const members = (await res.json()) as { clientId?: string }[];
+      return [...new Set(members.map((m) => m.clientId).filter((id): id is string => !!id))];
+    },
+
     // A signed token request (Ably's "TokenRequest"): the browser's Ably client sends it to Ably,
     // which checks the signature and issues a token with exactly these rights.
     async token(code, userId) {

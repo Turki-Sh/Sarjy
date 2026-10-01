@@ -95,9 +95,19 @@ describe("system prompt", () => {
     const majlis = buildSystemPrompt({
       ...context,
       replyLang: "en",
-      room: { people: ["Turki", "Sara"], host: "Turki", speaker: "Sara" },
+      room: { people: ["Turki", "Sara"], away: ["Noura"], host: "Turki", speaker: "Sara" },
     });
-    expect(majlis).toContain("In the Majlis: Turki (who opened it), Sara. Speaking now: Sara.");
+    expect(majlis).toContain(
+      "Here now: Turki (who opened it), Sara. Joined earlier, not here now: Noura. Speaking now: Sara.",
+    );
+    expect(majlis).toContain("never name anyone else as being here");
+    // No made-up names in the rules themselves: the model once named a "Sara" nobody had met (Day 5).
+    const rules = buildSystemPrompt({
+      ...context,
+      replyLang: "en",
+      room: { people: ["Khalid", "Turki"], host: "Khalid", speaker: "Turki" },
+    });
+    expect(rules).not.toMatch(/\bSara\b/);
     expect(majlis).toContain("The memory block below is Sara's alone.");
     // Alone, there is no Majlis block at all.
     expect(prompt).not.toContain("Majlis.");

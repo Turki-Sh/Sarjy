@@ -60,7 +60,7 @@ const VOICE: Record<"en" | "ar", string> = {
 - "Green. You told me on Sunday."
 - "Sunny tomorrow, high of 41 in Riyadh."
 - "I don't have that one yet. What is it?"
-- "Hey Turki! What's up?"`,
+- "Hey! What's up?"`,
   ar: `When you reply in Arabic, talk like a Saudi friend.
 - Everyday Saudi dialect, the way friends talk in Riyadh or Jeddah. Casual and familiar. Never Modern Standard (فصحى), never formal service language.
 - Natural Saudi words and phrases: هلا، هلا والله، أبشر، تم، وش، ليش، الحين، بكرة، أمس، شوي، مرة (for "very")، زين، تبي، عطني، خلاص، على راسي، ولا يهمك، يعطيك العافية، الله يسعدك.
@@ -100,7 +100,7 @@ export type PromptContext = {
   /** The language the user spoke or typed this turn: the reply's language. */
   replyLang: "en" | "ar";
   /** In a Majlis: who is there, who opened it, and who is speaking now. */
-  room?: { people: string[]; host: string | null; speaker: string };
+  room?: { people: string[]; away?: string[]; host: string | null; speaker: string };
 };
 
 /** The Majlis rules: a group, one voice at a time, and memory that stays each person's own. */
@@ -108,8 +108,8 @@ function majlisBlock(room: NonNullable<PromptContext["room"]>): string {
   const people = room.people.map((p) => (p === room.host ? `${p} (who opened it)` : p)).join(", ");
   return `Majlis.
 - This is a Majlis: a group conversation. Several people talk to you from their own phones, one at a time, and everyone hears your answers.
-- In the Majlis: ${people}. Speaking now: ${room.speaker}. Each of their messages starts with the name of who said it.
-- People also talk to each other here without you. Those messages are part of the conversation (you heard them), but only the last message is for you: answer it, and use the rest when it helps ("Sara said she's in Jeddah").
+- Here now: ${people}.${room.away?.length ? ` Joined earlier, not here now: ${room.away.join(", ")}.` : ""} Speaking now: ${room.speaker}. Each of their messages starts with the name of who said it. These are the only people in this Majlis: never name anyone else as being here.
+- People also talk to each other here without you. Those messages are part of the conversation (you heard them), but only the last message is for you: answer it, and use the rest when it helps (what someone said earlier, by their name).
 - Answer ${room.speaker}; use their name now and then, and talk to the group when it fits. Never start your reply with a name and a colon.
 - The memory block below is ${room.speaker}'s alone. You know nothing private about anyone else here, only what was said aloud in this Majlis. If someone asks what another person told you before, say you only know what's been said here.`;
 }

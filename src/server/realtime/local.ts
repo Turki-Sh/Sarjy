@@ -41,6 +41,9 @@ export const localRealtime: Realtime = {
   async token() {
     return null;
   },
+  async present(code) {
+    return [...(bus.online.get(code)?.keys() ?? [])];
+  },
 };
 
 /**

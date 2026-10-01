@@ -124,11 +124,21 @@ export async function POST(request: Request) {
       }
       pictureUrl = mediaUrl(room.code, await keepMedia(db, room.id, bytes, picture.type));
     }
-    const members = await listMembers(db, room);
+    // Who has joined, and who has the room open right now (the "2 here" in the bar).
+    const [members, present] = await Promise.all([
+      listMembers(db, room),
+      realtime.present(room.code).catch(() => null),
+    ]);
     majlis = {
       input: {
         conversationId: room.conversationId,
-        people: members.map((m) => ({ id: m.id, name: spokenName(m), host: m.host })),
+        people: members.map((m) => ({
+          id: m.id,
+          name: spokenName(m),
+          host: m.host,
+          // Unknown presence counts everyone as here; the speaker always is.
+          here: !present || present.includes(m.id) || m.id === user.id,
+        })),
         // Everyone, unless the switch says Sarjy (its name at the start asks it either way).
         to: form.get("to") === "sarjy" ? "sarjy" : "room",
       },

@@ -51,7 +51,8 @@ export type TurnInput = {
    */
   room?: {
     conversationId: string;
-    people: { id: string; name: string; host: boolean }[];
+    /** Everyone who has joined; `here` is whether they have the room open right now. */
+    people: { id: string; name: string; host: boolean; here?: boolean }[];
     /** Who this turn is for: everyone in the room, or Sarjy (the switch under the finjan). */
     to: "room" | "sarjy";
   };
@@ -215,7 +216,8 @@ export async function runTurn(
     replyLang: lang,
     room: room
       ? {
-          people: room.people.map((p) => p.name),
+          people: room.people.filter((p) => p.here !== false).map((p) => p.name),
+          away: room.people.filter((p) => p.here === false).map((p) => p.name),
           host: room.people.find((p) => p.host)?.name ?? null,
           speaker: nameOf(input.user.id),
         }
