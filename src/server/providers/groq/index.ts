@@ -61,6 +61,20 @@ export function spokenLang(text: string, label: string | undefined, hint: Lang):
   return hint;
 }
 
+/**
+ * Whisper's full model sometimes writes a sentence twice ("What is my favorite food? What is my
+ * favorite food?", heard live on Day 5). A sentence repeated straight after itself is kept once.
+ */
+export function withoutRepeats(text: string): string {
+  const sentences = text.match(/[^.!?؟…]+[.!?؟…]*\s*/g) ?? [text];
+  const kept: string[] = [];
+  for (const s of sentences) {
+    const same = (a: string | undefined) => a?.trim().toLowerCase() === s.trim().toLowerCase();
+    if (!same(kept.at(-1))) kept.push(s);
+  }
+  return kept.join("").trim();
+}
+
 type Segment = { avg_logprob?: number; no_speech_prob?: number };
 
 /**
@@ -97,7 +111,7 @@ function groqStt(apiKey: string): SpeechToText {
       const prompt = sttPrompt(context);
       const [best, backup] = GROQ_MODELS.stt;
       const data = await once(best, audio, prompt).catch(() => once(backup, audio, prompt));
-      const text = data.text.trim();
+      const text = withoutRepeats(data.text.trim());
       return { text, lang: spokenLang(text, data.language, hint), unsure: unsureOf(data.segments) };
     },
   };

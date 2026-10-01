@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { spokenLang, sttPrompt } from "@/server/providers/groq";
+import { spokenLang, sttPrompt, withoutRepeats } from "@/server/providers/groq";
 
 describe("the language you spoke", () => {
   it("follows the transcript's letters over Whisper's label (English with a Saudi accent)", () => {
@@ -23,5 +23,16 @@ describe("the listener's prompt (Day 5)", () => {
     expect(sttPrompt()).toMatch(/^Sarjy, سرجي\./);
     expect(sttPrompt("تركي. الرياض. وش اسمك؟")).toMatch(/وش اسمك؟$/);
     expect(sttPrompt("a ".repeat(500)).length).toBeLessThan(400);
+  });
+});
+
+describe("a sentence Whisper wrote twice (Day 5)", () => {
+  it("is kept once; different sentences are all kept", () => {
+    expect(withoutRepeats("What is my favorite food? What is my favorite food?")).toBe(
+      "What is my favorite food?",
+    );
+    expect(withoutRepeats("وش لوني؟ وش لوني؟")).toBe("وش لوني؟");
+    expect(withoutRepeats("Hi. How are you? Hi.")).toBe("Hi. How are you? Hi.");
+    expect(withoutRepeats("no ending here")).toBe("no ending here");
   });
 });
