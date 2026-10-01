@@ -248,9 +248,85 @@ const talkCss = `.orb{position:absolute}
 .bubble{position:absolute;padding:12px 20px;border-radius:22px 22px 22px 6px;background:var(--white);color:var(--saddle);font:600 24px/1.2 var(--font-ui);box-shadow:0 6px 0 rgb(0 0 0 / .12)}
 .bubble[dir="rtl"]{font-family:var(--font-ar);border-radius:22px 22px 22px 6px}`;
 
+// ---- The home page: the tagline, and all eight crossing the dunes as a caravan under a big sun,
+// Rider leading (Turki, Day 5: the main card should match the others).
+
+/** The caravan, front to back: who walks where along the ridge, and how. */
+const CARAVAN: [RafeeqId, Pose][] = [
+  ["rider", { mood: "happy" }],
+  ["dune", { state: "speaking" }],
+  ["keeper", { mood: "petted" }],
+  ["fennec", { hover: "near" }],
+  ["scout", { state: "listening" }],
+  ["lantern", { mood: "happy" }],
+  ["breeze", { mood: "happy" }],
+  ["drifter", { mood: "sleepy" }],
+];
+
+/** The near ridge's height at x: flat under the words, rising into a long hump under the caravan. */
+const ridgeAt = (x: number) => 530 - 52 * Math.sin(Math.PI * Math.min(1, Math.max(0, (x - 360) / 900)));
+
+function homeScene(mirror: boolean) {
+  const at = (x: number) => (mirror ? 1200 - x : x);
+  const walkers = CARAVAN.map(([id, pose], i) => {
+    // Rider in front, nearest the words; each one behind a little further back and smaller.
+    const x = 606 + i * 74;
+    const size = 150 - i * 8;
+    const y = ridgeAt(x) + 14;
+    // They walk toward the words, so each faces them.
+    return rafeeq(id, at(x), y, size, { ...pose, flip: !mirror !== !!pose.flip });
+  }).reverse();
+  const ridge = Array.from({ length: 61 }, (_, i) => {
+    const x = i * 20;
+    return `${i ? "L" : "M"}${at(x)} ${ridgeAt(x)}`;
+  }).join(" ");
+  return `<svg class="sky" width="1200" height="630" viewBox="0 0 1200 630">
+    <circle cx="${at(930)}" cy="300" r="190" fill="var(--saffron)" opacity=".18"/>
+    <circle cx="${at(930)}" cy="300" r="150" fill="var(--saffron)" opacity=".35"/>
+    <circle cx="${at(930)}" cy="300" r="112" fill="var(--brass-light)"/>
+    <path d="M0 470 C200 430 360 420 560 448 C760 476 900 412 1200 420 V630 H0 Z" fill="var(--dune-light)" opacity=".75"/>
+    <path d="${ridge} L${at(1200)} 630 L${at(0)} 630 Z" fill="var(--dune-body)"/>
+    <path d="M0 560 C240 528 520 540 760 566 C960 586 1080 560 1200 552 V630 H0 Z" fill="var(--dune-shade)"/>
+    <path d="${Array.from({ length: 8 }, (_, i) => `M${at(566 + i * 74)} ${ridgeAt(566 + i * 74) + 24} q8 -3 16 0`).join(" ")}" stroke="var(--dune-shade)" stroke-width="4" stroke-linecap="round" fill="none" opacity=".7"/>
+  </svg>
+  ${walkers.join("")}`;
+}
+
+const homeCss = `.sky{position:absolute;left:0;top:0}`;
+
 // ---- The cards. File names say what each one shows, like Turki's.
 
 export const CARDS = [
+  {
+    file: "home-shaped-to-its-rider.png",
+    html: page({
+      lang: "en",
+      bg: "var(--coral)",
+      ink: "var(--saddle)",
+      copy: {
+        title: "Shaped to its rider.",
+        body: "A voice assistant that remembers what you tell it, in English and Saudi Arabic. And it brings a friend.",
+        kicker: "Sarjy / A voice assistant",
+      },
+      scene: homeScene(false),
+      extraCss: homeCss,
+    }),
+  },
+  {
+    file: "home-ala-maqas-farisah.png",
+    html: page({
+      lang: "ar",
+      bg: "var(--coral)",
+      ink: "var(--saddle)",
+      copy: {
+        title: "على مقاس فارسه.",
+        body: "مساعد صوتي يتذكر اللي تقوله، بالعربي والإنجليزي. ومعه رفيق.",
+        kicker: "سرجي · مساعد صوتي",
+      },
+      scene: homeScene(true),
+      extraCss: homeCss,
+    }),
+  },
   {
     file: "majlis-pull-up-a-cushion.png",
     html: page({

@@ -1,13 +1,13 @@
-// Link previews (Open Graph cards). The home page has its own generated card
-// (src/app/opengraph-image.tsx). Every other kind of link picks one of Turki's illustrated cards
-// (public/og/) by what the link is about and the language it is in, so a shared weather answer
-// looks like weather, a saved fact looks like a keepsake. The Majlis invite, the voice screen and
-// the 404 have their own cards with the Rafeeqs in them (Day 5), drawn by scripts/og/.
+// Link previews (Open Graph cards). Every link picks a card by what it is about and the language
+// it is in: Turki's illustrated cards (public/og/), so a shared weather answer looks like weather
+// and a saved fact like a keepsake, and the cards drawn with the Rafeeqs in them (Day 5, by
+// scripts/og/) for the home page, a Majlis invite, the voice screen and the 404.
 //
 // The choice is deterministic: the same link always gets the same card (crawlers cache previews,
 // and a card should not change under someone's message), but different links get different cards.
 
 export type CardKind =
+  | "home" // the home page, and any page with no card of its own
   | "weather" // a shared weather answer
   | "weather_tomorrow" // a shared answer about tomorrow
   | "recall" // Sarjy answering from memory ("You told me on Sunday")
@@ -101,6 +101,18 @@ export const CARDS: Card[] = [
     lang: "any",
   },
   // Drawn from the app's own pieces (scripts/og/cards-entry.ts).
+  {
+    file: "home-shaped-to-its-rider.png",
+    alt: "Shaped to its rider. All eight Rafeeqs crossing the dunes under a big sun, Rider leading.",
+    kinds: ["home"],
+    lang: "en",
+  },
+  {
+    file: "home-ala-maqas-farisah.png",
+    alt: "على مقاس فارسه: all eight Rafeeqs crossing the dunes under a big sun, Rider leading.",
+    kinds: ["home"],
+    lang: "ar",
+  },
   {
     file: "majlis-pull-up-a-cushion.png",
     alt: "Pull up a cushion. Eight Rafeeqs on eight cushions around a finjan: an invite to a Majlis.",

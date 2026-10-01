@@ -44,7 +44,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 
 **Communication**
 
-- [ ] Send Sarj a short note tonight: the plan, and that the PRD and TDD are in the repo (draft on request).
+- [x] Send Sarj a short note tonight: the plan, and that the PRD and TDD are in the repo (draft on request).
 
 ---
 
@@ -193,6 +193,8 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] A high-quality home page that introduces Sarjy, with a clear way into the voice screen (Day 4: the voice screen moves to `/talk`; the Rafeeqs live in the hero, a scroll-told promise, a day with Sarjy, a gallery, the Majlis, the reins, a finale to pick one; a companion rides along; greets you by name)
 - [x] A custom, animated 404 page in the brand, bilingual, with a way back (Day 4: lost Rafeeqs around a campfire, four scenes shuffled each visit, a squabble in a dust cloud, the moon as the zero)
 - [x] Turki's review of the pages (Day 4): no dash lines on the section labels; a hello from your Rafeeq in a bubble, random, following light and dark; the sun and moon switch the theme; new hero and Rafeeqs ledes; no level on the headline, no notes, no Play button; a smoother timeline; the gallery shows each name once, upright; the finale scattered like the dots page with a Talk with Sarjy button; no handbook links for now; on the 404 the moon changes the scene and the fire is a secret; the app opens on a fresh-chat line and its logo leads home; the prompt says the Now line is the only source for the time (AT-124)
+- [x] The home page's link-preview card drawn like the others: the caravan of Rafeeqs under a big sun, "Shaped to its rider." (Turki, Day 5)
+- [x] The version at the foot of the home page, `v0.7.N`: MAJOR.MINOR from `package.json` (0 until the submission, MINOR the milestone), PATCH the number of commits, worked out at build time (git, or GitHub's API on Vercel's shallow clone), linked to its commit
 - [x] Speech to text and replies (Turki, Day 5: "STT makes a lot of mistakes", "why does it switch Arabic and English"): `whisper-large-v3` with turbo as backup; Whisper is told your name, your city and what Sarjy just said; a model that fails partway no longer leaves its half answer glued to the next one's; gpt-oss-20b stands in before Qwen; English filler is dropped from Arabic replies. Measured live: on Groq's free tier the main model runs out after two or three quick turns (about 2,400 tokens a turn against 8,000 a minute), and the stand-ins are where the mixed languages came from, so the Developer tier is the real fix
 - [x] In a Majlis, Sarjy knows who is here now (presence) and who left, and never names anyone else; no example names left in its rules (it had said "Sara" was there)
 - [x] The Majlis mic is freed before the turn's response ends (on Vercel it could stay taken)

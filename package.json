@@ -1,6 +1,6 @@
 {
   "name": "sarjy",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "description": "A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.",

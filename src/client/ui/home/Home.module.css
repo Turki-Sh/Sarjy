@@ -241,6 +241,17 @@
   color: var(--text-2);
   font-size: 13px;
 }
+.version {
+  margin-inline-start: 8px;
+  color: inherit;
+  font-family: var(--font-data);
+  font-size: 12px;
+  text-decoration: none;
+  opacity: 0.8;
+}
+.version:hover {
+  text-decoration: underline;
+}
 @media (max-width: 700px) {
   .footInner {
     grid-template-columns: 1fr;

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CARDS, pickCard, type CardKind } from "@/shared/og";
 
 const KINDS: CardKind[] = [
+  "home",
   "weather",
   "weather_tomorrow",
   "recall",
@@ -40,6 +41,8 @@ describe("link preview cards", () => {
     expect(pickCard("handbook", "en", "a").file).toBe("notes-from-building.png");
     expect(pickCard("majlis", "ar", "a").file).toBe("majlis-hayyak.png");
     expect(pickCard("majlis", "en", "a").file).toBe("majlis-pull-up-a-cushion.png");
+    expect(pickCard("home", "en", "a").file).toBe("home-shaped-to-its-rider.png");
+    expect(pickCard("home", "ar", "a").file).toBe("home-ala-maqas-farisah.png");
     expect(pickCard("talk", "en", "a").file).toBe("talk-tell-it-once.png");
     expect(pickCard("talk", "ar", "a").file).toBe("talk-qulha-marra.png");
     expect(pickCard("lost", "en", "a").file).toBe("lost-not-a-real-page.png");

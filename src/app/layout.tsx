@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from "next";
 import { readPreferences } from "@/server/preferences";
 import { refractScale } from "@/shared/preferences";
 import { dir, t } from "@/shared/i18n";
+import { cardImage, pickCard } from "@/shared/og";
 import { SITE_NAME, siteUrl } from "@/shared/site";
 import { fontVariables } from "./fonts";
 import "@/styles/globals.css";
@@ -14,6 +15,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const s = t(lang);
   // Just the name, in both scripts: the description says what it is.
   const title = lang === "ar" ? "سرجي · Sarjy" : "Sarjy · سرجي";
+  // The home page's card (Day 5: drawn like the others, with the caravan of Rafeeqs); pages with
+  // their own card (the voice screen, a Majlis, a shared moment, the 404) replace it.
+  const card = cardImage(pickCard("home", lang, "/"));
   return {
     metadataBase: siteUrl(),
     title: { default: title, template: `%s · ${lang === "ar" ? "سرجي" : SITE_NAME}` },
@@ -28,8 +32,9 @@ export async function generateMetadata(): Promise<Metadata> {
       url: "/",
       locale: lang === "ar" ? "ar_SA" : "en_US",
       alternateLocale: lang === "ar" ? ["en_US"] : ["ar_SA"],
+      images: [card],
     },
-    twitter: { card: "summary_large_image", title, description: s.description },
+    twitter: { card: "summary_large_image", title, description: s.description, images: [card] },
     appleWebApp: { title: SITE_NAME, capable: true, statusBarStyle: "default" },
     formatDetection: { telephone: false },
   };

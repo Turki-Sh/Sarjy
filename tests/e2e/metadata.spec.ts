@@ -12,6 +12,15 @@ test("the page head carries complete metadata", async ({ page }) => {
     await expect(meta(`meta[property="${p}"]`)).toHaveCount(1);
   }
   await expect(meta('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
+  await expect(meta('meta[property="og:image"]')).toHaveAttribute(
+    "content",
+    /\/og\/home-shaped-to-its-rider\.png$/,
+  );
+  // The version it is on, at the foot, linked to its commit (Day 5).
+  await expect(page.locator("footer").getByRole("link", { name: /^v0\.7\.\d+$/ })).toHaveAttribute(
+    "href",
+    /github\.com\/Turki-Sh\/Sarjy\/commit\/[0-9a-f]{7}$/,
+  );
   await expect(meta('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
   await expect(meta('meta[name="theme-color"]')).toHaveCount(2);
   await expect(meta('link[rel="manifest"]')).toHaveCount(1);
@@ -20,12 +29,12 @@ test("the page head carries complete metadata", async ({ page }) => {
 });
 
 test("preview images, icons and crawler files are served", async ({ request }) => {
-  const og = await request.get("/opengraph-image");
+  // The home page's card (drawn with the Rafeeqs, Day 5), served as a file like the others.
+  const og = await request.get("/og/home-shaped-to-its-rider.png");
   expect(og.status()).toBe(200);
   expect(og.headers()["content-type"]).toContain("image/png");
 
   for (const path of [
-    "/twitter-image",
     "/icon.svg",
     "/favicon.ico",
     "/apple-icon.png",

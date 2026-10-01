@@ -83,7 +83,6 @@ Sarjy/
 │   │   ├── talk/page.tsx           The voice screen
 │   │   ├── not-found.tsx           The 404: lost Rafeeqs around a campfire, a new scene every visit
 │   │   ├── majlis/[code]/page.tsx  A Majlis (room): the same screen, joined to others
-│   │   ├── opengraph-image.tsx     The link preview image, drawn at request time
 │   │   ├── manifest.ts, robots.ts, sitemap.ts, icon.svg, apple-icon.png
 │   │   └── api/
 │   │       ├── session/route.ts    Create or resume the anonymous user
@@ -538,7 +537,7 @@ Every link to Sarjy should look intentional when it is pasted into WhatsApp, Sla
 | What | How |
 |---|---|
 | Title, description, canonical | Next.js Metadata API in `app/layout.tsx`, localized by interface language. `metadataBase` comes from the production URL. |
-| Preview image | `app/opengraph-image.tsx` draws a 1200 x 630 image with `next/og`: the bilingual lockup, one plain line saying what Sarjy is, and the orb with its light. No headline and no italics (Turki's call): the logo is the title. Also used for X (`summary_large_image`). |
+| Preview image | The home page's card is drawn like the other Rafeeq cards (Day 5, replacing the `next/og` image with the lockup and orb): the caravan of all eight crossing the dunes under a big sun, Rider leading, with "Shaped to its rider." or "على مقاس فارسه.", by language. It is the layout's default, so any page without a card of its own shows it. Also used for X (`summary_large_image`). |
 | Room invites | `app/majlis/[code]/page.tsx` has `generateMetadata`: "Join Turki's Majlis on Sarjy", the Majlis card, and `noindex`. |
 | Drawn cards | The Majlis invite, the voice screen (`/talk`) and the 404 have their own cards, in English and Arabic, with the Rafeeqs in them (Turki, Day 5: "keep pets in mind"): eight Rafeeqs on eight seat-colored cushions around a finjan ("Pull up a cushion." / "حيّاك، المجلس عامر."), the orb with Rider saying "Noted." ("Tell it once." / "قلها مرة وحدة."), and the moon as the zero of 404 with Fennec holding the map upside down ("This page isn't real." / "هالصفحة مو موجودة أصلًا."). `scripts/og/cards-entry.ts` composes them from the app's own pieces (the Rafeeq art and its CSS poses, the brand marks, the tokens) and `scripts/og/render.mjs` screenshots them into `public/og/`, committed like Turki's cards. Link-preview bots (WhatsApp, Discord, iMessage, X, Slack, Telegram, LinkedIn and others, `shared/previewBots.ts`) draw no card for a 404, so for them `app/[...missing]` serves the same lost page with a 200; people and search engines still get the real 404. |
 | Icons | `icon.svg` (the brand favicon), `favicon.ico` fallback, `apple-icon.png` at 180 px: white symbol on a Saddle Green tile, radius 22.4%, per the visual identity. |
@@ -710,7 +709,7 @@ What is in the code today, by what it saves. (Measured numbers for the write-up 
 | Time to first sound | The speech detector's 16 MB of model files are fetched while the page is idle, before your first tap, and kept by the browser for a day | `useSarjy.ts`, `next.config.ts` |
 | Provider caching | The system prompt is built static part first (who Sarjy is, the rules) and the per-turn part last, so the provider can reuse the cached prefix. Our cost estimate still prices every input token in full, so it errs high | `server/turn/prompt.ts`, `cost.ts` |
 | HTTP caching | Pictures, wallpapers and profile pictures are immutable and kept a year (private: only for you); Majlis audio an hour; voice previews a day; turn streams, memory and health are never cached | the `api/` routes |
-| HTTP caching | Link-preview images are drawn once at build time; fonts are self-hosted and preloaded by `next/font` | `app/opengraph-image.tsx`, `app/fonts.ts` |
+| HTTP caching | Link-preview images are static files in `public/og/`, drawn once by `scripts/og/` and committed; fonts are self-hosted and preloaded by `next/font` | `public/og/`, `app/fonts.ts` |
 | Reliability | Every model has a fallback (`gpt-oss-120b`, then `qwen3.8-27b`, then `gpt-oss-20b`), including the searcher | `providers/groq/index.ts` |
 | Cost | A Majlis turn to everyone runs speech to text only (no model, no voice, no memory): about a hundredth of an answered turn | `pipeline.ts`, section 13 |
 | Cost | Limits per user (a minute and a day) and per network, and daily caps on what grows a Rafeeq's bond | `server/rateLimit.ts`, `server/rafeeq/bond.ts` |
