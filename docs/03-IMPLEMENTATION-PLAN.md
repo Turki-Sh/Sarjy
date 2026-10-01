@@ -184,7 +184,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ### Added on Day 2 (Turki's requests)
 - [x] Link-preview card system: twelve illustrated cards, picked per link by kind and language
 - [x] Share a moment (`/s/{code}`), with its own card
-- [x] Build notes served at `/notes` (now the Sarjy Handbook at `/handbook`; `/notes` forwards)
+- [x] Build notes served at `/notes` (now the Sarjy Handbook at `/handbook`; `/notes` forwards; locked behind `HANDBOOK_KEY` on Day 5, AT-108)
 - [x] Brand art added (`docs/brand/art/`)
 - [x] CI test summary on every run, Playwright report kept, README badge
 - [x] Sarjy's voice: a casual Saudi friend, not a formal assistant (prompt, fake replies, PRD section 8)

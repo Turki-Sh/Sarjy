@@ -32,10 +32,21 @@ test("an unknown shared link is a 404", async ({ request }) => {
   expect((await request.get("/s/aaaaaaaaaaaa")).status()).toBe(404);
 });
 
-test("the Sarjy Handbook is served at /handbook with its own card, and /notes forwards to it", async ({
+test("the Sarjy Handbook is locked: a 404 without the key, open with it, and /notes forwards to it", async ({
   page,
+  request,
 }) => {
-  await page.goto("/notes");
+  // HANDBOOK_KEY is set for the test server in playwright.config.ts.
+  expect((await request.get("/handbook", { maxRedirects: 0 })).status()).toBe(404);
+  expect((await request.get("/handbook?key=not-the-right-key-at-all", { maxRedirects: 0 })).status()).toBe(
+    404,
+  );
+  expect((await request.get("/handbook", { headers: { cookie: "sarjy_handbook=guess" } })).status()).toBe(
+    404,
+  );
+
+  // The key once, then the address is cleaned and a cookie keeps it open.
+  await page.goto("/notes?key=e2e-handbook-key-0123456789"); // gitleaks:allow
   await expect(page).toHaveURL(/\/handbook$/);
   await expect(page).toHaveTitle("Sarjy Handbook");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
@@ -43,4 +54,6 @@ test("the Sarjy Handbook is served at /handbook with its own card, and /notes fo
     /notes-from-building\.png$/,
   );
   await expect(page.getByRole("heading", { name: "Architecture", level: 1 })).toBeVisible();
+  await page.goto("/handbook");
+  await expect(page).toHaveTitle("Sarjy Handbook");
 });

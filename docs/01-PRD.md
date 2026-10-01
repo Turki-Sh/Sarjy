@@ -201,7 +201,7 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | P11 | A home page at `/` that introduces Sarjy with the Rafeeqs living in it (the headline, the dunes, every section), greets a returning visitor by name with their own Rafeeq, lets you pick a Rafeeq and go straight to talk; the voice screen is at `/talk` (Turki, Day 4) | Should |
 | P12 | A 404 of lost Rafeeqs around a campfire: a different scene and cast every visit, each talking in its own voice, a way home and a way to talk, in both languages (Turki, Day 4) | Should |
 | P13 | The home page and the 404 follow day and night by the visitor's clock; a choice of light or dark holds until the light next changes (Turki, Day 5) | Should |
-| P10 | The build notes (these documents) are served in the app as the Sarjy Handbook at `/handbook` (`/notes` forwards there) | Should |
+| P10 | The build notes (these documents) are served in the app as the Sarjy Handbook at `/handbook` (`/notes` forwards there), for Turki only: locked behind a key (Day 5) | Should |
 
 ### Rafeeq, the companion
 

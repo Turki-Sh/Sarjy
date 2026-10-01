@@ -59,6 +59,7 @@ The rules, in order of importance:
 | `DATABASE_URL` | Yes | Set automatically by the Neon integration | Postgres |
 | `SESSION_SECRET` | Yes | Vercel, `.env.local` | Signs the identity cookie. `openssl rand -base64 32` |
 | `ABLY_API_KEY` | Yes | Vercel (Production, Preview), `.env.local` | Server-side publishing to rooms and minting browser tokens |
+| `HANDBOOK_KEY` | Yes | Vercel (Production), `.env.local` if wanted | Opens `/handbook` (open `/handbook?key=...` once; a cookie keeps it open 30 days). Unset: the page stays shut. `openssl rand -hex 24` |
 | `VERCEL_PROJECT_PRODUCTION_URL` | No | Set by Vercel automatically | Absolute URLs for link previews (`metadataBase`) |
 | `SARJY_PROVIDERS` | No | CI and local only | `fake` or `live` (production defaults to `live`) |
 
@@ -83,7 +84,7 @@ You do these once, in your own accounts. About 20 minutes.
 7. Sign up at ably.com (free). Create an app named `sarjy` and copy its root API key.
 
 **Environment variables**
-8. Settings, Environment Variables. Add `GROQ_API_KEY`, `ABLY_API_KEY` and `SESSION_SECRET` for Production and Preview, and mark them Sensitive.
+8. Settings, Environment Variables. Add `GROQ_API_KEY`, `ABLY_API_KEY` and `SESSION_SECRET` for Production and Preview, and `HANDBOOK_KEY` for Production, and mark them Sensitive.
 9. Redeploy. Open `/api/health` on the deployment: it should report the providers and database as configured (true or false only, never values).
 
 **Git**

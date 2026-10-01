@@ -14,7 +14,8 @@ export default defineConfig({
     url: "http://localhost:3100",
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
-    env: { SARJY_PROVIDERS: "fake" },
+    // The handbook key below opens /handbook in the tests only; it is not a secret. gitleaks:allow
+    env: { SARJY_PROVIDERS: "fake", HANDBOOK_KEY: "e2e-handbook-key-0123456789" }, // gitleaks:allow
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

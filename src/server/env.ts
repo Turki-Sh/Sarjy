@@ -13,6 +13,8 @@ const schema = z.object({
   ABLY_API_KEY: z.string().min(1).optional(),
   DATABASE_URL: z.string().min(1).optional(),
   SESSION_SECRET: z.string().min(32).optional(),
+  /** Opens /handbook (the build notes are for Turki, not the public). Unset: the page stays shut. */
+  HANDBOOK_KEY: z.string().min(16).optional(),
 });
 
 const parsed = schema.parse(process.env);

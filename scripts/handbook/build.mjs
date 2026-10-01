@@ -2,9 +2,9 @@
 // A "handbook" is the usual name for this: one document that says what a product is, how it is
 // built and how it is run (as in the GitLab Handbook).
 // The Markdown files stay the source of truth; this page is generated and git-ignored.
-// Usage: pnpm handbook   (writes docs/handbook.html, git-ignored, and public/handbook/index.html)
+// Usage: pnpm handbook   (writes docs/handbook.html, git-ignored; the app serves it at /handbook, behind a key)
 
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Marked } from "marked";
@@ -263,8 +263,4 @@ const html = template
 
 writeFileSync(join(docsDir, "handbook.html"), html);
 
-// The same page, served by the app at /handbook (git-ignored; rebuilt by every `pnpm build`).
-const publicDir = join(here, "..", "..", "public", "handbook");
-mkdirSync(publicDir, { recursive: true });
-writeFileSync(join(publicDir, "index.html"), html);
 console.log(`docs/handbook.html: ${docs.length} chapters, ${(html.length / 1024).toFixed(0)} KB`);

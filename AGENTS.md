@@ -31,4 +31,4 @@ Turki's direction overrides everything else, including the brand book in `docs/b
 
 ## Docs
 
-- `docs/*.md` are the source of truth. `pnpm handbook` builds the Sarjy Handbook, `docs/handbook.html` (git-ignored), for reading in a browser; the app serves it at `/handbook`. Never edit the generated HTML by hand.
+- `docs/*.md` are the source of truth. `pnpm handbook` builds the Sarjy Handbook, `docs/handbook.html` (git-ignored), for reading in a browser; the app serves it at `/handbook`, behind `HANDBOOK_KEY` (it is for Turki, not the public). Never edit the generated HTML by hand.

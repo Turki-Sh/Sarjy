@@ -15,10 +15,9 @@ const nextConfig: NextConfig = {
   devIndicators: { position: "bottom-right" },
   // PGlite ships its own WebAssembly and data files; load it from node_modules instead of bundling it.
   serverExternalPackages: ["@electric-sql/pglite"],
-  // /handbook serves the Sarjy Handbook, generated into public/handbook/ by every build.
-  async rewrites() {
-    return [{ source: "/handbook", destination: "/handbook/index.html" }];
-  },
+  // The Sarjy Handbook is generated into docs/ by every build and served, behind a key, by
+  // app/handbook/route.ts, which reads it from disk: ship the file with that route.
+  outputFileTracingIncludes: { "/handbook": ["./docs/handbook.html"] },
   // It used to be at /notes: old links keep working.
   async redirects() {
     return [{ source: "/notes", destination: "/handbook", permanent: true }];
