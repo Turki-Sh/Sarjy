@@ -22,7 +22,7 @@ The build, day by day. Each milestone ends with something you can open in a brow
 | Turki's touches | H1 (Hijri and time of day) done in the prompt; the prayer-times tool (T5) and the Morning card (H2) not built (see below) |
 | M7: harden and submit | Live at https://sarjy-three.vercel.app (Day 5). Done: the topic policy and the red-team suite, the write-up (`docs/07-WRITEUP.md`) with measured latency and cost, link previews. Open: Turki's phone checks, the Loom, the submission |
 | CI | Green on every push to `main` (typecheck, lint, format, unit and integration, build, bundle secret scan, end-to-end in Chromium, gitleaks) |
-| Tests | 225 unit and integration tests (the 25 red-team cases among them), 63 end-to-end tests |
+| Tests | 225 unit and integration tests (the 25 red-team cases among them), 64 end-to-end tests |
 
 ## What you do in parallel
 
@@ -168,7 +168,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ## Day 4 · Friday morning: harden and submit
 
 ### M7 · Harden and submit
-- [ ] Every Must in the acceptance tests passes; E2E green in CI
+- [x] Every Must in the acceptance tests passes; E2E green in CI (Day 5: 225 unit and integration, 64 end to end)
 - [x] Record latency (p50 and p90, with and without the weather tool) in the README: measured on 8 turns of each kind on Day 5 (to stay inside the free tier's daily limit); `scripts/eval/latency.mjs` re-runs it with `N=20`
 - [x] Latency write-up: where the time goes, what we tried, what worked, what didn't, next week (`docs/07-WRITEUP.md`, section 5)
 - [x] Cost model for 1,000 daily users in the write-up (about $900 a month; section 6)
@@ -177,7 +177,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] Link previews checked (Turki, Day 5)
 - [x] README: live URL, what it is, how to run, architecture summary, the API justification, the deep dives, what we would do next
 - [ ] 3 to 5 minute Loom and a PDF of the docs reader, sent to Sarj at least a day before the meeting
-- [ ] Final check of secrets: gitleaks clean, client bundle clean, Vercel env only
+- [x] Final check of secrets: gitleaks clean, client bundle clean, Vercel env only (CI on Day 5; keys only in Vercel)
 - [x] `main` is the default branch and holds everything
 - [ ] Submit in Ashby: deployment URL and repository URL
 

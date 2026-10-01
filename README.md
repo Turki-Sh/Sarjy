@@ -88,7 +88,7 @@ Every push to `main` and every pull request runs on GitHub Actions, with stand-i
 | Typecheck, lint, format | TypeScript strict, ESLint, Prettier |
 | Unit and integration | 225 Vitest tests: the turn pipeline end to end with fake providers and an in-memory Postgres, memory, the Majlis, the topic policy and the 25 red-team cases, prompts, captions, the Rafeeqs' rules, the pages' scenes |
 | Build, then a bundle scan | A production build, then the browser bundle is searched for anything that looks like a key |
-| End to end | 63 Playwright tests in Chromium against the built app: turns, memory, settings, both languages, the mic with a fake microphone, two and three people in one Majlis, the Rafeeqs, the home page and the 404 |
+| End to end | 64 Playwright tests in Chromium against the built app: turns, memory, settings, both languages, the mic with a fake microphone, two and three people in one Majlis, the Rafeeqs, the home page and the 404 |
 | Secrets | Gitleaks over the whole git history |
 
 Each run's page lists every test, passed or failed, and keeps a Playwright report with a trace for any failure. Deployment is Vercel's: every push to `main` builds and ships, running the database migrations first.
