@@ -62,6 +62,26 @@ export interface PictureGuard {
   check(picture: { bytes: Uint8Array; mediaType: string }, signal?: AbortSignal): Promise<PictureVerdict>;
 }
 
+/**
+ * The topic policy's verdict on what someone said (architecture, section 10a). `topic` names why a
+ * turn was turned away; `checked` is false when the check couldn't answer, and then the turn goes
+ * ahead (the prompt's own rules still hold), so a rate limit never silences Sarjy.
+ */
+export type PolicyTopic = "harm" | "sexual" | "hate" | "self_harm" | "advice";
+export type PolicyVerdict = {
+  allowed: boolean;
+  topic?: PolicyTopic;
+  checked: boolean;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+};
+
+export interface PolicyCheck {
+  /** Checks what someone said against the topic policy, alongside the main model. */
+  check(text: string, signal?: AbortSignal): Promise<PolicyVerdict>;
+}
+
 /** A model the turn may use; `vision` marks the ones that can read a picture. */
 export type ModelChoice = { id: string; model: LanguageModel; vision?: boolean };
 
@@ -85,5 +105,7 @@ export type Providers = {
   web: WebSearch;
   /** Checks pictures before they are shared in a Majlis. */
   guard: PictureGuard;
+  /** Checks what someone said against the topic policy, before Sarjy says anything. */
+  policy: PolicyCheck;
   fetch: Fetch;
 };

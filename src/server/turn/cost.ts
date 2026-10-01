@@ -16,6 +16,8 @@ const PER_MILLION_TOKENS: Record<string, { input: number; output: number }> = {
   "openai/gpt-oss-120b": { input: 0.15, output: 0.6 },
   "openai/gpt-oss-20b": { input: 0.075, output: 0.3 },
   "qwen/qwen3.8-27b": { input: 0.29, output: 0.59 },
+  // The topic policy; priced like gpt-oss-20b, which it is built on.
+  "openai/gpt-oss-safeguard-20b": { input: 0.075, output: 0.3 },
 };
 // Priced as the full model, which hears nearly every turn; when turbo steps in this errs high.
 const STT_PER_HOUR = 0.111;

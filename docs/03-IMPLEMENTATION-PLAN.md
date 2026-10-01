@@ -87,15 +87,15 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 ### M3 · Live providers
 - [x] Groq Whisper (`whisper-large-v3-turbo`), language detection, interface language as hint, bilingual vocabulary prompt
 - [x] Groq `openai/gpt-oss-120b` through the AI SDK: tool loop, step limit, low reasoning effort; `qwen/qwen3.8-27b` then `openai/gpt-oss-20b` as fallbacks
-- [ ] Model bake-off (`scripts/bakeoff.ts`): 20 prompts, English and Arabic; results in the README
+- [ ] Model bake-off (`scripts/bakeoff.ts`): 20 prompts, English and Arabic; results in the README. Superseded: the model choices were measured live instead (Day 2: tool calling and speed; Day 5: the stand-ins' Arabic under the free tier's limits), see architecture, section 8
 - [x] Groq Orpheus: English and Saudi Arabic voices; first sentence alone, the rest as one request; WAV header repaired
 - [x] Live Open-Meteo (geocoding in Arabic and English, forecast, 4 s timeout)
-- [ ] Guardrails: topic policy, `gpt-oss-safeguard-20b` check in parallel with the main model, persona lock in the prompt
-- [ ] Red-team suite (`scripts/redteam.ts`), 25 prompts, wired into CI with fakes
+- [x] Guardrails: topic policy, `gpt-oss-safeguard-20b` check in parallel with the main model, persona lock in the prompt (Day 5: nothing voiced and no tool run before it says yes; fails open on errors)
+- [x] Red-team suite (`tests/redteam/cases.ts`), 25 prompts, wired into CI with fakes; `scripts/redteam/run.mjs` for the live stack
 - [x] Image turns route to `qwen/qwen3.8-27b` (the only model in the chain marked `vision`; checked live on Day 2)
 - [x] Cost per turn (`server/turn/cost.ts`) in the `done` event: model tokens, seconds heard, characters voiced per language, priced from one table with its sources
 - [x] Rate limits (per user, per IP) and input caps
-- [ ] Structured timing logs per turn
+- [x] Structured timing logs per turn (one JSON line per turn in the server log: stage timings, model, tokens, cost; never what was said)
 
 **Done when:** a typed question gets a spoken answer from the real providers, and a typed fact survives a reload. (Met on Day 2, in English and Arabic, typed and spoken.)
 

@@ -5,6 +5,7 @@ import "server-only";
 //   the model       openai/gpt-oss-120b, falling back to openai/gpt-oss-20b, then qwen/qwen3.8-27b
 //   the voice       Orpheus: English, and a native Saudi Arabic voice
 //   picture guard   qwen/qwen3.8-27b, the one model here that sees, with a strict policy
+//   topic policy    openai/gpt-oss-safeguard-20b, alongside the main model (policy.ts)
 // Whisper and Orpheus are two plain HTTP calls; the model goes through the AI SDK.
 
 import { createGroq } from "@ai-sdk/groq";
@@ -12,6 +13,7 @@ import { DEFAULT_VOICE } from "@/shared/voices";
 import { fixWavHeader } from "@/shared/wav";
 import type { Lang, Providers, SpeechToText, TextToSpeech } from "../types";
 import { groqGuard } from "./guard";
+import { groqPolicy, POLICY_MODEL } from "./policy";
 import { groqWeb } from "./web";
 
 const API = "https://api.groq.com/openai/v1";
@@ -163,6 +165,7 @@ export function createGroqProviders(
     writer: [GROQ_MODELS.reserve, GROQ_MODELS.main].map((id) => ({ id, model: groq(id) })),
     web: groqWeb(apiKey),
     guard: groqGuard(groq(GROQ_MODELS.fallback), GROQ_MODELS.fallback),
+    policy: groqPolicy(groq(POLICY_MODEL)),
     fetch: (url, init) => fetch(url, init),
   };
 }

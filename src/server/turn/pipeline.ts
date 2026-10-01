@@ -25,7 +25,7 @@ import { addressesSarjy } from "./address";
 import type { Db } from "../db/client";
 import { users, type User } from "../db/schema";
 import { listMemories } from "../memory/repo";
-import type { Lang, Providers, WebAnswer } from "../providers/types";
+import type { Lang, PolicyTopic, PolicyVerdict, Providers, WebAnswer } from "../providers/types";
 import { chatSearchTool } from "../tools/chats";
 import { webSearchTool } from "../tools/web";
 import { forgetTool } from "../tools/memory";
@@ -73,6 +73,28 @@ const PICTURE_NOTE = "(A picture was sent with this message. Your reply after it
 /** Said the moment a web search starts, so the few seconds it takes are never silent. */
 // (Not "Let me check.": the filter that keeps a model's leaked planning from being spoken drops it.)
 const CHECKING: Record<Lang, string> = { en: "One sec, looking it up.", ar: "لحظة، أشوف لك." };
+
+/**
+ * What Sarjy says when the topic policy turns a turn away (architecture, section 10a): short, in
+ * its own voice, no lecture. Self-harm gets care and a real place to turn (in Saudi Arabia, the
+ * 937 health line, and 911 in an emergency).
+ */
+const DECLINE: Record<PolicyTopic, Record<Lang, string>> = {
+  harm: {
+    en: "That's not something I can help with. Anything else on your mind?",
+    ar: "هذا شي ما أقدر أساعد فيه. تبي شي ثاني؟",
+  },
+  sexual: { en: "I'll pass on that one. Anything else?", ar: "هذي أعذرني فيها. تبي شي ثاني؟" },
+  hate: { en: "I won't go there. Anything else?", ar: "هذا ما أدخل فيه. تبي شي ثاني؟" },
+  self_harm: {
+    en: "I'm really sorry you're going through this, and you don't have to face it alone. In Saudi Arabia you can call 937 any time, or 911 if you're in danger right now. I'm here to talk too.",
+    ar: "آسف إنك تمر بهذا، وما أنت لحالك. تقدر تتصل على 937 أي وقت، أو 911 إذا كنت في خطر الحين. وأنا موجود أسولف معك.",
+  },
+  advice: {
+    en: "That one needs a doctor, lawyer or advisor who knows your situation. I can share general info if that helps.",
+    ar: "هذي تحتاج دكتور أو محامي أو مستشار يعرف وضعك. أقدر أعطيك معلومات عامة لو تبي.",
+  },
+};
 
 /** What a picture sent without words is taken to ask. */
 const LOOK: Record<Lang, string> = { en: "What's in this picture?", ar: "وش في هالصورة؟" };
@@ -190,6 +212,24 @@ export async function runTurn(
     return;
   }
   emit({ type: "transcript", text: heard, lang, ms: since() });
+
+  // The topic policy reads what was said while the model starts answering (section 10a). Nothing
+  // is voiced and no tool runs until it has said yes; if it says no, the model is stopped and
+  // Sarjy declines in its own voice. Allowed turns lose no time: it is usually done first.
+  const policyStarted = performance.now();
+  const verdict: Promise<PolicyVerdict> = providers.policy
+    .check(heard, signal)
+    .catch(() => ({ allowed: true, checked: false, model: "", inputTokens: 0, outputTokens: 0 }));
+  const modelStop = new AbortController();
+  /** Set once the policy has turned this turn away. */
+  let declined: PolicyTopic | null = null;
+  void verdict.then((v) => {
+    timings.policyMs = Math.round(performance.now() - policyStarted);
+    if (!v.allowed) {
+      declined = v.topic ?? "harm";
+      modelStop.abort();
+    }
+  });
 
   // 2. Recall. Only the speaker's memories, in a Majlis too: that is what keeps each person's private.
   const room = input.room;
@@ -325,23 +365,40 @@ export async function runTurn(
     }),
   };
 
+  // No tool runs before the policy has allowed the turn: a turned-away turn changes nothing.
+  for (const tool of Object.values(tools) as { execute?: (...args: never[]) => unknown }[]) {
+    const run = tool.execute;
+    if (!run) continue;
+    tool.execute = async (...args: never[]) => {
+      if (!(await verdict).allowed) throw new Error("Turned away by the topic policy.");
+      return run(...args);
+    };
+  }
+
   // 4. Speak. The first sentence is voiced the moment it is complete; the rest when the text ends.
   // Segments are sent strictly in order, whichever voice request finishes first.
   let chunker = new SpeechChunker();
+  /** Pieces queued to be said (the model's, and "One sec"), whether or not they end up said. */
   let segmentIndex = 0;
+  /** Pieces actually sent, which number the segments the browser plays. */
+  let sent = 0;
   let sending = Promise.resolve();
   const voiced = { en: 0, ar: 0 };
-  const speak = (raw: string) => {
+  const speak = (raw: string, decline = false) => {
     const text = tidy(raw, lang);
     if (!text) return;
-    const index = segmentIndex++;
+    segmentIndex++;
     // Normally the user's language; if the model slipped into the other one, the matching voice reads it.
     const voice = writtenIn(text, lang);
-    voiced[voice] += text.length;
     const audio = providers.tts.synthesize(text, voice);
     sending = sending.then(async () => {
+      // Nothing is said before the policy has answered; once it has said no, only the decline is.
+      await verdict;
+      if (declined && !decline) return;
       const wav = await audio;
+      const index = sent++;
       if (index === 0) timings.firstAudioMs = since();
+      voiced[voice] += text.length;
       emit({ type: "segment", index, text, lang: voice, audio: wav ? toBase64(wav) : null });
     });
   };
@@ -362,7 +419,7 @@ export async function runTurn(
       maxRetries: 0,
       // The browser gave up on this turn (a new turn, barge-in, a closed tab): stop thinking, and
       // don't run a tool whose result no one will hear, so nothing is ever saved unannounced.
-      abortSignal: signal,
+      abortSignal: signal ? AbortSignal.any([signal, modelStop.signal]) : modelStop.signal,
       providerOptions: modelOptions(modelId),
       maxOutputTokens: modelId.startsWith("openai/gpt-oss") ? undefined : PLAIN_MAX_OUTPUT,
     });
@@ -410,23 +467,31 @@ export async function runTurn(
       timings.model = id;
       break;
     } catch {
-      if (segmentIndex > (saidChecking ? 1 : 0) || signal?.aborted) break;
+      if (segmentIndex > (saidChecking ? 1 : 0) || signal?.aborted || modelStop.signal.aborted) break;
     }
   }
   if (signal?.aborted) return;
+  // The policy may answer after the model has finished: its verdict decides either way.
+  const policy = await verdict;
+  if (declined) {
+    answer = DECLINE[declined][lang];
+    chunker = new SpeechChunker();
+    speak(answer, true);
+  }
   if (answer === null) {
     emit({ type: "error", code: "model_unavailable", say: SAY.model_unavailable[lang] });
     return;
   }
   answer = tidy(answer, lang);
   const rest = chunker.flush();
-  if (rest) speak(rest);
+  if (rest && !declined) speak(rest);
 
   // 5. Remember (Day 2: "save, then show"). The writer reads the exchange with everything already
   // remembered and decides what to keep, while the last of the voice is still being made; what it
   // saves reaches the screen before the turn ends. Nothing is kept from words Whisper doubted.
   const remembering = (async () => {
-    if (unsure) return null;
+    // Nothing is remembered from words Whisper doubted, or from a turn turned away.
+    if (unsure || declined) return null;
     const started = performance.now();
     const plan = await planWrites(
       providers.writer,
@@ -495,6 +560,15 @@ export async function runTurn(
           model: writer.model,
           inputTokens: writer.inputTokens,
           outputTokens: writer.outputTokens,
+          audioSeconds: 0,
+          voiced: { en: 0, ar: 0 },
+        })
+      : 0) +
+    (policy.model
+      ? turnCost({
+          model: policy.model,
+          inputTokens: policy.inputTokens,
+          outputTokens: policy.outputTokens,
           audioSeconds: 0,
           voiced: { en: 0, ar: 0 },
         })

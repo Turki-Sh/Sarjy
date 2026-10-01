@@ -168,6 +168,18 @@ export async function POST(request: Request) {
       // Once the browser has gone, events have nowhere to go: drop them instead of throwing.
       let open = true;
       const emit = (event: TurnEvent) => {
+        // One structured line per turn in the server log (Vercel's logs): how long each stage
+        // took, which model answered, what it cost. Never what was said.
+        if (event.type === "done") {
+          console.log(
+            JSON.stringify({
+              turn: event.timings,
+              lang: uiLang,
+              majlis: !!room,
+              audio: audio instanceof Blob,
+            }),
+          );
+        }
         // The room hears the turn even if the speaker's own tab has gone.
         majlis?.outlet.send(event);
         if (!open || request.signal.aborted) return;

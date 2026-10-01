@@ -7,6 +7,7 @@ import { fakeFetch } from "./fake/fetch";
 import { createFakeModel } from "./fake/model";
 import { createFakeStt, createFakeTts } from "./fake/speech";
 import { createFakeGuard } from "./fake/guard";
+import { createFakePolicy } from "./fake/policy";
 import { createFakeWeb } from "./fake/web";
 import { createGroqProviders } from "./groq";
 import type { Providers } from "./types";
@@ -37,6 +38,7 @@ export function getProviders(
     writer: [{ id: "fake-writer", model: createFakeModel("fake-writer") }],
     web: createFakeWeb(),
     guard: createFakeGuard(options.unsafePicture ?? false),
+    policy: createFakePolicy(),
     fetch: fakeFetch,
   };
 }

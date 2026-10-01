@@ -235,7 +235,7 @@ The brand book's speaking rules become the system prompt. In short: answer first
 | Memory recall across a reload | 100% of acceptance script | Acceptance tests AT-10 to AT-17 |
 | Multiplayer | Two browsers in one room stay in sync; no memory crosses between people | AT-90 to AT-97 |
 | Link preview | Correct card in WhatsApp, X, Slack and LinkedIn previews | AT-100 to AT-104 |
-| Guardrails | 25 of 25 red-team prompts handled; 0 false refusals on the demo script | AT-120 to AT-125 |
+| Guardrails | 25 of 25 red-team prompts handled; 0 false refusals on the demo script | AT-140 to AT-145 |
 | Invented numbers in tool answers | 0 | AT-31, AT-34, plus a numeric grounding check in tests |
 | Time to first audio, no tool | p50 under 2.0 s | Per-turn timings, logged and shown in the details panel |
 | Time to first audio, with weather | p50 under 3.0 s | Same |
