@@ -1,6 +1,7 @@
 /*
- * The 404: always night (a scene, not a surface, so it looks the same in both themes). The sky
- * holds the moon-zero and the words; the stage below holds the dunes, the fire and the lost.
+ * The 404: night in the dark, day in the light (its light follows the clock, or your recent choice:
+ * shared/daylight.ts). The sky holds the moon (or the sun) as the zero, and the words; the stage
+ * below holds the dunes, the fire and the lost.
  */
 
 .lost {
@@ -10,7 +11,7 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(clamp(250px, 42vh, 520px), 1fr);
   color: var(--frost);
-  background: var(--sky-night-top);
+  background: var(--sky-top);
   font-family: var(--font-ui);
 }
 .lost:lang(ar) {
@@ -469,4 +470,46 @@
   .bubble {
     animation: none;
   }
+}
+
+/* ---- By day ---- */
+
+:root:not([data-theme="dark"]) .lost {
+  color: var(--ink);
+}
+:root:not([data-theme="dark"]) .brand {
+  color: var(--saddle);
+}
+:root:not([data-theme="dark"]) .digits {
+  color: color-mix(in srgb, var(--ink) 6%, transparent);
+  -webkit-text-stroke-color: color-mix(in srgb, var(--ink) 28%, transparent);
+}
+:root:not([data-theme="dark"]) .body {
+  color: var(--graphite);
+}
+:root:not([data-theme="dark"]) .copy {
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--sky-day-top) 70%, white), transparent);
+}
+:root:not([data-theme="dark"]) .primary {
+  background: var(--saddle);
+  color: var(--white);
+}
+:root:not([data-theme="dark"]) .secondary {
+  border-color: color-mix(in srgb, var(--ink) 22%, transparent);
+  background: color-mix(in srgb, var(--white) 55%, transparent);
+  color: var(--ink);
+}
+:root:not([data-theme="dark"]) .secondary:hover {
+  background: color-mix(in srgb, var(--white) 80%, transparent);
+}
+:root:not([data-theme="dark"]) :is(.primary, .secondary, .moon):focus-visible {
+  outline-color: var(--saddle);
+}
+/* The zero is the sun by day: no craters, warm, with its own glow. */
+:root:not([data-theme="dark"]) .moon {
+  background: radial-gradient(circle at 40% 38%, var(--white), var(--sun) 45%, var(--saffron));
+  filter: drop-shadow(0 0 0.14em var(--sun-glow)) drop-shadow(0 0 0.05em var(--sun-glow));
+}
+:root:not([data-theme="dark"]) .footprints {
+  border-color: color-mix(in srgb, var(--sand-shade) 70%, transparent);
 }

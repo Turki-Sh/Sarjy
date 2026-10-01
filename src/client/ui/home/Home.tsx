@@ -20,9 +20,11 @@ import { MajlisRoom } from "./MajlisRoom";
 import { Nav } from "./Nav";
 import { PromiseStory } from "./PromiseStory";
 import { Reins } from "./Reins";
+import { useDaylight } from "./theme";
 
 export function Home({ lang, visitor }: { lang: Lang; visitor: Visitor | null }) {
   const cast = castHome(visitor?.rafeeq ?? null);
+  useDaylight();
   return (
     <div className={styles.home} lang={lang} dir={dir(lang)}>
       <Nav lang={lang} />

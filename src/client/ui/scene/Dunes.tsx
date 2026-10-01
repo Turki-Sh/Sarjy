@@ -31,9 +31,9 @@ export function Dunes({ shape = "rolling", uid }: { shape?: keyof typeof SHAPES;
   );
   const stops = (name: string) => (
     <linearGradient id={`${uid}-${name}`} x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" style={{ stopColor: `var(--dune-${name}-lit)` }} />
-      <stop offset="0.55" style={{ stopColor: `var(--dune-${name})` }} />
-      <stop offset="1" style={{ stopColor: "var(--dune-shade)" }} />
+      <stop offset="0" style={{ stopColor: `var(--ridge-${name}-lit)` }} />
+      <stop offset="0.55" style={{ stopColor: `var(--ridge-${name})` }} />
+      <stop offset="1" style={{ stopColor: "var(--ridge-shade)" }} />
     </linearGradient>
   );
   return (

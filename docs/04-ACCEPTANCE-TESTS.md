@@ -170,6 +170,7 @@ A test is **passing** only when every tag listed for it passes. All **Must** tes
 | AT-121 | The home page | I go to the end of the day, then forget a memory in the reins | The night scene with its reply; the forget is said out loud and can be undone | P11 | Should | E2E |
 | AT-122 | Any visitor | I open a page that doesn't exist | A 404 status and the lost Rafeeqs talking by a campfire; clicking the moon plays another scene; stoking the fire cheers them; a way home | P12 | Should | Unit (casting, staging), E2E |
 | AT-123 | Arabic chosen | I open a missing page | It says so in Arabic, with the way home | P12 | Should | E2E |
+| AT-125 | No choice made | I open `/` and a missing page late at night, then in the morning; I choose dark in the morning | Night on both pages at night (the voice screen keeps my own theme), day in the morning; my choice of dark holds through the day and the clock leads again the next morning | P11, P12 | Should | Unit, E2E (clock set) |
 | AT-124 | Any visitor | I open `/talk`, then click the logo | One of the fresh-chat lines, not the generic one; the logo leads home | P11 | Should | E2E |
 
 ## Guardrails

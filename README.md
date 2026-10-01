@@ -2,27 +2,37 @@
 
 [![CI](https://github.com/Turki-Sh/Sarjy/actions/workflows/ci.yml/badge.svg)](https://github.com/Turki-Sh/Sarjy/actions/workflows/ci.yml)
 
-A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.
+**A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.** In English and everyday Saudi Arabic.
 
 > Shaped to its rider. على مقاس فارسه.
 
 Sarj is Arabic for saddle; Sarjy means "my saddle". A saddle is fitted to one rider and breaks in to them over time. Tell Sarjy something once, and the next answer fits a little better.
 
-**Status:** planned, building. The live URL will be here once deployed.
+![The home page by day: the tagline, with the Rafeeqs living in it](.github/readme/home-day.jpg)
 
-## Read the plan
+## What it does
 
-| # | Document | Answers |
-|---|---|---|
-| 01 | [Product requirements](docs/01-PRD.md) | What we build, for whom, and why weather |
-| 02 | [Architecture](docs/02-ARCHITECTURE.md) | How one turn flows from your voice to Sarjy's, and where each piece of code lives |
-| 03 | [Implementation plan](docs/03-IMPLEMENTATION-PLAN.md) | The three-day build, milestone by milestone |
-| 04 | [Acceptance tests](docs/04-ACCEPTANCE-TESTS.md) | How we know it works, and the demo script |
-| 05 | [Deployment](docs/05-DEPLOYMENT.md) | How it ships, and how keys stay secret in a public repo |
-| 06 | [Brief coverage](docs/06-BRIEF-COVERAGE.md) | Every requirement in the brief, and how and where we meet it |
-| | [Brand](docs/brand/) | The brand book and visual identity: the design source of truth |
+- **Talk, and it talks back.** Tap and speak (or type). Whisper hears you, the answer streams back sentence by sentence in a natural English or Saudi Arabic voice, and the orb, captions and audio move together.
+- **It remembers.** Say "my favorite color is green" and it is saved, said out loud and shown on screen. Ask on Wednesday and it answers "Green. You told me on Sunday." Every memory can be seen, changed or forgotten.
+- **It doesn't guess.** Weather comes from a real forecast (Open-Meteo), anything current from a web search, and each tool shows as a chip with its timing.
+- **The Majlis.** Start a room, send the link, and up to eight people talk to each other, each in their own seat color. Sarjy only answers when someone asks it.
+- **The Rafeeqs.** Eight companions who can take the orb's place: each with its own personality, smile, story and a bond that grows the more you talk.
+- **Made for both languages.** The whole interface mirrors for Arabic, and Sarjy answers in the language you used.
 
-Prefer one styled page? The **Sarjy Handbook** puts every doc below in a single searchable page: run `pnpm install && pnpm handbook` and open `docs/handbook.html`, or visit `/handbook` on the running app.
+| | |
+|---|---|
+| ![The voice screen with Keeper after a saved fact](.github/readme/talk.jpg) | ![A room in the Rafeeqs gallery](.github/readme/gallery.jpg) |
+| The voice screen: Keeper in the orb's place, a fact just saved | Eight companions, each with its own temper and story |
+| ![A day with Sarjy, at dawn](.github/readme/day.jpg) | ![The Majlis, round a Sadu rug](.github/readme/majlis.jpg) |
+| A day with Sarjy: weather, search and memory, dawn to night | The Majlis: friends talk, Sarjy answers when asked |
+| ![The home page at night, in Arabic](.github/readme/home-night-ar.jpg) | ![The 404 at night](.github/readme/lost-night.jpg) |
+| At night, in Arabic: the pages follow your clock | The 404: lost Rafeeqs round a campfire, a new scene each visit |
+
+## Where it stands
+
+Built: the full voice loop, memory, weather and web search, images in the chat, the interface deep dive (liquid glass, captions, the details panel with timings and cost), the Majlis, the Rafeeqs, the home page and the 404. Still open: measured latency numbers, the cost write-up, a red-team run on the live stack, prayer times as a tool, and the Morning card. The live progress log is [the implementation plan](docs/03-IMPLEMENTATION-PLAN.md).
+
+The app lives at `/talk`; `/` is the home page.
 
 ## Run it on your machine
 
@@ -62,13 +72,19 @@ On Windows, stopping the server with Ctrl+C asks "Terminate batch job (Y/N)?" on
 
 ## Tests and CI
 
-Every push to `main` runs the full suite on GitHub Actions: typecheck, lint, format, unit and integration tests, a production build, a scan of the browser bundle for secrets, end-to-end tests in Chromium, and a secret scan of the whole git history.
+Every push to `main` and every pull request runs on GitHub Actions, with stand-in providers (no keys, nothing leaves the runner):
 
-- **Live status:** the badge above, or [the Actions tab](https://github.com/Turki-Sh/Sarjy/actions/workflows/ci.yml).
-- **What ran:** open any run; its summary page lists every test file and every test, passed or failed.
-- **Browser report:** each run attaches a `playwright-report` artifact (download, unzip, open `index.html`) with a trace for any failure.
+| Step | Checks |
+|---|---|
+| Typecheck, lint, format | TypeScript strict, ESLint, Prettier |
+| Unit and integration | About 190 Vitest tests: the turn pipeline end to end with fake providers and an in-memory Postgres, memory, the Majlis, prompts, captions, the Rafeeqs' rules, the pages' scenes |
+| Build, then a bundle scan | A production build, then the browser bundle is searched for anything that looks like a key |
+| End to end | About 60 Playwright tests in Chromium against the built app: turns, memory, settings, both languages, the mic with a fake microphone, two and three people in one Majlis, the Rafeeqs, the home page and the 404 |
+| Secrets | Gitleaks over the whole git history |
 
-## In one picture
+Each run's page lists every test, passed or failed, and keeps a Playwright report with a trace for any failure. Deployment is Vercel's: every push to `main` builds and ships, running the database migrations first.
+
+## How it works
 
 ```
  you speak ──► browser detects the end of speech ──► /api/turn ──► Groq Whisper (speech to text)
@@ -77,6 +93,8 @@ Every push to `main` runs the full suite on GitHub Actions: typecheck, lint, for
  you hear  ◄── orb, captions and audio in sync     ◄── one stream of events
                                                               └──► in a room, the same events go to everyone (Ably)
 ```
+
+More in the docs: [what it is and why](docs/01-PRD.md), [how it works](docs/02-ARCHITECTURE.md) (including [what we optimize](docs/02-ARCHITECTURE.md#18b-what-we-optimize)), [the plan and progress](docs/03-IMPLEMENTATION-PLAN.md), [acceptance tests](docs/04-ACCEPTANCE-TESTS.md), [deployment](docs/05-DEPLOYMENT.md), [brief coverage](docs/06-BRIEF-COVERAGE.md), and [the brand](docs/brand/).
 
 ## Stack
 

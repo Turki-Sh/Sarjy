@@ -5,7 +5,12 @@ import { t } from "@/shared/i18n";
 // in it and leads to the voice screen at /talk; the 404 is a campfire scene of lost Rafeeqs that
 // changes every visit. Acceptance tests AT-117 to AT-123.
 
+/** A day-time or night-time clock for the page (it follows the clock where you are). */
+const morning = () => new Date(2026, 9, 1, 10, 0);
+const lateNight = () => new Date(2026, 9, 1, 22, 30);
+
 test("the home page introduces Sarjy, alive, and leads to the voice screen (AT-117)", async ({ page }) => {
+  await page.clock.setFixedTime(morning());
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Shaped to its rider.");
   // The Rafeeqs are in the picture, not in a showcase: on the headline and on the dunes.
@@ -127,4 +132,37 @@ test("the voice screen opens on a fresh-chat line, and its logo leads home (AT-1
   await expect(page.getByText(new RegExp(`^(${fresh})$`))).toBeVisible();
   await page.getByRole("complementary").getByRole("link", { name: "Sarjy" }).click();
   await expect(page).toHaveURL(/\/$/);
+});
+
+test("the home page and the 404 follow the clock, and a choice holds for a while (AT-125)", async ({
+  page,
+}) => {
+  // Late at night, with no choice made: night on both pages.
+  await page.clock.setFixedTime(lateNight());
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  // Really dark: the page's background is the brand's night (a scene once clobbered that token).
+  await expect(page.locator("main").locator("..")).toHaveCSS("background-color", "rgb(17, 17, 17)");
+  await page.goto("/not-here");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  // The voice screen keeps your own theme (light, by default).
+  await page.goto("/");
+  await page.locator("#hero").getByRole("link", { name: "Talk to Sarjy" }).click();
+  await expect(page).toHaveURL(/\/talk$/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+
+  // In the morning: day, and the 404's zero is the sun.
+  await page.clock.setFixedTime(morning());
+  await page.goto("/not-here");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+
+  // Choosing dark in the morning holds through the day...
+  await page.goto("/");
+  await page.locator("#hero").getByRole("button", { name: "Dark" }).click();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  // ...and the next morning the clock leads again.
+  await page.clock.setFixedTime(new Date(2026, 9, 2, 9, 0));
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });

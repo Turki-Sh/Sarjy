@@ -19,6 +19,7 @@ import { Campfire } from "../scene/Campfire";
 import { Dunes } from "../scene/Dunes";
 import { usePointerParallax } from "../scene/hooks";
 import { Sky } from "../scene/Sky";
+import { useDaylight } from "../home/theme";
 import scene from "../scene/Scene.module.css";
 import styles from "./Lost.module.css";
 import { DustCloud, MapProp, Bubble } from "./props";
@@ -35,6 +36,7 @@ export function Lost({ lang, seed }: { lang: Lang; seed: number }) {
   const root = useRef<HTMLElement>(null);
   const uid = `lost${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   usePointerParallax(root);
+  useDaylight();
 
   const [v, setV] = useState(() => castScene(seed));
   const [beat, setBeat] = useState(0);
@@ -80,13 +82,7 @@ export function Lost({ lang, seed }: { lang: Lang; seed: number }) {
   };
 
   return (
-    <main
-      ref={root}
-      className={`${scene.scene} ${styles.lost}`}
-      data-time="night"
-      lang={lang}
-      dir={dir(lang)}
-    >
+    <main ref={root} className={`${scene.scene} ${styles.lost}`} data-time="sky" lang={lang} dir={dir(lang)}>
       <Sky seed={seed % 997} stars={120} bodies={false} />
 
       <header className={styles.top}>

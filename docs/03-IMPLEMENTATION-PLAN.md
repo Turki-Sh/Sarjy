@@ -11,6 +11,19 @@ The build, day by day. Each milestone ends with something you can open in a brow
 | Order of work | De-risk first: skeleton and metadata on Day 1, real voice on Day 2, interface and multiplayer on Day 3, hardening on Friday morning |
 | Tooling | pnpm, Next.js 16, React 19, TypeScript 6 strict (7 is not yet supported by the lint tooling), ESLint 9, Vitest, Playwright |
 
+## Where we are (Thursday 1 Oct)
+
+| Milestone | State |
+|---|---|
+| M0 to M6: plan, skeleton, live voice, the voice loop, the interface deep dive, the Majlis | Done, with every review round from Turki folded in |
+| Web search, memory as sentences, images in the chat, liquid glass, wallpapers | Done (added on Day 2) |
+| Rafeeq, the companions: eight, each with a personality, a smile, a story and its own bond | Done (Days 3 and 4) |
+| Pages: the home page at `/` (the voice screen moved to `/talk`) and the 404, both following day and night | Done (Days 4 and 5) |
+| Turki's touches | H1 (Hijri and time of day) done in the prompt; the prayer-times tool (T5) and the Morning card (H2) not built (see below) |
+| M7: harden and submit | Open: latency numbers, cost write-up, red-team run on the live stack, link-preview check, Loom, submission |
+| CI | Green on every push to `main` (typecheck, lint, format, unit and integration, build, bundle secret scan, end-to-end in Chromium, gitleaks) |
+| Tests | 190 unit and integration tests, 61 end-to-end tests |
+
 ## What you do in parallel
 
 These need your accounts, so only you can do them. Never paste a key into the chat.
@@ -165,7 +178,7 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [ ] README: live URL, what it is, how to run, architecture summary, the API justification, the deep dives, what we would do next
 - [ ] 3 to 5 minute Loom and a PDF of the docs reader, sent to Sarj at least a day before the meeting
 - [ ] Final check of secrets: gitleaks clean, client bundle clean, Vercel env only
-- [ ] `main` is the default branch and holds everything
+- [x] `main` is the default branch and holds everything
 - [ ] Submit in Ashby: deployment URL and repository URL
 
 ### Added on Day 2 (Turki's requests)
@@ -180,6 +193,8 @@ A suggestion, your call: connecting Vercel early costs nothing and gives a previ
 - [x] A high-quality home page that introduces Sarjy, with a clear way into the voice screen (Day 4: the voice screen moves to `/talk`; the Rafeeqs live in the hero, a scroll-told promise, a day with Sarjy, a gallery, the Majlis, the reins, a finale to pick one; a companion rides along; greets you by name)
 - [x] A custom, animated 404 page in the brand, bilingual, with a way back (Day 4: lost Rafeeqs around a campfire, four scenes shuffled each visit, a squabble in a dust cloud, the moon as the zero)
 - [x] Turki's review of the pages (Day 4): no dash lines on the section labels; a hello from your Rafeeq in a bubble, random, following light and dark; the sun and moon switch the theme; new hero and Rafeeqs ledes; no level on the headline, no notes, no Play button; a smoother timeline; the gallery shows each name once, upright; the finale scattered like the dots page with a Talk with Sarjy button; no handbook links for now; on the 404 the moon changes the scene and the fire is a secret; the app opens on a fresh-chat line and its logo leads home; the prompt says the Now line is the only source for the time (AT-124)
+- [x] Day and night (Turki, Day 5): the home page and the 404 follow the clock where you are (day from 6 to 18); a choice of light or dark (the toggle, the sun or moon, Settings) holds until the light next changes, then the clock leads again. The 404 gets a day sky with the sun as its zero. Set before the page paints, so there is no flash; leaving for `/talk` hands back your own theme (AT-125)
+- [x] Fixed: two scene variables shared names with brand tokens (`--night`, the night color, and `--dune-shade`, Dune's shading), which turned the dark background to nothing after visiting the home page; renamed (`--nightfall`, `--ridge-*`) and checked that no other registered property collides
 - [ ] Maybe: onboarding screens, a short first-run walkthrough (Turki, Day 4: skipped for now)
 
 ### Fixed from Turki's review (Day 2)
@@ -278,9 +293,10 @@ Researched first: how Sarjy's memory worked, what Anthropic and OpenAI ship, and
 - [ ] Live check on the deployed site with two phones (the container's Ably key is a placeholder, so tokens can only be tried on Vercel)
 
 ### Turki's touches (after every Must, in this order)
-- [ ] H1: Hijri date and time-of-day greetings in the prompt and the interface
-- [ ] T5: prayer times tool (Aladhan, Umm al-Qura)
-- [ ] H2: the Morning card
+- [x] H1: Hijri date and time-of-day greetings in the prompt and the interface. Every turn's prompt carries the date (Gregorian and Umm al-Qura Hijri), the local time on both clocks and the part of the day, so Sarjy greets and answers "what's the Hijri date?" without a tool (`shared/hijri.ts`, tested); the home page greets by its light
+- [ ] T5: prayer times tool (Aladhan, Umm al-Qura). Not built. Since Day 2 Sarjy can search the web, so "when is maghrib in Jeddah?" gets an answer from a search, but with a `web.search` chip, not a prayer chip, and from whatever source the search finds, not the Umm al-Qura method (AT-36 and AT-132 ask for both). Not yet checked against the live stack (this sandbox's Groq key is a placeholder)
+- [ ] H2: the Morning card. Not built: it is a card on screen (weather, the next prayer, one memory), which web search can't give
+
 
 ### Stretch · Rafeeq, the companion
 - [x] Turki's design (Day 3): four companions, Rider, Keeper, Scout and Drifter, with one cat-mouthed face; off by default, picked in Settings (with live previews), replacing the orb in your own chats, never in a Majlis

@@ -14,27 +14,28 @@
   inherits: true;
   initial-value: transparent;
 }
-@property --dune-far {
+@property --ridge-far {
   syntax: "<color>";
   inherits: true;
   initial-value: transparent;
 }
-@property --dune-mid {
+@property --ridge-mid {
   syntax: "<color>";
   inherits: true;
   initial-value: transparent;
 }
-@property --dune-near {
+@property --ridge-near {
   syntax: "<color>";
   inherits: true;
   initial-value: transparent;
 }
-@property --dune-shade {
+@property --ridge-shade {
   syntax: "<color>";
   inherits: true;
   initial-value: transparent;
 }
-@property --night {
+/* How much night is in the sky, 0 to 1 (not --night: that is the brand's night color in tokens.css). */
+@property --nightfall {
   syntax: "<number>";
   inherits: true;
   initial-value: 0;
@@ -55,11 +56,11 @@
   transition:
     --sky-top 1.4s var(--ease-rein),
     --sky-low 1.4s var(--ease-rein),
-    --dune-far 1.4s var(--ease-rein),
-    --dune-mid 1.4s var(--ease-rein),
-    --dune-near 1.4s var(--ease-rein),
-    --dune-shade 1.4s var(--ease-rein),
-    --night 1.4s var(--ease-rein),
+    --ridge-far 1.4s var(--ease-rein),
+    --ridge-mid 1.4s var(--ease-rein),
+    --ridge-near 1.4s var(--ease-rein),
+    --ridge-shade 1.4s var(--ease-rein),
+    --nightfall 1.4s var(--ease-rein),
     --sun-up 1.4s var(--ease-rein);
 }
 
@@ -68,41 +69,41 @@
 .scene[data-time="day"] {
   --sky-top: var(--sky-day-top);
   --sky-low: var(--sky-day-low);
-  --dune-far: var(--sand-far);
-  --dune-mid: var(--sand-mid);
-  --dune-near: var(--sand-near);
-  --dune-shade: var(--sand-shade);
-  --night: 0;
+  --ridge-far: var(--sand-far);
+  --ridge-mid: var(--sand-mid);
+  --ridge-near: var(--sand-near);
+  --ridge-shade: var(--sand-shade);
+  --nightfall: 0;
   --sun-up: 1;
 }
 .scene[data-time="dawn"] {
   --sky-top: var(--sky-dawn-top);
   --sky-low: var(--sky-dawn-low);
-  --dune-far: color-mix(in srgb, var(--sand-far) 70%, var(--sky-dawn-top));
-  --dune-mid: color-mix(in srgb, var(--sand-mid) 78%, var(--sky-dawn-top));
-  --dune-near: color-mix(in srgb, var(--sand-near) 80%, var(--sky-dawn-top));
-  --dune-shade: color-mix(in srgb, var(--sand-shade) 70%, var(--sky-dawn-top));
-  --night: 0.25;
+  --ridge-far: color-mix(in srgb, var(--sand-far) 70%, var(--sky-dawn-top));
+  --ridge-mid: color-mix(in srgb, var(--sand-mid) 78%, var(--sky-dawn-top));
+  --ridge-near: color-mix(in srgb, var(--sand-near) 80%, var(--sky-dawn-top));
+  --ridge-shade: color-mix(in srgb, var(--sand-shade) 70%, var(--sky-dawn-top));
+  --nightfall: 0.25;
   --sun-up: 1;
 }
 .scene[data-time="dusk"] {
   --sky-top: var(--sky-dusk-top);
   --sky-low: var(--sky-dusk-low);
-  --dune-far: color-mix(in srgb, var(--sand-mid) 55%, var(--dusk));
-  --dune-mid: color-mix(in srgb, var(--sand-near) 62%, var(--dusk));
-  --dune-near: color-mix(in srgb, var(--sand-shade) 62%, var(--sky-dusk-top));
-  --dune-shade: color-mix(in srgb, var(--sand-shade) 40%, var(--sky-night-top));
-  --night: 0.45;
+  --ridge-far: color-mix(in srgb, var(--sand-mid) 55%, var(--dusk));
+  --ridge-mid: color-mix(in srgb, var(--sand-near) 62%, var(--dusk));
+  --ridge-near: color-mix(in srgb, var(--sand-shade) 62%, var(--sky-dusk-top));
+  --ridge-shade: color-mix(in srgb, var(--sand-shade) 40%, var(--sky-night-top));
+  --nightfall: 0.45;
   --sun-up: 1;
 }
 .scene[data-time="night"] {
   --sky-top: var(--sky-night-top);
   --sky-low: var(--sky-night-low);
-  --dune-far: var(--sand-night-far);
-  --dune-mid: var(--sand-night-mid);
-  --dune-near: var(--sand-night-near);
-  --dune-shade: var(--sand-night-shade);
-  --night: 1;
+  --ridge-far: var(--sand-night-far);
+  --ridge-mid: var(--sand-night-mid);
+  --ridge-near: var(--sand-night-near);
+  --ridge-shade: var(--sand-night-shade);
+  --nightfall: 1;
   --sun-up: 0;
 }
 /* "theme": the page's own light or dark, as a place (the home page's hero). The sky starts from
@@ -110,28 +111,50 @@
 .scene[data-time="theme"] {
   --sky-top: var(--bg);
   --sky-low: var(--sky-day-low);
-  --dune-far: var(--sand-far);
-  --dune-mid: var(--sand-mid);
-  --dune-near: var(--sand-near);
-  --dune-shade: var(--sand-shade);
-  --night: 0;
+  --ridge-far: var(--sand-far);
+  --ridge-mid: var(--sand-mid);
+  --ridge-near: var(--sand-near);
+  --ridge-shade: var(--sand-shade);
+  --nightfall: 0;
   --sun-up: 1;
 }
 :root[data-theme="dark"] .scene[data-time="theme"] {
   --sky-top: var(--bg);
   --sky-low: var(--sky-night-low);
-  --dune-far: var(--sand-night-far);
-  --dune-mid: var(--sand-night-mid);
-  --dune-near: var(--sand-night-near);
-  --dune-shade: var(--sand-night-shade);
-  --night: 1;
+  --ridge-far: var(--sand-night-far);
+  --ridge-mid: var(--sand-night-mid);
+  --ridge-near: var(--sand-night-near);
+  --ridge-shade: var(--sand-night-shade);
+  --nightfall: 1;
+  --sun-up: 0;
+}
+/* "sky": a full sky that follows the page's light: day in the light theme, night in the dark
+   (the 404, Turki, Day 5; its light follows the clock, see shared/daylight.ts). */
+.scene[data-time="sky"] {
+  --sky-top: var(--sky-day-top);
+  --sky-low: var(--sky-day-low);
+  --ridge-far: var(--sand-far);
+  --ridge-mid: var(--sand-mid);
+  --ridge-near: var(--sand-near);
+  --ridge-shade: var(--sand-shade);
+  --nightfall: 0;
+  --sun-up: 1;
+}
+:root[data-theme="dark"] .scene[data-time="sky"] {
+  --sky-top: var(--sky-night-top);
+  --sky-low: var(--sky-night-low);
+  --ridge-far: var(--sand-night-far);
+  --ridge-mid: var(--sand-night-mid);
+  --ridge-near: var(--sand-night-near);
+  --ridge-shade: var(--sand-night-shade);
+  --nightfall: 1;
   --sun-up: 0;
 }
 /* The lit side of each ridge: a little lighter, toward the sky. */
 .scene {
-  --dune-far-lit: color-mix(in srgb, var(--dune-far) 80%, var(--sky-low));
-  --dune-mid-lit: color-mix(in srgb, var(--dune-mid) 82%, var(--sky-low));
-  --dune-near-lit: color-mix(in srgb, var(--dune-near) 85%, var(--sky-low));
+  --ridge-far-lit: color-mix(in srgb, var(--ridge-far) 80%, var(--sky-low));
+  --ridge-mid-lit: color-mix(in srgb, var(--ridge-mid) 82%, var(--sky-low));
+  --ridge-near-lit: color-mix(in srgb, var(--ridge-near) 85%, var(--sky-low));
 }
 
 /* ---- Sky ---- */
@@ -148,7 +171,7 @@
   width: 100%;
   height: 100%;
   fill: var(--star);
-  opacity: var(--night);
+  opacity: var(--nightfall);
 }
 .twinkle {
   animation: twinkle 3.4s ease-in-out infinite;
@@ -178,7 +201,7 @@
     translate: 0 0;
   }
   94% {
-    opacity: calc(var(--night) * 0.95);
+    opacity: calc(var(--nightfall) * 0.95);
   }
   100% {
     opacity: 0;
@@ -218,7 +241,7 @@
     radial-gradient(circle at 62% 64%, var(--moon-shade) 7%, transparent 8%),
     radial-gradient(circle at 60% 30%, var(--moon-shade) 5%, transparent 6%), var(--moon);
   box-shadow: 0 0 5cqw 1.5cqw var(--moon-glow);
-  opacity: var(--night);
+  opacity: var(--nightfall);
 }
 
 /* ---- Dunes ---- */
@@ -253,7 +276,7 @@
 }
 .ridge {
   fill: none;
-  stroke: var(--dune-mid-lit);
+  stroke: var(--ridge-mid-lit);
   stroke-width: 2;
   opacity: 0.8;
 }

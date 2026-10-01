@@ -146,8 +146,10 @@ Priorities use MoSCoW: **Must** ships or the submission fails. **Should** is wha
 
 | ID | Feature | Priority |
 |---|---|---|
-| H1 | Hijri and time aware: Sarjy knows today's Hijri date (Umm al-Qura calendar) and the time of day where you are, greets accordingly (صباح الخير, مساء الخير), and can answer "what's the date in Hijri?" | Should |
-| H2 | The Morning card: on the first open of the day, a solid card under the orb with your city's weather, the next prayer and one thing you asked Sarjy to remember. Sarjy reads it aloud if you tap it. Built from the same tools and memory as a normal turn | Should |
+| H1 (built) | Hijri and time aware: Sarjy knows today's Hijri date (Umm al-Qura calendar) and the time of day where you are, greets accordingly (صباح الخير, مساء الخير), and can answer "what's the date in Hijri?" | Should |
+| H2 (not built) | The Morning card: on the first open of the day, a solid card under the orb with your city's weather, the next prayer and one thing you asked Sarjy to remember. Sarjy reads it aloud if you tap it. Built from the same tools and memory as a normal turn | Should |
+
+Status (Day 5): H1 is built into every turn's prompt. H2 is not built. Prayer times (T5) are not a tool yet: a web search can answer them, but not from the Umm al-Qura method and without a prayer chip, so they stay open.
 
 ### Guardrails and reliability
 
@@ -198,6 +200,7 @@ A room is called a **Majlis** (مجلس), after the Saudi sitting room where eve
 | P9 | Share a moment: after an answer, Share makes a link to that one exchange (`/s/{code}`), read-only, link-only (noindex), deleted by Forget everything | Should |
 | P11 | A home page at `/` that introduces Sarjy with the Rafeeqs living in it (the headline, the dunes, every section), greets a returning visitor by name with their own Rafeeq, lets you pick a Rafeeq and go straight to talk; the voice screen is at `/talk` (Turki, Day 4) | Should |
 | P12 | A 404 of lost Rafeeqs around a campfire: a different scene and cast every visit, each talking in its own voice, a way home and a way to talk, in both languages (Turki, Day 4) | Should |
+| P13 | The home page and the 404 follow day and night by the visitor's clock; a choice of light or dark holds until the light next changes (Turki, Day 5) | Should |
 | P10 | The build notes (these documents) are served in the app as the Sarjy Handbook at `/handbook` (`/notes` forwards there) | Should |
 
 ### Rafeeq, the companion

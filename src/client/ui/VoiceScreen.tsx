@@ -215,6 +215,7 @@ export function VoiceScreen({
     html.dataset.theme =
       choice === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : choice;
     rememberChoice(COOKIE.theme, choice);
+    rememberChoice(COOKIE.themeAt, String(Date.now()));
     setThemeChoice(choice);
   };
 

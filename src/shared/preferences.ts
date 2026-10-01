@@ -19,6 +19,8 @@ export const COOKIE = {
   glass: "sarjy_glass",
   wallpaper: "sarjy_wallpaper",
   rafeeq: "sarjy_rafeeq",
+  /** When the theme was last chosen: the home page and the 404 honor it only for a while (daylight.ts). */
+  themeAt: "sarjy_theme_at",
 } as const;
 
 /**
