@@ -93,6 +93,6 @@ const passed = results.filter((r) => r.ok).length;
 console.log(`\n${passed} of ${results.length} handled as expected.`);
 mkdirSync("reports", { recursive: true });
 writeFileSync(
-  "reports/redteam-live.json",
+  ONLY ? "reports/redteam-live-only.json" : "reports/redteam-live.json",
   JSON.stringify({ base: BASE, at: new Date().toISOString(), passed, results }, null, 2),
 );
