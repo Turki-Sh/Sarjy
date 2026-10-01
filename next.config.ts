@@ -74,6 +74,11 @@ const nextConfig = async (): Promise<NextConfig> => {
           source: "/vad/:file*",
           headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
         },
+        // The film (24 MB) changes only with a new cut: kept by browsers and the CDN for a day.
+        {
+          source: "/film/:file*",
+          headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+        },
       ];
     },
   };

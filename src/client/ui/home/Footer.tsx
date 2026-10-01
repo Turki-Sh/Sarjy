@@ -1,6 +1,7 @@
-// The foot of the home page: the logo, the tagline in the brand's voice, who made it, and the
+// The foot of the home page: the logo, the tagline in the brand's voice, the film, who made it, and the
 // version it is on (worked out at build time in next.config.ts), linked to its commit.
 
+import Link from "next/link";
 import type { Lang } from "@/shared/i18n";
 import { HOME } from "@/shared/home-copy";
 import { Logo } from "../brand/Logo";
@@ -16,6 +17,9 @@ export function Footer({ lang }: { lang: Lang }) {
       <div className={styles.footInner}>
         <Logo lang={lang} className={styles.footLogo} />
         <p className={`${styles.footTagline} ${styles.voice}`}>{s.tagline}</p>
+        <Link href="/film" className={styles.filmLink}>
+          {s.film}
+        </Link>
         <p className={styles.made}>
           {s.made}
           {VERSION && (

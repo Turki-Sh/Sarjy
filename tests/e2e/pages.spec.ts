@@ -166,3 +166,17 @@ test("the home page and the 404 follow the clock, and a choice holds for a while
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
+
+test("the film plays on its own page, linked from the foot of the home page", async ({ page, request }) => {
+  await page.goto("/");
+  await page.locator("footer").getByRole("link", { name: "Watch the film" }).click();
+  await expect(page).toHaveURL(/\/film$/);
+  await expect(page.getByRole("heading", { name: "Sarjy, in a minute." })).toBeVisible();
+  const video = page.getByLabel("The Sarjy film");
+  await expect(video).toHaveAttribute("src", "/film/sarjy-film-ar.mp4");
+  await expect(video).toHaveAttribute("controls", "");
+  // The file itself is served, and can be fetched in parts (so it starts before it has all arrived).
+  const head = await request.get("/film/sarjy-film-ar.mp4", { headers: { range: "bytes=0-99" } });
+  expect(head.status()).toBe(206);
+  expect(head.headers()["content-type"]).toContain("video/mp4");
+});

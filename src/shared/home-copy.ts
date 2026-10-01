@@ -97,7 +97,7 @@ type HomeCopy = {
     pick: (name: string) => string;
     orb: string;
   };
-  footer: { tagline: string; made: string };
+  footer: { tagline: string; made: string; film: string };
   /** The little one that rides along the page with you, one line per section. */
   companion: { label: string; lines: Record<"promise" | "day" | "rafeeqs" | "majlis" | "reins", string> };
 };
@@ -264,6 +264,7 @@ export const HOME: Record<Lang, HomeCopy> = {
     footer: {
       tagline: "Shaped to its rider.",
       made: "Made by Turki Alshuaibi.",
+      film: "Watch the film",
     },
     companion: {
       label: "Talk to Sarjy",
@@ -429,6 +430,7 @@ export const HOME: Record<Lang, HomeCopy> = {
     footer: {
       tagline: "على مقاس فارسه.",
       made: "من تطوير تركي الشعيبي.",
+      film: "شوف الفيلم",
     },
     companion: {
       label: "كلّم سرجي",

@@ -218,7 +218,7 @@
 }
 .footInner {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px 32px;
   max-width: 1240px;
@@ -234,6 +234,15 @@
   margin: 0;
   color: var(--text-2);
   font-size: 20px;
+}
+.filmLink {
+  justify-self: end;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.filmLink:hover {
+  text-decoration: underline;
 }
 .made {
   grid-column: 1 / -1;
