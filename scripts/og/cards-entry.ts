@@ -511,6 +511,60 @@ const minuteCss = `.sky{position:absolute;left:0;top:0}
 .orb{overflow:visible}
 .hourglass{filter:drop-shadow(0 8px 0 rgb(0 0 0 / .1))}`;
 
+// ---- The Star in the Well: the third film's own card (docs/brand/lore). Night in the dunes under
+// the Straw Road, an old stone well alone on the sand with light pouring up out of it and the little
+// star peeking over the rim; Fennec, ears up, heard it first, and Keeper has brought a rope, just in case.
+
+/** A five-pointed star with the Rafeeqs' small smile, centered at (cx, cy). */
+const littleStar = (cx: number, cy: number, r: number) => {
+  const pts = Array.from({ length: 10 }, (_, i) => {
+    const a = (Math.PI / 5) * i - Math.PI / 2;
+    const rr = i % 2 ? r * 0.5 : r;
+    return `${cx + rr * Math.cos(a)},${cy + rr * Math.sin(a)}`;
+  }).join(" ");
+  return `<polygon points="${pts}" fill="var(--lantern-core)" stroke="var(--brass-light)" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="${cx - r * 0.18}" cy="${cy - r * 0.02}" r="${r * 0.07}" fill="var(--saddle)"/>
+    <circle cx="${cx + r * 0.18}" cy="${cy - r * 0.02}" r="${r * 0.07}" fill="var(--saddle)"/>
+    <path d="M${cx - r * 0.12} ${cy + r * 0.14} q${r * 0.06} ${r * 0.08} ${r * 0.12} 0 q${r * 0.06} ${r * 0.08} ${r * 0.12} 0" fill="none" stroke="var(--saddle)" stroke-width="2.5" stroke-linecap="round"/>`;
+};
+
+function wellScene(mirror: boolean) {
+  const at = (x: number) => (mirror ? 1200 - x : x);
+  const wx = at(870);
+  const top = 470;
+  // The well's stones: a ring of rounded blocks around the mouth.
+  const stones = Array.from({ length: 9 }, (_, i) => {
+    const x = wx - 120 + i * 30;
+    return `<rect x="${x - 14}" y="${top + 2 + (i % 2) * 22}" width="28" height="20" rx="6" fill="var(${i % 3 ? "--stone" : "--stone-light"})" stroke="var(--sand-night-shade)" stroke-width="2"/>`;
+  }).join("");
+  return `<svg class="sky" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs>
+      <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky-night-top)"/><stop offset="1" stop-color="var(--sky-night-low)"/></linearGradient>
+      <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="var(--lantern-core)" stop-opacity=".85"/><stop offset="1" stop-color="var(--lantern-core)" stop-opacity="0"/></linearGradient>
+      <filter id="haze"><feGaussianBlur stdDeviation="18"/></filter>
+      <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+    </defs>
+    <rect width="1200" height="630" fill="url(#deep)"/>
+    <path d="M${at(1240)} -40 L${at(300)} 430" stroke="var(--star)" stroke-width="110" opacity=".1" filter="url(#haze)"/>
+    <path d="M${at(1180)} -20 L${at(420)} 380" stroke="var(--brass-light)" stroke-width="18" opacity=".18" filter="url(#haze)"/>
+    <g fill="var(--star)">${stars}</g>
+    <path d="M0 456 C200 430 380 440 600 452 C820 464 1000 432 1200 440 V630 H0 Z" fill="var(--sand-night-far)"/>
+    <path d="M0 540 C240 516 520 520 760 536 C960 550 1080 528 1200 524 V630 H0 Z" fill="var(--sand-night-mid)"/>
+    <path d="M${wx - 70} ${top + 6} L${wx - 150} 40 L${wx + 150} 40 L${wx + 70} ${top + 6} Z" fill="url(#beam)" opacity=".55" filter="url(#soft)"/>
+    <ellipse cx="${wx}" cy="${top + 4}" rx="128" ry="26" fill="var(--sand-night-shade)"/>
+    <ellipse cx="${wx}" cy="${top + 2}" rx="104" ry="18" fill="var(--lantern-core)" opacity=".85" filter="url(#soft)"/>
+    ${littleStar(wx + 10, top - 34, 44)}
+    <rect x="${wx - 130}" y="${top}" width="260" height="66" rx="14" fill="var(--stone)"/>
+    ${stones}
+    <path d="M${wx - 118} ${top - 4} V${top - 120} M${wx + 118} ${top - 4} V${top - 120} M${wx - 132} ${top - 120} H${wx + 132}" stroke="var(--wood-dark)" stroke-width="12" stroke-linecap="round"/>
+    <path d="M${wx + 40} ${top - 120} V${top - 30}" stroke="var(--sadu-cream)" stroke-width="4"/>
+  </svg>
+  ${rafeeq("fennec", at(700), 572, 150, { hover: "near", flip: mirror })}
+  ${rafeeq("keeper", at(1070), 586, 150, { mood: "happy", flip: !mirror })}`;
+}
+
+const wellCss = `.sky{position:absolute;left:0;top:0}`;
+
 // ---- The cards. File names say what each one shows, like Turki's.
 
 export const CARDS = [
@@ -692,6 +746,36 @@ export const CARDS = [
       },
       scene: minuteScene(true),
       extraCss: minuteCss,
+    }),
+  },
+  {
+    file: "film-the-star-in-the-well.png",
+    html: page({
+      lang: "en",
+      bg: "var(--sky-night-top)",
+      ink: "var(--frost)",
+      copy: {
+        title: "The Star in the Well.",
+        body: "This year, Suhail didn't rise with his rain. The Rafeeqs found out why.",
+        kicker: "Sarjy / Tales of the Straw Road",
+      },
+      scene: wellScene(false),
+      extraCss: wellCss,
+    }),
+  },
+  {
+    file: "film-suhail-fi-albeer.png",
+    html: page({
+      lang: "ar",
+      bg: "var(--sky-night-top)",
+      ink: "var(--frost)",
+      copy: {
+        title: "سهيل في البير.",
+        body: "هالسنة سهيل ما طلع بمطره. والرفقاء عرفوا ليش.",
+        kicker: "سرجي · حكايات درب التبانة",
+      },
+      scene: wellScene(true),
+      extraCss: wellCss,
     }),
   },
   {

@@ -153,6 +153,18 @@ export const CARDS: Card[] = [
   },
   // ...and each film's own, at its own link (shared/films.ts names them; no kind picks them).
   {
+    file: "film-the-star-in-the-well.png",
+    alt: "The Star in the Well. An old stone well in the dunes at night, light pouring out of it and a little star peeking over the rim, Fennec and Keeper beside it.",
+    kinds: [],
+    lang: "en",
+  },
+  {
+    file: "film-suhail-fi-albeer.png",
+    alt: "سهيل في البير: an old stone well in the dunes at night, light pouring out of it and a little star peeking over the rim, Fennec and Keeper beside it.",
+    kinds: [],
+    lang: "ar",
+  },
+  {
     file: "film-end-of-winter.png",
     alt: "End of Winter. A winter night in the desert: Lantern by the fire, the dallah on the coals, Keeper on a Sadu cushion with a finjan.",
     kinds: [],

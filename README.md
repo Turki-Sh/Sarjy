@@ -4,7 +4,7 @@
 
 **A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.** In English and everyday Saudi Arabic.
 
-**Live: [sarjy-three.vercel.app](https://sarjy-three.vercel.app)** (the app is at [/talk](https://sarjy-three.vercel.app/talk); no sign-up). Two short films about it: [/film](https://sarjy-three.vercel.app/film). The write-up, with measured latency, cost and red-team results: [docs/07-WRITEUP.md](docs/07-WRITEUP.md).
+**Live: [sarjy-three.vercel.app](https://sarjy-three.vercel.app)** (the app is at [/talk](https://sarjy-three.vercel.app/talk); no sign-up). Three short films about it: [/film](https://sarjy-three.vercel.app/film). The write-up, with measured latency, cost and red-team results: [docs/07-WRITEUP.md](docs/07-WRITEUP.md).
 
 > Shaped to its rider. على مقاس فارسه.
 
@@ -103,7 +103,7 @@ Each run's page lists every test, passed or failed, and keeps a Playwright repor
                                                               └──► in a room, the same events go to everyone (Ably)
 ```
 
-More in the docs: [what it is and why](docs/01-PRD.md), [how it works](docs/02-ARCHITECTURE.md) (including [what we optimize](docs/02-ARCHITECTURE.md#18b-what-we-optimize)), [the plan and progress](docs/03-IMPLEMENTATION-PLAN.md), [acceptance tests](docs/04-ACCEPTANCE-TESTS.md), [deployment](docs/05-DEPLOYMENT.md), [brief coverage](docs/06-BRIEF-COVERAGE.md), [the write-up](docs/07-WRITEUP.md), and [the brand](docs/brand/).
+More in the docs: [what it is and why](docs/01-PRD.md), [how it works](docs/02-ARCHITECTURE.md) (including [what we optimize](docs/02-ARCHITECTURE.md#18b-what-we-optimize)), [the plan and progress](docs/03-IMPLEMENTATION-PLAN.md), [acceptance tests](docs/04-ACCEPTANCE-TESTS.md), [deployment](docs/05-DEPLOYMENT.md), [brief coverage](docs/06-BRIEF-COVERAGE.md), [the write-up](docs/07-WRITEUP.md), and [the brand](docs/brand/), with [the lore of the Rafeeqs](docs/brand/lore/LORE.md).
 
 ## Stack
 

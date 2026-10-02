@@ -40,6 +40,30 @@ export type FilmEntry = {
 
 export const FILMS: FilmEntry[] = [
   {
+    id: "the-star-in-the-well",
+    versions: [
+      {
+        lang: "ar",
+        src: "/video/the-star-in-the-well-ar-1080.mp4",
+        poster: "/video/the-star-in-the-well-ar.jpg",
+      },
+      {
+        lang: "en",
+        src: "/video/the-star-in-the-well-en-1080.mp4",
+        poster: "/video/the-star-in-the-well-en.jpg",
+      },
+    ],
+    seconds: 106,
+    width: 1920,
+    height: 1080,
+    title: { en: "The Star in the Well", ar: "سهيل في البير" },
+    body: {
+      en: "Summer is ending, and Suhail hasn't risen with his rain. The eight Rafeeqs follow a glow across the dunes to an old well, and find out why.",
+      ar: "الصيف خلص، وسهيل ما طلع بمطره. الرفقاء الثمانية يلحقون نور بين الطعوس لين بير قديم، ويعرفون ليش.",
+    },
+    card: { en: "film-the-star-in-the-well.png", ar: "film-suhail-fi-albeer.png" },
+  },
+  {
     id: "end-of-winter",
     versions: [
       {

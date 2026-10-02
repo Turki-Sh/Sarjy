@@ -66,6 +66,8 @@ test("the voice screen, the film, a missing page and a Majlis link each have the
   // The films as a whole at /film, and each film its own card (and video) at its own link.
   await page.goto("/film");
   await expect(image()).toHaveAttribute("content", /\/og\/films-sarjy-films\.png$/);
+  await page.goto("/film/the-star-in-the-well");
+  await expect(image()).toHaveAttribute("content", /\/og\/film-the-star-in-the-well\.png$/);
   await page.goto("/film/end-of-winter");
   await expect(image()).toHaveAttribute("content", /\/og\/film-end-of-winter\.png$/);
   await expect(page.locator('head meta[property="og:video"]')).toHaveAttribute(

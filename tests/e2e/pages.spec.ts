@@ -178,6 +178,10 @@ test("the films: in the bar, a section of their own, and the newest playing at /
   ).toHaveAttribute("href", "#films");
   const section = page.locator("#films");
   await expect(section.getByRole("heading", { name: "Stories from the road." })).toBeVisible();
+  await expect(section.getByRole("link", { name: /The Star in the Well/ })).toHaveAttribute(
+    "href",
+    "/film/the-star-in-the-well",
+  );
   await expect(section.getByRole("link", { name: /End of Winter/ })).toHaveAttribute(
     "href",
     "/film/end-of-winter",
@@ -195,15 +199,19 @@ test("the films: in the bar, a section of their own, and the newest playing at /
   // /film opens on the newest, and the address bar then shows that film's own link.
   await expect(page.locator("footer").getByRole("link", { name: "Films" })).toHaveCount(0);
   await section.getByRole("link", { name: "Watch the films" }).click();
-  await expect(page).toHaveURL(/\/film\/end-of-winter$/);
-  await expect(page.getByRole("heading", { level: 1, name: "End of Winter" })).toBeVisible();
+  await expect(page).toHaveURL(/\/film\/the-star-in-the-well$/);
+  await expect(page.getByRole("heading", { level: 1, name: "The Star in the Well" })).toBeVisible();
   const video = page.locator("video");
+  await expect(video).toHaveAttribute("src", "/video/the-star-in-the-well-en-1080.mp4");
+
+  // A film in one version, with subtitles: no choice, and what it is in said under it.
+  await page.goto("/film/end-of-winter");
   await expect(video).toHaveAttribute("src", "/video/end-of-winter-1080.mp4");
   await expect(video).toHaveAttribute("poster", "/video/end-of-winter.jpg");
   await expect(video).toHaveAttribute("controls", "");
   await expect(video).toHaveAttribute("aria-label", "End of Winter");
   await expect(page.getByText("In Arabic, with English subtitles").first()).toBeVisible();
-  // One version only, so no choice; the other film is on the shelf.
+  // One version only, so no choice; the other films are on the shelf.
   await expect(page.getByRole("group", { name: "Watch in" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "More films" })).toBeVisible();
   // The easter eggs: the house lights go down while it plays, Drifter wonders after the credits
@@ -248,8 +256,8 @@ test("a film in two languages is one film with a choice, and the choice goes in 
   );
 
   // The newest keeps its own link too; a film that isn't there is a 404.
-  await page.goto("/film/end-of-winter");
-  await expect(page).toHaveURL(/\/film\/end-of-winter$/);
-  await expect(page.getByRole("heading", { level: 1, name: "End of Winter" })).toBeVisible();
+  await page.goto("/film/the-star-in-the-well");
+  await expect(page).toHaveURL(/\/film\/the-star-in-the-well$/);
+  await expect(page.getByRole("heading", { level: 1, name: "The Star in the Well" })).toBeVisible();
   expect((await request.get("/film/not-a-film")).status()).toBe(404);
 });
