@@ -2,8 +2,9 @@
 
 // The home page (Turki, Day 4): it introduces Sarjy and leads into the voice screen at /talk, with
 // the Rafeeqs living in every section rather than sitting in a showcase. Top to bottom: the hero,
-// the promise told as a story, a day with Sarjy, the eight companions, the Majlis, the reins, and
-// a last chance to pick who rides with you. A little companion rides along the page with you.
+// the promise told as a story, a day with Sarjy, the eight companions, the Majlis, the reins, the
+// films, and a last chance to pick who rides with you. A little companion rides along the page
+// with you.
 
 import type { Lang } from "@/shared/i18n";
 import { dir } from "@/shared/i18n";
@@ -12,6 +13,7 @@ import { castHome } from "./cast";
 import { Companion } from "./Companion";
 import { DayOnTheRoad } from "./DayOnTheRoad";
 import { Finale } from "./Finale";
+import { FilmsReel } from "./FilmsReel";
 import { Footer } from "./Footer";
 import { Gallery } from "./Gallery";
 import { Hero } from "./Hero";
@@ -35,6 +37,7 @@ export function Home({ lang, visitor }: { lang: Lang; visitor: Visitor | null })
         <Gallery lang={lang} visitor={visitor} />
         <MajlisRoom lang={lang} />
         <Reins lang={lang} />
+        <FilmsReel lang={lang} />
         <Finale lang={lang} />
       </main>
       <Footer lang={lang} />

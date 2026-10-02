@@ -59,6 +59,21 @@
 .links a:hover {
   color: var(--text);
 }
+.filmsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.filmsLink svg {
+  width: 17px;
+  height: 17px;
+}
+.links a[aria-current="page"] {
+  color: var(--text);
+}
+.tools .filmsTool {
+  display: none;
+}
 .tools {
   display: flex;
   align-items: center;
@@ -138,6 +153,9 @@
 @media (max-width: 900px) {
   .links {
     display: none;
+  }
+  .tools .filmsTool {
+    display: inline-grid;
   }
 }
 @media (max-width: 420px) {

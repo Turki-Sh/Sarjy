@@ -363,6 +363,116 @@ const filmCss = `.sky{position:absolute;left:0;top:0}
 .screen{filter:drop-shadow(0 0 48px color-mix(in srgb, var(--sky-night-low) 90%, var(--frost)))}
 .cushion{position:absolute;border-radius:50%;box-shadow:inset 0 -6px 0 rgb(0 0 0 / .18)}`;
 
+// ---- End of Winter: the second film's own card. A winter night in the desert, the last light
+// still on the horizon behind the rocks, a fire with the dallah warming on its coals and a finjan
+// poured, the way the film goes. Lantern (who answers in the film) keeps the fire company, and
+// Keeper, who keeps what you tell it, sits on the Sadu cushion with the cup.
+
+const FLAME = "M50 100 C22 96 18 70 32 50 C40 38 44 24 50 4 C58 24 70 36 76 54 C84 76 76 96 50 100 Z";
+
+/** The fire: crossed logs on a ring of stones, three flames inside each other, sparks rising. */
+const fire = (cx: number, base: number, w: number) => {
+  // A few sparks just above the flames, drifting apart as they rise.
+  const sparks = [
+    [-8, -30, 2.6],
+    [12, -48, 2.2],
+    [-20, -66, 1.8],
+    [22, -82, 1.6],
+    [2, -104, 1.4],
+    [-14, -126, 1.2],
+  ]
+    .map(([dx, dy, r]) => `<circle cx="${50 + dx!}" cy="${dy}" r="${r}"/>`)
+    .join("");
+  return `<svg class="fire" style="left:${cx - w / 2}px;top:${base - w * 2.4}px" width="${w}" height="${w * 2.5}" viewBox="0 -140 100 250">
+    <g fill="var(--ember)">${sparks}</g>
+    <path d="${FLAME}" fill="var(--fire-edge)"/>
+    <g transform="translate(50 100) scale(0.74) translate(-50 -100)"><path d="${FLAME}" fill="var(--fire-mid)"/></g>
+    <g transform="translate(50 100) scale(0.44 0.52) translate(-50 -100)"><path d="${FLAME}" fill="var(--fire-core)"/></g>
+    <rect x="12" y="88" width="76" height="10" rx="5" transform="rotate(-12 50 93)" fill="var(--wood)"/>
+    <rect x="12" y="88" width="76" height="10" rx="5" transform="rotate(12 50 93)" fill="var(--wood-dark)"/>
+    <g fill="var(--stone)"><ellipse cx="8" cy="102" rx="9" ry="5"/><ellipse cx="28" cy="105" rx="10" ry="5"/><ellipse cx="50" cy="106" rx="10" ry="5"/><ellipse cx="72" cy="105" rx="10" ry="5"/><ellipse cx="92" cy="102" rx="9" ry="5"/></g>
+  </svg>`;
+};
+
+/** A brass dallah, standing at (x, base): the coffee pot with its long beak and crowned lid. */
+const dallah = (
+  x: number,
+  base: number,
+  h: number,
+) => `<svg class="dallah" style="left:${x - h * 0.55}px;top:${base - h}px" width="${h * 1.1}" height="${h}" viewBox="0 0 110 100">
+  <path d="M38 98 h34 l-4 -8 q-2 -14 4 -26 q6 -12 -2 -22 h-30 q-8 10 -2 22 q6 12 4 26 Z" fill="var(--brass)" stroke="var(--brass-dark)" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M41 42 q14 -6 28 0 l-3 -10 q-11 -4 -22 0 Z" fill="var(--brass-light)" stroke="var(--brass-dark)" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M50 32 q5 -14 10 0" fill="var(--brass-light)" stroke="var(--brass-dark)" stroke-width="2.5"/>
+  <circle cx="55" cy="16" r="4" fill="var(--brass-light)" stroke="var(--brass-dark)" stroke-width="2"/>
+  <path d="M40 58 q-18 -4 -26 -26 q-2 -6 -10 -8" fill="none" stroke="var(--brass-dark)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M40 58 q-18 -4 -26 -26 q-2 -6 -10 -8" fill="none" stroke="var(--brass)" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M70 46 q22 6 14 34 q-3 8 -12 10" fill="none" stroke="var(--brass-dark)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M44 80 h22" stroke="var(--brass-light)" stroke-width="2" opacity=".7"/>
+</svg>`;
+
+/** A Sadu cushion, the woven kind on the rug in the film. */
+const cushionSadu = (
+  x: number,
+  y: number,
+  w: number,
+) => `<svg class="sadu-cushion" style="left:${x - w / 2}px;top:${y - w * 0.32}px" width="${w}" height="${w * 0.4}" viewBox="0 0 100 40">
+  <rect x="2" y="4" width="96" height="32" rx="8" fill="var(--sadu-red)" stroke="var(--sadu-dark)" stroke-width="2"/>
+  <path d="${Array.from({ length: 8 }, (_, i) => `M${8 + i * 12} 26 l6 -10 l6 10 Z`).join(" ")}" fill="var(--sadu-cream)"/>
+  <rect x="2" y="9" width="96" height="3" fill="var(--sadu-dark)"/>
+  <rect x="2" y="29" width="96" height="3" fill="var(--sadu-dark)"/>
+</svg>`;
+
+function winterScene(mirror: boolean) {
+  const at = (x: number) => (mirror ? 1200 - x : x);
+  // The rocks on the horizon, as in the film's first shots: low, broken, dark against the glow.
+  const rocks = [
+    [520, 120, 44],
+    [620, 150, 70],
+    [790, 90, 38],
+    [990, 170, 84],
+    [1130, 110, 52],
+  ]
+    .map(([x, w, h]) => {
+      // A mesa: steep sides, a broken flat top.
+      const pts = [
+        [0, 0],
+        [0.1, 0.62],
+        [0.2, 1],
+        [0.42, 0.94],
+        [0.6, 1],
+        [0.78, 0.8],
+        [0.9, 0.46],
+        [1, 0],
+      ].map(([u, v]) => `${at(x! + u! * w!)},${472 - v! * h!}`);
+      return `<polygon points="${pts.join(" ")}" fill="var(--sand-night-shade)"/>`;
+    })
+    .join("");
+  const fx = at(860);
+  return `<svg class="sky" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs>
+      <linearGradient id="winter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky-night-top)"/><stop offset=".55" stop-color="var(--sky-night-low)"/><stop offset=".76" stop-color="var(--sky-dusk-top)"/><stop offset=".86" stop-color="var(--sky-dusk-low)"/></linearGradient>
+      <radialGradient id="glow" cx="${fx / 12}%" cy="88%" r="34%"><stop offset="0" stop-color="var(--fire-glow)"/><stop offset="1" stop-color="var(--fire-glow)" stop-opacity="0"/></radialGradient>
+      <filter id="haze"><feGaussianBlur stdDeviation="18"/></filter>
+    </defs>
+    <rect width="1200" height="630" fill="url(#winter)"/>
+    <path d="M${at(1240)} -40 L${at(380)} 470" stroke="var(--star)" stroke-width="90" opacity=".08" filter="url(#haze)"/>
+    <g fill="var(--star)">${stars}</g>
+    ${rocks}
+    <path d="M0 470 C200 462 400 466 600 470 C800 474 1000 466 1200 468 V630 H0 Z" fill="var(--sand-night-near)"/>
+    <rect width="1200" height="630" fill="url(#glow)"/>
+  </svg>
+  ${rafeeq("lantern", at(730), 590, 150, { mood: "happy", flip: mirror })}
+  ${fire(fx, 584, 92)}
+  ${dallah(at(948), 584, 74)}
+  ${cushionSadu(at(1080), 586, 150)}
+  ${rafeeq("keeper", at(1080), 566, 150, { mood: "petted", flip: !mirror })}
+  <svg class="finjan-cup" style="left:${at(1008) - 13}px;top:568px" width="26" height="22" viewBox="0 0 26 22"><path d="M2 3 h22 l-3 15 q-8 4 -16 0 Z" fill="var(--white)" stroke="var(--saddle)" stroke-width="2"/><path d="M4 7 h18" stroke="var(--fire-mid)" stroke-width="3"/></svg>`;
+}
+
+const winterCss = `.sky{position:absolute;left:0;top:0}
+.fire,.dallah,.sadu-cushion,.finjan-cup{position:absolute}
+.fire{filter:drop-shadow(0 0 26px var(--fire-glow))}`;
+
 // ---- The cards. File names say what each one shows, like Turki's.
 
 export const CARDS = [
@@ -487,33 +597,63 @@ export const CARDS = [
     }),
   },
   {
-    file: "film-now-showing.png",
+    file: "film-sarjy-in-a-minute.png",
     html: page({
       lang: "en",
       bg: "var(--sky-night-top)",
       ink: "var(--frost)",
       copy: {
-        title: "Now showing.",
-        body: "A one-minute film about Sarjy, in Arabic. The Rafeeqs saved you a seat.",
-        kicker: "Sarjy / The film",
+        title: "Sarjy, in a minute.",
+        body: "Tell it once, and it remembers. A one-minute film, in English and in Arabic.",
+        kicker: "Sarjy / Films",
       },
       scene: filmScene(false),
       extraCss: filmCss,
     }),
   },
   {
-    file: "film-yiradh-alhin.png",
+    file: "film-sarjy-fi-daqiqa.png",
     html: page({
       lang: "ar",
       bg: "var(--sky-night-top)",
       ink: "var(--frost)",
       copy: {
-        title: "يُعرض الحين.",
-        body: "فيلم قصير عن سرجي، دقيقة وحدة. الرفقاء حاجزين لك مكان.",
-        kicker: "سرجي · الفيلم",
+        title: "سرجي في دقيقة.",
+        body: "قلها مرة وحدة ويتذكرها. فيلم دقيقة، بالعربي وبالإنجليزي.",
+        kicker: "سرجي · أفلام",
       },
       scene: filmScene(true),
       extraCss: filmCss,
+    }),
+  },
+  {
+    file: "film-end-of-winter.png",
+    html: page({
+      lang: "en",
+      bg: "var(--sky-night-top)",
+      ink: "var(--frost)",
+      copy: {
+        title: "End of Winter.",
+        body: "Saffron, and one clove. He told Sarjy at the start of winter.",
+        kicker: "Sarjy / A short film",
+      },
+      scene: winterScene(false),
+      extraCss: winterCss,
+    }),
+  },
+  {
+    file: "film-akhir-alshita.png",
+    html: page({
+      lang: "ar",
+      bg: "var(--sky-night-top)",
+      ink: "var(--frost)",
+      copy: {
+        title: "آخر الشتاء.",
+        body: "زعفران، وحبة مسمار وحدة. قالها لسرجي أول الشتاء.",
+        kicker: "سرجي · فيلم قصير",
+      },
+      scene: winterScene(true),
+      extraCss: winterCss,
     }),
   },
 ];

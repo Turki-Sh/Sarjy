@@ -138,15 +138,28 @@ export const CARDS: Card[] = [
     kinds: ["talk"],
     lang: "ar",
   },
+  // Each film has its own pair (shared/films.ts picks them); "film" finds one when nothing else does.
   {
-    file: "film-now-showing.png",
-    alt: "Now showing. An open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    file: "film-end-of-winter.png",
+    alt: "End of Winter. A winter night in the desert: Lantern by the fire, the dallah on the coals, Keeper on a Sadu cushion with a finjan.",
     kinds: ["film"],
     lang: "en",
   },
   {
-    file: "film-yiradh-alhin.png",
-    alt: "يُعرض الحين: an open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    file: "film-akhir-alshita.png",
+    alt: "آخر الشتاء: a winter night in the desert, Lantern by the fire, the dallah on the coals, Keeper on a Sadu cushion with a finjan.",
+    kinds: ["film"],
+    lang: "ar",
+  },
+  {
+    file: "film-sarjy-in-a-minute.png",
+    alt: "Sarjy, in a minute. An open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    kinds: ["film"],
+    lang: "en",
+  },
+  {
+    file: "film-sarjy-fi-daqiqa.png",
+    alt: "سرجي في دقيقة: an open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
     kinds: ["film"],
     lang: "ar",
   },
@@ -188,6 +201,11 @@ export function pickCard(kind: CardKind, lang: "en" | "ar", seed: string): Card 
   const either = pool.filter((c) => c.lang === "any");
   const choices = sameLang.length ? sameLang : either.length ? either : pool;
   return choices[hash(`${kind}:${seed}`) % choices.length]!;
+}
+
+/** A card by its file name (a film names its own). */
+export function cardByFile(file: string): Card | undefined {
+  return CARDS.find((c) => c.file === file);
 }
 
 /** Open Graph image metadata for a card. */

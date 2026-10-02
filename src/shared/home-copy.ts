@@ -26,6 +26,7 @@ type HomeCopy = {
     day: string;
     rafeeqs: string;
     majlis: string;
+    films: string;
     talk: string;
     otherLang: string;
     dark: string;
@@ -97,9 +98,20 @@ type HomeCopy = {
     pick: (name: string) => string;
     orb: string;
   };
+  films: {
+    kicker: string;
+    title: string;
+    lede: string;
+    cta: string;
+    /** What the screen in the picture says over the film on it. */
+    now: string;
+  };
   footer: { tagline: string; made: string; film: string };
   /** The little one that rides along the page with you, one line per section. */
-  companion: { label: string; lines: Record<"promise" | "day" | "rafeeqs" | "majlis" | "reins", string> };
+  companion: {
+    label: string;
+    lines: Record<"promise" | "day" | "rafeeqs" | "majlis" | "reins" | "films", string>;
+  };
 };
 
 export const HOME: Record<Lang, HomeCopy> = {
@@ -109,6 +121,7 @@ export const HOME: Record<Lang, HomeCopy> = {
       day: "A day with it",
       rafeeqs: "Rafeeqs",
       majlis: "Majlis",
+      films: "Films",
       talk: "Talk to Sarjy",
       otherLang: "العربية",
       dark: "Dark",
@@ -255,6 +268,13 @@ export const HOME: Record<Lang, HomeCopy> = {
       forget: "Forget",
       reset: "Bring them back",
     },
+    films: {
+      kicker: "Sarjy films",
+      title: "Stories from the road.",
+      lede: "Short films about Sarjy and the people it rides with. Pull up a cushion; the Rafeeqs saved you a seat.",
+      cta: "Watch the films",
+      now: "Now showing",
+    },
     finale: {
       title: "Who rides with you?",
       lede: "Pick a Rafeeq and start talking. You can change your mind any time in Settings.",
@@ -264,7 +284,7 @@ export const HOME: Record<Lang, HomeCopy> = {
     footer: {
       tagline: "Shaped to its rider.",
       made: "Made by Turki Alshuaibi.",
-      film: "Watch the film",
+      film: "Films",
     },
     companion: {
       label: "Talk to Sarjy",
@@ -274,6 +294,7 @@ export const HOME: Record<Lang, HomeCopy> = {
         rafeeqs: "Those are my friends!",
         majlis: "Save me a seat.",
         reins: "Your call. Always.",
+        films: "Popcorn's on me.",
       },
     },
   },
@@ -283,6 +304,7 @@ export const HOME: Record<Lang, HomeCopy> = {
       day: "يوم معه",
       rafeeqs: "الرفاق",
       majlis: "المجلس",
+      films: "الأفلام",
       talk: "كلّم سرجي",
       otherLang: "English",
       dark: "داكن",
@@ -421,6 +443,13 @@ export const HOME: Record<Lang, HomeCopy> = {
       forget: "انسَ",
       reset: "رجّعها",
     },
+    films: {
+      kicker: "أفلام سرجي",
+      title: "حكايات من الدرب.",
+      lede: "أفلام قصيرة عن سرجي واللي يمشي معهم. خذ لك مخدة، الرفقاء حاجزين لك مكان.",
+      cta: "شوف الأفلام",
+      now: "يُعرض الحين",
+    },
     finale: {
       title: "مين يمشي معك؟",
       lede: "اختر رفيقك وابدأ السوالف. تقدر تغيّره وقت ما تبي من الإعدادات.",
@@ -430,7 +459,7 @@ export const HOME: Record<Lang, HomeCopy> = {
     footer: {
       tagline: "على مقاس فارسه.",
       made: "من تطوير تركي الشعيبي.",
-      film: "شوف الفيلم",
+      film: "الأفلام",
     },
     companion: {
       label: "كلّم سرجي",
@@ -440,6 +469,7 @@ export const HOME: Record<Lang, HomeCopy> = {
         rafeeqs: "هذولا ربعي!",
         majlis: "خلوا لي مكان.",
         reins: "القرار لك. دايم.",
+        films: "الفشار علي.",
       },
     },
   },

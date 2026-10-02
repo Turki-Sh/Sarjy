@@ -63,12 +63,15 @@ test("the voice screen, the film, a missing page and a Majlis link each have the
   const image = () => page.locator('head meta[property="og:image"]');
   await page.goto("/talk");
   await expect(image()).toHaveAttribute("content", /\/og\/talk-tell-it-once\.png$/);
+  // Each film its own card, and its own video for apps that play it in place.
   await page.goto("/film");
-  await expect(image()).toHaveAttribute("content", /\/og\/film-now-showing\.png$/);
+  await expect(image()).toHaveAttribute("content", /\/og\/film-end-of-winter\.png$/);
   await expect(page.locator('head meta[property="og:video"]')).toHaveAttribute(
     "content",
-    /\/video\/sarjy-in-a-minute-ar-1080\.mp4$/,
+    /\/video\/end-of-winter-1080\.mp4$/,
   );
+  await page.goto("/film/sarjy-in-a-minute");
+  await expect(image()).toHaveAttribute("content", /\/og\/film-sarjy-in-a-minute\.png$/);
   await page.goto("/no-such-page");
   await expect(image()).toHaveAttribute("content", /\/og\/lost-not-a-real-page\.png$/);
   await page.goto("/majlis/ZZZZZ");
@@ -79,7 +82,9 @@ test("the voice screen, the film, a missing page and a Majlis link each have the
   await page.goto("/talk");
   await expect(image()).toHaveAttribute("content", /\/og\/talk-qulha-marra\.png$/);
   await page.goto("/film");
-  await expect(image()).toHaveAttribute("content", /\/og\/film-yiradh-alhin\.png$/);
+  await expect(image()).toHaveAttribute("content", /\/og\/film-akhir-alshita\.png$/);
+  await page.goto("/film/sarjy-in-a-minute");
+  await expect(image()).toHaveAttribute("content", /\/og\/film-sarjy-fi-daqiqa\.png$/);
   await page.goto("/no-such-page");
   await expect(image()).toHaveAttribute("content", /\/og\/lost-mo-mawjouda\.png$/);
   await page.goto("/majlis/ZZZZZ");

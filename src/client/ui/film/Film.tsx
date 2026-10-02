@@ -1,81 +1,49 @@
-// A film page (Day 5): one film, played by the browser itself, with the way into the app under it,
-// and the other films listed below once there are more than one. Nothing here needs JavaScript:
-// the video element brings its own controls.
+// A film page (Day 5, redesigned the same day: Turki, "match the rest of the site"): the home
+// page's bar and foot, light or dark, English or Arabic, with the film in the middle. The words
+// come first (what it is, how long, in what language), then the screen with its glow, the choice
+// of version when there is more than one, and the other films on a shelf below.
 
 import Link from "next/link";
 import type { FilmEntry } from "@/shared/films";
-import { FEATURED, runningTime } from "@/shared/films";
+import { othersThan } from "@/shared/films";
 import { FILM } from "@/shared/film-copy";
 import type { Lang } from "@/shared/i18n";
 import { dir } from "@/shared/i18n";
 import { TALK } from "@/shared/site";
-import { Logo } from "../brand/Logo";
+import { Footer } from "../home/Footer";
+import home from "../home/Home.module.css";
+import { Nav } from "../home/Nav";
 import styles from "./Film.module.css";
+import { FilmPlayer } from "./FilmPlayer";
+import { FilmShelf } from "./FilmShelf";
 
-type Props = {
-  lang: Lang;
-  film: FilmEntry;
-  poster: string;
-  /** The other films, each with the still to show for it. Empty while there is only one. */
-  others: { film: FilmEntry; poster: string }[];
-};
-
-/** A film's own address: the newest is /film itself. */
-const hrefOf = (film: FilmEntry) => (film.id === FEATURED.id ? "/film" : `/film/${film.id}`);
-
-export function Film({ lang, film, poster, others }: Props) {
+export function Film({ lang, film, version }: { lang: Lang; film: FilmEntry; version: Lang }) {
   const s = FILM[lang];
+  const others = othersThan(film.id);
   return (
-    <main className={styles.film} lang={lang} dir={dir(lang)}>
-      <header className={styles.top}>
-        <Link href="/" className={styles.brand} aria-label={s.home}>
-          <Logo lang={lang} className={styles.logo} />
-        </Link>
-      </header>
-      <div className={styles.screen}>
-        <video
-          className={styles.video}
-          src={film.src}
-          poster={poster}
-          controls
-          playsInline
-          preload="metadata"
-          aria-label={film.title[lang]}
-        />
-      </div>
-      <section className={styles.words}>
-        <h1 className={styles.title}>{film.title[lang]}</h1>
-        <p className={styles.body}>{film.body[lang]}</p>
-        <div className={styles.actions}>
-          <Link href={TALK} className={styles.primary}>
-            {s.talk}
-          </Link>
-          <Link href="/" className={styles.secondary}>
-            {s.home}
-          </Link>
-        </div>
-      </section>
-      {others.length > 0 && (
-        <section className={styles.more} aria-labelledby="more-films">
-          <h2 id="more-films" className={styles.moreTitle}>
-            {s.more}
-          </h2>
-          <ul className={styles.list}>
-            {others.map(({ film: other, poster: still }) => (
-              <li key={other.id}>
-                <Link href={hrefOf(other)} className={styles.item}>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- a fixed card from public/ */}
-                  <img className={styles.still} src={still} alt="" width={1200} height={630} loading="lazy" />
-                  <span className={styles.itemTitle}>{other.title[lang]}</span>
-                  <span className={styles.itemMeta}>
-                    {runningTime(other.seconds)} · {s.spoken[other.spoken]}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <div className={home.home} lang={lang} dir={dir(lang)}>
+      <Nav lang={lang} at="films" />
+      <main>
+        <section className={styles.hero} aria-labelledby="film-title">
+          <div className={styles.intro}>
+            <div>
+              <p className={home.kicker}>{s.kicker}</p>
+              <h1 id="film-title" className={styles.title}>
+                {film.title[lang]}
+              </h1>
+            </div>
+            <div className={styles.aside}>
+              <p className={home.lede}>{film.body[lang]}</p>
+              <Link href={TALK} className={styles.talk}>
+                {s.talk}
+              </Link>
+            </div>
+          </div>
+          <FilmPlayer lang={lang} film={film} initial={version} />
         </section>
-      )}
-    </main>
+        {others.length > 0 && <FilmShelf lang={lang} films={others} />}
+      </main>
+      <Footer lang={lang} />
+    </div>
   );
 }

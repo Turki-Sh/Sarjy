@@ -167,27 +167,60 @@ test("the home page and the 404 follow the clock, and a choice holds for a while
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
-test("the film plays on its own page, linked from the foot of the home page", async ({ page, request }) => {
+test("the films: in the bar, a section of their own, and the newest playing at /film", async ({
+  page,
+  request,
+}) => {
   await page.goto("/");
-  await page.locator("footer").getByRole("link", { name: "Watch the film" }).click();
+  // In the bar next to the Majlis, and a section after the reins with every film in it.
+  await expect(
+    page.getByRole("navigation", { name: "Sarjy" }).getByRole("link", { name: "Films" }),
+  ).toHaveAttribute("href", "#films");
+  const section = page.locator("#films");
+  await expect(section.getByRole("heading", { name: "Stories from the road." })).toBeVisible();
+  await expect(section.getByRole("link", { name: /End of Winter/ })).toHaveAttribute("href", "/film");
+  await expect(section.getByRole("link", { name: /Sarjy, in a minute/ })).toHaveAttribute(
+    "href",
+    "/film/sarjy-in-a-minute",
+  );
+
+  await page.locator("footer").getByRole("link", { name: "Films" }).click();
   await expect(page).toHaveURL(/\/film$/);
-  await expect(page.getByRole("heading", { name: "Sarjy, in a minute." })).toBeVisible();
-  const video = page.getByLabel("Sarjy, in a minute.");
-  await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-ar-1080.mp4");
-  await expect(video).toHaveAttribute("poster", "/og/film-now-showing.png");
+  await expect(page.getByRole("heading", { level: 1, name: "End of Winter" })).toBeVisible();
+  const video = page.locator("video");
+  await expect(video).toHaveAttribute("src", "/video/end-of-winter-1080.mp4");
+  await expect(video).toHaveAttribute("poster", "/video/end-of-winter.jpg");
   await expect(video).toHaveAttribute("controls", "");
-  // One film so far, so no list of others under it.
-  await expect(page.getByRole("heading", { name: "More films" })).toHaveCount(0);
+  await expect(video).toHaveAttribute("aria-label", "End of Winter");
+  await expect(page.getByText("In Arabic, with English subtitles").first()).toBeVisible();
+  // One version only, so no choice; the other film is on the shelf.
+  await expect(page.getByRole("group", { name: "Watch in" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "More films" })).toBeVisible();
   // The file itself is served, and can be fetched in parts (so it starts before it has all arrived).
-  const head = await request.get("/video/sarjy-in-a-minute-ar-1080.mp4", {
-    headers: { range: "bytes=0-99" },
-  });
+  const head = await request.get("/video/end-of-winter-1080.mp4", { headers: { range: "bytes=0-99" } });
   expect(head.status()).toBe(206);
   expect(head.headers()["content-type"]).toContain("video/mp4");
 });
 
-test("every film has its own address; the newest's sends you to /film", async ({ page, request }) => {
+test("a film in two languages is one film with a choice, and the choice goes in the link", async ({
+  page,
+  request,
+}) => {
   await page.goto("/film/sarjy-in-a-minute");
+  const video = page.locator("video");
+  await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-en-1080.mp4");
+  const choice = page.getByRole("group", { name: "Watch in" });
+  await expect(choice.getByRole("button", { name: "English" })).toHaveAttribute("aria-pressed", "true");
+  await choice.getByRole("button", { name: "العربية" }).click();
+  await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-ar-1080.mp4");
+  await expect(choice.getByRole("button", { name: "العربية" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/\/film\/sarjy-in-a-minute\?v=ar$/);
+  // The shared link opens on that version.
+  await page.reload();
+  await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-ar-1080.mp4");
+
+  // The newest's own address is /film; a film that isn't there is a 404.
+  await page.goto("/film/end-of-winter");
   await expect(page).toHaveURL(/\/film$/);
   expect((await request.get("/film/not-a-film")).status()).toBe(404);
 });

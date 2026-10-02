@@ -2,7 +2,8 @@
 
 // The home page's bar: the logo, the sections, English or Arabic, light or dark, and the way in.
 // It turns to glass once you scroll. Language and theme are the same cookies the voice screen
-// uses, so a choice made here is there when you start talking.
+// uses, so a choice made here is there when you start talking. The film pages wear it too
+// (`at="films"`): there its links lead back to the home page's sections, and Films is where you are.
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,9 +23,10 @@ const remember = (name: string, value: string) => {
   document.cookie = `${name}=${value}; path=/; max-age=${YEAR}; samesite=lax`;
 };
 
-export function Nav({ lang }: { lang: Lang }) {
+export function Nav({ lang, at = "home" }: { lang: Lang; at?: "home" | "films" }) {
   const s = HOME[lang].nav;
   const router = useRouter();
+  const home = at === "home" ? "" : "/";
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -47,12 +49,28 @@ export function Nav({ lang }: { lang: Lang }) {
         <Logo lang={lang} className={styles.logo} />
       </Link>
       <nav className={styles.links} aria-label="Sarjy">
-        <a href="#promise">{s.promise}</a>
-        <a href="#day">{s.day}</a>
-        <a href="#rafeeqs">{s.rafeeqs}</a>
-        <a href="#majlis">{s.majlis}</a>
+        <a href={`${home}#promise`}>{s.promise}</a>
+        <a href={`${home}#day`}>{s.day}</a>
+        <a href={`${home}#rafeeqs`}>{s.rafeeqs}</a>
+        <a href={`${home}#majlis`}>{s.majlis}</a>
+        <a
+          href={at === "films" ? "/film" : "#films"}
+          className={styles.filmsLink}
+          aria-current={at === "films" ? "page" : undefined}
+        >
+          <Icon name="film" />
+          {s.films}
+        </a>
       </nav>
       <div className={styles.tools}>
+        {/* On a phone the links fold away; the films keep a way in. */}
+        <Link
+          href="/film"
+          className={`${styles.tool} ${styles.icon} ${styles.filmsTool}`}
+          aria-label={s.films}
+        >
+          <Icon name="film" />
+        </Link>
         <button type="button" className={styles.tool} onClick={switchLang} lang={lang === "ar" ? "en" : "ar"}>
           {s.otherLang}
         </button>

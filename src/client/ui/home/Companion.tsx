@@ -17,13 +17,14 @@ import { Rafeeq } from "../rafeeq/Rafeeq";
 import styles from "./Home.module.css";
 
 type Section = keyof (typeof HOME)["en"]["companion"]["lines"];
-const SECTIONS: Section[] = ["promise", "day", "rafeeqs", "majlis", "reins"];
+const SECTIONS: Section[] = ["promise", "day", "rafeeqs", "majlis", "reins", "films"];
 const MOOD: Record<Section, { state: VoiceState; act: Mood | null }> = {
   promise: { state: "listening", act: null },
   day: { state: "thinking", act: null },
   rafeeqs: { state: "idle", act: "greet" },
   majlis: { state: "listening", act: null },
   reins: { state: "idle", act: null },
+  films: { state: "idle", act: "happy" },
 };
 
 export function Companion({ lang, id, level }: { lang: Lang; id: RafeeqId; level: number }) {

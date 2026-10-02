@@ -1,0 +1,250 @@
+/*
+ * The films: the words and the list on one side, and a night screening in the dunes on the other:
+ * a screen on two poles, its stills crossfading with a slow drift, the light spilling onto the
+ * sand, and the Rafeeqs on cushions in their seat colors.
+ */
+
+.films {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+}
+.list {
+  display: grid;
+  gap: 10px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.film {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--t-base) var(--ease-rein),
+    box-shadow var(--t-base) var(--ease-rein),
+    translate var(--t-base) var(--ease-rein);
+}
+.film:hover {
+  translate: 0 -2px;
+  box-shadow: var(--frame-shadow);
+}
+/* The one on the screen right now. */
+.film[data-on] {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+}
+.film:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.thumb {
+  display: block;
+  width: 112px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.filmText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.filmTitle {
+  font-size: 17px;
+  font-weight: 700;
+}
+.filmMeta {
+  color: var(--text-2);
+  font-size: 13px;
+}
+.filmPlay {
+  width: 18px;
+  height: 18px;
+  margin-inline-end: 8px;
+  fill: currentColor;
+  color: var(--text-2);
+  transition: color var(--t-quick);
+}
+.film:hover .filmPlay,
+.film[data-on] .filmPlay {
+  color: var(--accent);
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  margin-block-start: 24px;
+  padding: 0 22px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.cta svg {
+  width: 18px;
+  height: 18px;
+}
+.cta:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ---- The screening ---- */
+
+.stage {
+  aspect-ratio: 1.22;
+  border-radius: 32px;
+  box-shadow: var(--frame-shadow);
+}
+.screen {
+  position: absolute;
+  left: 13%;
+  top: 9%;
+  z-index: 1;
+  width: 74%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1.2cqw solid var(--wood-dark);
+  border-radius: 1.6cqw;
+  background: var(--night);
+  box-shadow:
+    0 0 6cqw 1cqw color-mix(in srgb, var(--frost) 14%, transparent),
+    0 2cqw 4cqw rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+/* Off until it scrolls into view, then it warms up like a lamp. */
+.stage:not([data-running]) .screen {
+  filter: brightness(0.35) blur(2px);
+}
+.screen {
+  transition: filter 1.2s var(--ease-rein);
+}
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.1s var(--ease-rein);
+}
+.frame[data-on] {
+  opacity: 1;
+  animation: drift 6.5s linear both;
+}
+@keyframes drift {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.08;
+  }
+}
+.caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: grid;
+  gap: 0.2cqw;
+  padding: 6cqw 3cqw 3cqw;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+  color: var(--white);
+  font-size: clamp(14px, 2.8cqw, 22px);
+  font-weight: 700;
+  animation: caption-in 0.9s 0.3s var(--ease-rein) both;
+}
+.captionNow {
+  font-family: var(--font-data);
+  font-size: clamp(9px, 1.4cqw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.captionNow:lang(ar) {
+  font-family: var(--font-ar);
+  letter-spacing: 0;
+}
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    translate: 0 1.5cqw;
+  }
+}
+.progress {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  height: 0.6cqw;
+  width: 100%;
+  background: var(--saffron);
+  transform-origin: left;
+  animation: run var(--ms) linear both;
+}
+[dir="rtl"] .progress {
+  transform-origin: right;
+}
+@keyframes run {
+  from {
+    transform: scaleX(0);
+  }
+}
+.poles {
+  position: absolute;
+  left: 17%;
+  right: 17%;
+  top: 40%;
+  height: 40%;
+  border-inline: 1.1cqw solid var(--wood-dark);
+}
+.spill {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 60%;
+  height: 34%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(5cqw) saturate(1.4);
+  opacity: 0.35;
+  transition: background-image 1s;
+}
+.cushion {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--size) * 1.05cqw);
+  height: calc(var(--size) * 0.3cqw);
+  translate: -50% -55%;
+  border-radius: 50%;
+  background: var(--seat);
+  opacity: 0.9;
+}
+
+@media (max-width: 860px) {
+  .films {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stage {
+    order: -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame[data-on],
+  .caption,
+  .progress {
+    animation: none;
+  }
+}

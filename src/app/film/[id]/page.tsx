@@ -5,23 +5,30 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Film } from "@/client/ui/film/Film";
 import { readPreferences } from "@/server/preferences";
-import { FEATURED, filmById, othersThan } from "@/shared/films";
-import { filmMetadata, posterFor } from "../film-metadata";
+import { DAYLIGHT_SCRIPT } from "@/shared/daylight";
+import { FEATURED, filmById, pickVersion } from "@/shared/films";
+import { filmMetadata } from "../film-metadata";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ v?: string }> };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const film = filmById((await params).id);
   if (!film) return {};
   const { lang } = await readPreferences();
-  return filmMetadata(film, lang, `/film/${film.id}`);
+  const version = pickVersion(film, lang, (await searchParams).v);
+  return filmMetadata(film, version, lang, `/film/${film.id}`);
 }
 
-export default async function FilmByIdPage({ params }: Props) {
+export default async function FilmByIdPage({ params, searchParams }: Props) {
   const film = filmById((await params).id);
   if (!film) notFound();
-  if (film.id === FEATURED.id) redirect("/film");
+  const { v } = await searchParams;
+  if (film.id === FEATURED.id) redirect(v ? `/film?v=${encodeURIComponent(v)}` : "/film");
   const { lang } = await readPreferences();
-  const others = othersThan(film.id).map((f) => ({ film: f, poster: posterFor(f, lang) }));
-  return <Film lang={lang} film={film} poster={posterFor(film, lang)} others={others} />;
+  return (
+    <>
+      <script dangerouslySetInnerHTML={{ __html: DAYLIGHT_SCRIPT }} />
+      <Film lang={lang} film={film} version={pickVersion(film, lang, v).lang} />
+    </>
+  );
 }

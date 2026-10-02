@@ -34,6 +34,8 @@ export const ICONS = {
   more: '<path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="2.6"/>',
   pin: '<path d="M9.5 4.5h5l-.8 5.2 3.3 3.3H7l3.3-3.3zM12 13v6.5"/>',
   play: '<path d="M8 5.5v13l10.5-6.5z"/>',
+  /** A strip of film: the films. */
+  film: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7.5 4.5v15M16.5 4.5v15M3.5 9.5h4M3.5 14.5h4M16.5 9.5h4M16.5 14.5h4"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   /** A finjan, the small Arabic coffee cup: the Majlis. */
   finjan:
