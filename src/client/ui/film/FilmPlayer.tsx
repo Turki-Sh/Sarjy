@@ -6,6 +6,11 @@
 // keeps playing if it was). The choice goes in the address (?v=en), so a shared link opens on it.
 // Share hands the film's own link (with the version, when there is a choice) to the phone's share
 // sheet, or copies it where there is none, and says so.
+//
+// Two small surprises (Turki, Day 5: "a couple of easter eggs"): the house lights go down while
+// the film plays (the rest of the page dims) and come back up when it stops; and after the credits
+// Drifter, who sleeps through every screening on the home page, pops up from under the screen to
+// ask whether it missed it. Tap it to watch again.
 
 import { useEffect, useRef, useState } from "react";
 import type { FilmEntry } from "@/shared/films";
@@ -13,6 +18,7 @@ import { filmHref, runningTime } from "@/shared/films";
 import { FILM } from "@/shared/film-copy";
 import type { Lang } from "@/shared/i18n";
 import { Icon } from "../Icon";
+import { Rafeeq } from "../rafeeq/Rafeeq";
 import { useDaylight } from "../home/theme";
 import styles from "./Film.module.css";
 
@@ -43,6 +49,15 @@ export function FilmPlayer({ lang, film, initial, landing = false }: Props) {
     if (!landing) return;
     window.history.replaceState(window.history.state, "", `${filmHref(film)}${window.location.search}`);
   }, [landing, film]);
+
+  const [playing, setPlaying] = useState(false);
+  const [credits, setCredits] = useState(false);
+  const again = () => {
+    const v = video.current;
+    if (!v) return;
+    v.currentTime = 0;
+    void v.play().catch(() => {});
+  };
 
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef(0);
@@ -81,7 +96,9 @@ export function FilmPlayer({ lang, film, initial, landing = false }: Props) {
   };
 
   return (
-    <div className={styles.player}>
+    <div className={styles.player} data-playing={playing || undefined}>
+      {/* The house lights: they go down over the whole page while the film plays. */}
+      <div className={styles.house} data-down={playing || undefined} aria-hidden="true" />
       <div className={styles.glow} style={{ backgroundImage: `url(${version.poster})` }} aria-hidden="true" />
       <div className={styles.screen}>
         <video
@@ -94,8 +111,25 @@ export function FilmPlayer({ lang, film, initial, landing = false }: Props) {
           preload="metadata"
           aria-label={film.title[lang]}
           onLoadedMetadata={onLoaded}
+          onPlay={() => {
+            setPlaying(true);
+            setCredits(false);
+          }}
+          onPause={() => setPlaying(false)}
+          onEnded={() => {
+            setPlaying(false);
+            setCredits(true);
+          }}
         />
       </div>
+      {credits && (
+        <button type="button" className={styles.credits} onClick={again} aria-label={s.again}>
+          <span className={styles.creditsLine}>{s.missed}</span>
+          <span className={styles.creditsRafeeq}>
+            <Rafeeq id="drifter" state="idle" act="waking" level={4} />
+          </span>
+        </button>
+      )}
       <div className={styles.bar}>
         <p className={styles.meta}>
           <span dir="ltr">{runningTime(film.seconds)}</span>

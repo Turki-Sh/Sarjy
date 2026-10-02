@@ -6,7 +6,7 @@
 // each one, and when you let go it settles on the nearest. Or click, or use the arrow keys. It
 // runs with the reading direction, so in Arabic the day flows from right to left.
 
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import type { DayStop } from "@/shared/home-copy";
 import { Icon } from "../Icon";
 import styles from "./Day.module.css";
@@ -98,7 +98,10 @@ export function Timeline({ stops, index, onChange, onScrub, labels }: Props) {
           />
         ))}
         <span className={styles.needle} style={{ insetInlineStart: `${at}%` }} />
-        <div className={styles.pill} style={{ insetInlineStart: `${at}%` }}>
+        <div
+          className={styles.pill}
+          style={{ insetInlineStart: `${at}%`, "--at": `${at}%` } as CSSProperties}
+        >
           <button
             type="button"
             className={styles.arrow}

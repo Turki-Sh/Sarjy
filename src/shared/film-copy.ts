@@ -19,6 +19,10 @@ type FilmCopy = {
   next: string;
   share: string;
   copied: string;
+  /** The easter eggs: Drifter after the credits, and the popcorn (type "popcorn"). */
+  missed: string;
+  again: string;
+  popcorn: string;
 };
 
 const IN_EN: Record<Lang, string> = { en: "English", ar: "Arabic" };
@@ -41,6 +45,9 @@ export const FILM: Record<Lang, FilmCopy> = {
     next: "Next films",
     share: "Share",
     copied: "Link copied",
+    missed: "Did I miss it?",
+    again: "Watch it again",
+    popcorn: "Popcorn's on Keeper.",
   },
   ar: {
     index: { title: "أفلام سرجي", body: "أفلام قصيرة عن سرجي واللي يمشي معهم." },
@@ -56,5 +63,8 @@ export const FILM: Record<Lang, FilmCopy> = {
     next: "الأفلام اللي بعد",
     share: "شارك",
     copied: "نسخت الرابط",
+    missed: "خلص؟ ما شفت شي.",
+    again: "شوفه مرة ثانية",
+    popcorn: "الفشار على حساب حافظ.",
   },
 };

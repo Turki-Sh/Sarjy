@@ -211,7 +211,17 @@
     left: 108%;
   }
 }
+/* On a phone a full screen of hero leaves an empty band between the buttons and the dunes (tall
+   phones most of all: Turki, Day 5, on an iPhone 15 Pro Max), so it is as tall as what is in it,
+   and the dunes come up under the buttons. */
 @media (max-width: 700px) {
+  .hero {
+    min-height: 0;
+  }
+  .horizon {
+    height: clamp(170px, 46vw, 230px);
+    margin-block-start: 8px;
+  }
   .walker {
     width: 13cqw;
     animation-duration: 40s;

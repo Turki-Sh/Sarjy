@@ -193,7 +193,8 @@ test("the films: in the bar, a section of their own, and the newest playing at /
   await expect(section.getByText("I'm awake. I'm watching.")).toBeVisible();
 
   // /film opens on the newest, and the address bar then shows that film's own link.
-  await page.locator("footer").getByRole("link", { name: "Films" }).click();
+  await expect(page.locator("footer").getByRole("link", { name: "Films" })).toHaveCount(0);
+  await section.getByRole("link", { name: "Watch the films" }).click();
   await expect(page).toHaveURL(/\/film\/end-of-winter$/);
   await expect(page.getByRole("heading", { level: 1, name: "End of Winter" })).toBeVisible();
   const video = page.locator("video");
@@ -205,6 +206,15 @@ test("the films: in the bar, a section of their own, and the newest playing at /
   // One version only, so no choice; the other film is on the shelf.
   await expect(page.getByRole("group", { name: "Watch in" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "More films" })).toBeVisible();
+  // The easter eggs: the house lights go down while it plays, Drifter wonders after the credits
+  // whether it missed it, and typing "popcorn" makes it rain popcorn.
+  await video.dispatchEvent("play");
+  await expect(page.locator('[class*="house"]')).toHaveAttribute("data-down", "true");
+  await video.dispatchEvent("ended");
+  await expect(page.getByRole("button", { name: "Watch it again" })).toContainText("Did I miss it?");
+  await page.keyboard.type("popcorn");
+  await expect(page.getByText("Popcorn's on Keeper.")).toBeVisible();
+
   // The file itself is served, and can be fetched in parts (so it starts before it has all arrived).
   const head = await request.get("/video/end-of-winter-1080.mp4", { headers: { range: "bytes=0-99" } });
   expect(head.status()).toBe(206);

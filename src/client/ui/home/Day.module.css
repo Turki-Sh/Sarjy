@@ -289,14 +289,11 @@
     gap: 56px;
     padding-block-start: 24px;
   }
-  /* The pill sits centered over the track (at the ends it would run off the screen). */
+  /* The pill follows the day along the track, as on a wide screen, but stops short of the ends
+     (half its width in) so it never runs off the screen (Turki, Day 5: it sat still in the middle). */
   .pill,
   [dir="rtl"] .pill {
-    inset-inline-start: 50% !important;
-    translate: -50% -4px;
-  }
-  [dir="rtl"] .pill {
-    translate: 50% -4px;
+    inset-inline-start: clamp(64px, var(--at), calc(100% - 64px)) !important;
   }
   .pill::after {
     display: none;

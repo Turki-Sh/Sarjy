@@ -16,6 +16,7 @@ import { Nav } from "../home/Nav";
 import styles from "./Film.module.css";
 import { FilmPlayer } from "./FilmPlayer";
 import { FilmShelf } from "./FilmShelf";
+import { PopcornRain } from "./PopcornRain";
 
 /** `landing`: shown at /film, which then puts the film's own link in the address bar. */
 export function Film({
@@ -55,6 +56,7 @@ export function Film({
         {others.length > 0 && <FilmShelf lang={lang} films={others} />}
       </main>
       <Footer lang={lang} />
+      <PopcornRain lang={lang} />
     </div>
   );
 }

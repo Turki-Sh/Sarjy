@@ -62,9 +62,6 @@
 .links a[aria-current="page"] {
   color: var(--text);
 }
-.tools .filmsTool {
-  display: none;
-}
 .tools {
   display: flex;
   align-items: center;
@@ -144,9 +141,6 @@
 @media (max-width: 900px) {
   .links {
     display: none;
-  }
-  .tools .filmsTool {
-    display: inline-grid;
   }
 }
 @media (max-width: 420px) {
@@ -243,15 +237,6 @@
   margin: 0;
   color: var(--text-2);
   font-size: 20px;
-}
-.filmLink {
-  justify-self: end;
-  color: var(--text);
-  font-weight: 600;
-  text-decoration: none;
-}
-.filmLink:hover {
-  text-decoration: underline;
 }
 .made {
   grid-column: 1 / -1;

@@ -110,7 +110,7 @@ type HomeCopy = {
     /** Drifter, woken by a tap in the middle of the film. */
     awake: string;
   };
-  footer: { tagline: string; made: string; film: string };
+  footer: { tagline: string; made: string };
   /** The little one that rides along the page with you, one line per section. */
   companion: {
     label: string;
@@ -290,7 +290,6 @@ export const HOME: Record<Lang, HomeCopy> = {
     footer: {
       tagline: "Shaped to its rider.",
       made: "Made by Turki Alshuaibi.",
-      film: "Films",
     },
     companion: {
       label: "Talk to Sarjy",
@@ -467,7 +466,6 @@ export const HOME: Record<Lang, HomeCopy> = {
     footer: {
       tagline: "على مقاس فارسه.",
       made: "من تطوير تركي الشعيبي.",
-      film: "الأفلام",
     },
     companion: {
       label: "كلّم سرجي",

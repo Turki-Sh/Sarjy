@@ -58,14 +58,6 @@ export function Nav({ lang, at = "home" }: { lang: Lang; at?: "home" | "films" }
         </a>
       </nav>
       <div className={styles.tools}>
-        {/* On a phone the links fold away; the films keep a way in. */}
-        <Link
-          href="/film"
-          className={`${styles.tool} ${styles.icon} ${styles.filmsTool}`}
-          aria-label={s.films}
-        >
-          <Icon name="film" />
-        </Link>
         <button type="button" className={styles.tool} onClick={switchLang} lang={lang === "ar" ? "en" : "ar"}>
           {s.otherLang}
         </button>
