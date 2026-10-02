@@ -1,5 +1,5 @@
-// The films (Day 5): every film the site shows, newest first. /film plays the first one and lists
-// the rest under it; each has its own page at /film/<id>. A film can come in more than one version
+// The films (Day 5): every film the site shows, newest first. Each has its own page at /film/<id>,
+// its link for good (Turki: "each one should have a unique link"); /film opens on the newest. A film can come in more than one version
 // (the same cut in English and in Arabic, say): the page offers them as a choice, not as two films.
 // Adding a film is a new entry here, its files in public/video/ and its cards in scripts/og/; the
 // pages, the lists (here and on the home page), the sitemap and the link previews follow.
@@ -54,8 +54,8 @@ export const FILMS: FilmEntry[] = [
     height: 1080,
     title: { en: "End of Winter", ar: "آخر الشتاء" },
     body: {
-      en: "At the start of winter, he tells Sarjy how Umm Saad made her coffee. At the end of it, he asks.",
-      ar: "أول الشتاء قال لسرجي كيف كانت أم سعد تسوي قهوتها. وآخره، سأله.",
+      en: "A winter night in the desert. Abu Saad asks Sarjy to keep the one thing he can't lose: how Umm Saad, God rest her, made her coffee.",
+      ar: "ليلة شتا في البر. أبو سعد يوصّي سرجي على الشي الوحيد اللي ما يبي ينساه: قهوة أم سعد، الله يرحمها، وش كانت تحط فيها.",
     },
     card: { en: "film-end-of-winter.png", ar: "film-akhir-alshita.png" },
   },
@@ -85,7 +85,7 @@ export const FILMS: FilmEntry[] = [
   },
 ];
 
-/** The film /film opens on: the newest. */
+/** The film /film opens on (it sends you to its page): the newest. */
 export const FEATURED = FILMS[0]!;
 
 export const filmById = (id: string): FilmEntry | undefined => FILMS.find((f) => f.id === id);
@@ -93,8 +93,8 @@ export const filmById = (id: string): FilmEntry | undefined => FILMS.find((f) =>
 /** The other films, for the list under the one playing. */
 export const othersThan = (id: string): FilmEntry[] => FILMS.filter((f) => f.id !== id);
 
-/** A film's own address: the newest is /film itself. */
-export const filmHref = (film: FilmEntry): string => (film.id === FEATURED.id ? "/film" : `/film/${film.id}`);
+/** A film's own address, the one to share: it never changes, however many films come after it. */
+export const filmHref = (film: FilmEntry): string => `/film/${film.id}`;
 
 /**
  * The version to start on: the one asked for (?v=), else the one in the page's language, else the

@@ -233,6 +233,163 @@
   opacity: 0.9;
 }
 
+/* A new film comes on with a projector's flicker. */
+.flicker {
+  position: absolute;
+  inset: 0;
+  background: var(--frost);
+  pointer-events: none;
+  animation: flicker 0.55s ease-out both;
+}
+@keyframes flicker {
+  0% {
+    opacity: 0.55;
+  }
+  20% {
+    opacity: 0.1;
+  }
+  35% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+/* Resting on the screen: a play button comes up (and the audience leans in). */
+.bigPlay {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  display: grid;
+  place-items: center;
+  width: 11cqw;
+  height: 11cqw;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--white) 86%, transparent);
+  color: var(--ink);
+  opacity: 0;
+  scale: 0.8;
+  transition:
+    opacity var(--t-base) var(--ease-rein),
+    scale var(--t-base) var(--ease-rein);
+}
+.bigPlay svg {
+  width: 45%;
+  height: 45%;
+  margin-inline-start: 0.5cqw;
+  fill: currentColor;
+}
+.screen:hover .bigPlay {
+  opacity: 1;
+  scale: 1;
+}
+
+/* The popcorn box between the middle two, and the kernels it throws. */
+.popcorn {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 4;
+  width: 5.4cqw;
+  translate: -50% -80%;
+  overflow: visible;
+  pointer-events: none;
+}
+.box {
+  fill: var(--white);
+  stroke: var(--saddle);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.stripes {
+  stroke: var(--sadu-red);
+  stroke-width: 6;
+}
+.puffs {
+  fill: var(--plush-cream-light);
+  stroke: var(--plush-cream-deep);
+  stroke-width: 1.5;
+}
+/* Each kernel: the outer one travels across, the inner one up and then down, so together they arc. */
+.kernel {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 5;
+  pointer-events: none;
+  animation: kernel-x var(--ms) linear var(--delay) both;
+}
+.kernel > span {
+  display: block;
+  width: 2.4cqw;
+  height: 2.2cqw;
+  box-shadow: 0 0 0 0.2cqw var(--plush-cream-deep);
+  translate: -50% -50%;
+  border-radius: 45% 55% 50% 50%;
+  background: radial-gradient(circle at 35% 35%, var(--plush-cream-light), var(--plush-cream-deep));
+  animation: kernel-y var(--ms) ease-out var(--delay) both;
+}
+@keyframes kernel-x {
+  to {
+    translate: var(--dx) 0;
+  }
+}
+@keyframes kernel-y {
+  0% {
+    translate: -50% -50%;
+  }
+  45% {
+    translate: -50% calc(-50% - 15cqw);
+    rotate: 200deg;
+    animation-timing-function: ease-in;
+  }
+  90% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: -50% calc(-50% + var(--dy));
+    rotate: 400deg;
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+/* Drifter, woken: says its piece and nods off again. */
+.line {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 6;
+  width: max-content;
+  max-width: 34cqw;
+  margin: 0;
+  padding: 8px 14px;
+  translate: -60% -100%;
+  border-radius: 18px;
+  border-end-end-radius: 4px;
+  background: var(--frost);
+  color: var(--ink);
+  font-size: clamp(12px, 1.9cqw, 15px);
+  font-weight: 600;
+  line-height: 1.3;
+  animation: line 2.8s var(--ease-rein) both;
+}
+@keyframes line {
+  0% {
+    opacity: 0;
+    scale: 0.8;
+  }
+  10%,
+  85% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 860px) {
   .films {
     grid-template-columns: minmax(0, 1fr);
@@ -244,7 +401,11 @@
 @media (prefers-reduced-motion: reduce) {
   .frame[data-on],
   .caption,
-  .progress {
+  .progress,
+  .flicker {
     animation: none;
+  }
+  .flicker {
+    display: none;
   }
 }

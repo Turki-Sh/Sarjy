@@ -59,15 +59,6 @@
 .links a:hover {
   color: var(--text);
 }
-.filmsLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.filmsLink svg {
-  width: 17px;
-  height: 17px;
-}
 .links a[aria-current="page"] {
   color: var(--text);
 }

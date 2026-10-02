@@ -63,8 +63,10 @@ test("the voice screen, the film, a missing page and a Majlis link each have the
   const image = () => page.locator('head meta[property="og:image"]');
   await page.goto("/talk");
   await expect(image()).toHaveAttribute("content", /\/og\/talk-tell-it-once\.png$/);
-  // Each film its own card, and its own video for apps that play it in place.
+  // The films as a whole at /film, and each film its own card (and video) at its own link.
   await page.goto("/film");
+  await expect(image()).toHaveAttribute("content", /\/og\/films-sarjy-films\.png$/);
+  await page.goto("/film/end-of-winter");
   await expect(image()).toHaveAttribute("content", /\/og\/film-end-of-winter\.png$/);
   await expect(page.locator('head meta[property="og:video"]')).toHaveAttribute(
     "content",
@@ -82,6 +84,8 @@ test("the voice screen, the film, a missing page and a Majlis link each have the
   await page.goto("/talk");
   await expect(image()).toHaveAttribute("content", /\/og\/talk-qulha-marra\.png$/);
   await page.goto("/film");
+  await expect(image()).toHaveAttribute("content", /\/og\/films-aflam-sarjy\.png$/);
+  await page.goto("/film/end-of-winter");
   await expect(image()).toHaveAttribute("content", /\/og\/film-akhir-alshita\.png$/);
   await page.goto("/film/sarjy-in-a-minute");
   await expect(image()).toHaveAttribute("content", /\/og\/film-sarjy-fi-daqiqa\.png$/);

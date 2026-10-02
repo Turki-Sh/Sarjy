@@ -51,13 +51,13 @@ describe("the films", () => {
       for (const lang of ["en", "ar"] as const) expect(f.title[lang] && f.body[lang]).toBeTruthy();
   });
 
-  it("/film opens on the newest, lists the rest, and gives the others their own address", () => {
+  it("/film opens on the newest and lists the rest; every film has its own address", () => {
     expect(FEATURED).toBe(FILMS[0]);
     expect(filmById(FEATURED.id)).toBe(FEATURED);
     expect(filmById("not-a-film")).toBeUndefined();
     expect(othersThan(FEATURED.id)).toHaveLength(FILMS.length - 1);
-    expect(filmHref(FEATURED)).toBe("/film");
-    for (const f of othersThan(FEATURED.id)) expect(filmHref(f)).toBe(`/film/${f.id}`);
+    // Every film its own link, the newest included, so a shared link always opens on that film.
+    for (const f of FILMS) expect(filmHref(f)).toBe(`/film/${f.id}`);
   });
 
   it("opens on the version asked for, else the one in your language, else the first", () => {

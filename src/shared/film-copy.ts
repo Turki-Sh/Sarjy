@@ -3,6 +3,8 @@
 import type { Lang } from "./i18n";
 
 type FilmCopy = {
+  /** /film, the films as a whole, as link previews and the tab show it. */
+  index: { title: string; body: string };
   kicker: string;
   talk: string;
   more: string;
@@ -13,6 +15,10 @@ type FilmCopy = {
   spoken: (lang: Lang, subtitles?: Lang) => string;
   runs: (time: string) => string;
   play: (title: string) => string;
+  previous: string;
+  next: string;
+  share: string;
+  copied: string;
 };
 
 const IN_EN: Record<Lang, string> = { en: "English", ar: "Arabic" };
@@ -21,6 +27,7 @@ const SUBS_AR: Record<Lang, string> = { en: "ترجمة إنجليزية", ar: "
 
 export const FILM: Record<Lang, FilmCopy> = {
   en: {
+    index: { title: "Sarjy films", body: "Short films about Sarjy and the people it rides with." },
     kicker: "Sarjy films",
     talk: "Talk to Sarjy",
     more: "More films",
@@ -30,8 +37,13 @@ export const FILM: Record<Lang, FilmCopy> = {
       subtitles ? `In ${IN_EN[lang]}, with ${IN_EN[subtitles]} subtitles` : `In ${IN_EN[lang]}`,
     runs: (time) => `${time} long`,
     play: (title) => `Play ${title}`,
+    previous: "Previous films",
+    next: "Next films",
+    share: "Share",
+    copied: "Link copied",
   },
   ar: {
+    index: { title: "أفلام سرجي", body: "أفلام قصيرة عن سرجي واللي يمشي معهم." },
     kicker: "أفلام سرجي",
     talk: "كلّم سرجي",
     more: "أفلام ثانية",
@@ -40,5 +52,9 @@ export const FILM: Record<Lang, FilmCopy> = {
     spoken: (lang, subtitles) => (subtitles ? `${IN_AR[lang]}، مع ${SUBS_AR[subtitles]}` : IN_AR[lang]),
     runs: (time) => `مدته ${time}`,
     play: (title) => `شغّل ${title}`,
+    previous: "الأفلام اللي قبل",
+    next: "الأفلام اللي بعد",
+    share: "شارك",
+    copied: "نسخت الرابط",
   },
 };

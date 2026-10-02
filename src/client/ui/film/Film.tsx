@@ -17,7 +17,18 @@ import styles from "./Film.module.css";
 import { FilmPlayer } from "./FilmPlayer";
 import { FilmShelf } from "./FilmShelf";
 
-export function Film({ lang, film, version }: { lang: Lang; film: FilmEntry; version: Lang }) {
+/** `landing`: shown at /film, which then puts the film's own link in the address bar. */
+export function Film({
+  lang,
+  film,
+  version,
+  landing = false,
+}: {
+  lang: Lang;
+  film: FilmEntry;
+  version: Lang;
+  landing?: boolean;
+}) {
   const s = FILM[lang];
   const others = othersThan(film.id);
   return (
@@ -39,7 +50,7 @@ export function Film({ lang, film, version }: { lang: Lang; film: FilmEntry; ver
               </Link>
             </div>
           </div>
-          <FilmPlayer lang={lang} film={film} initial={version} />
+          <FilmPlayer lang={lang} film={film} initial={version} landing={landing} />
         </section>
         {others.length > 0 && <FilmShelf lang={lang} films={others} />}
       </main>

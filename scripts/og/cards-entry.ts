@@ -473,6 +473,44 @@ const winterCss = `.sky{position:absolute;left:0;top:0}
 .fire,.dallah,.sadu-cushion,.finjan-cup{position:absolute}
 .fire{filter:drop-shadow(0 0 26px var(--fire-glow))}`;
 
+// ---- Sarjy, in a minute: the first film's own card. A bright day on the dunes, the orb, and a
+// brass hourglass running beside it (the whole of Sarjy in one minute), with Rider keeping an eye
+// on the sand and Breeze drifting by.
+
+/** A brass hourglass with sand running from the top bulb to a heap in the bottom one. */
+const hourglass = (
+  cx: number,
+  base: number,
+  h: number,
+) => `<svg class="hourglass" style="left:${cx - h * 0.32}px;top:${base - h}px" width="${h * 0.64}" height="${h}" viewBox="0 0 64 100">
+  <rect x="4" y="2" width="56" height="8" rx="3" fill="var(--brass)" stroke="var(--brass-dark)" stroke-width="2"/>
+  <rect x="4" y="90" width="56" height="8" rx="3" fill="var(--brass)" stroke="var(--brass-dark)" stroke-width="2"/>
+  <path d="M12 10 C12 34 28 42 30 50 C28 58 12 66 12 90 H52 C52 66 36 58 34 50 C36 42 52 34 52 10 Z" fill="var(--white)" fill-opacity=".55" stroke="var(--brass-dark)" stroke-width="2.5"/>
+  <path d="M19 28 C24 38 30 44 32 48 C34 44 40 38 45 28 Z" fill="var(--dune-body)"/>
+  <path d="M32 50 V84" stroke="var(--dune-body)" stroke-width="2" stroke-dasharray="3 3"/>
+  <path d="M16 88 C20 76 28 72 32 72 C36 72 44 76 48 88 Z" fill="var(--dune-body)"/>
+  <path d="M8 10 V90 M56 10 V90" stroke="var(--brass-dark)" stroke-width="3"/>
+</svg>`;
+
+function minuteScene(mirror: boolean) {
+  const at = (x: number) => (mirror ? 1200 - x : x);
+  return `<svg class="sky" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs><linearGradient id="day" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky-day-top)"/><stop offset="1" stop-color="var(--sky-day-low)"/></linearGradient></defs>
+    <rect width="1200" height="630" fill="url(#day)"/>
+    <path d="M0 500 C200 470 380 466 600 488 C820 510 980 470 1200 478 V630 H0 Z" fill="var(--dune-light)"/>
+    <path d="M0 556 C240 532 520 536 760 552 C960 566 1080 546 1200 542 V630 H0 Z" fill="var(--dune-body)"/>
+  </svg>
+  ${orb(at(870), 270, 320)}
+  ${hourglass(at(1080), 560, 170)}
+  ${rafeeq("rider", at(690), 584, 190, { mood: "happy", flip: mirror })}
+  ${rafeeq("breeze", at(1000), 250, 96, { mood: "happy", flip: !mirror })}`;
+}
+
+const minuteCss = `.sky{position:absolute;left:0;top:0}
+.orb,.hourglass{position:absolute}
+.orb{overflow:visible}
+.hourglass{filter:drop-shadow(0 8px 0 rgb(0 0 0 / .1))}`;
+
 // ---- The cards. File names say what each one shows, like Turki's.
 
 export const CARDS = [
@@ -597,14 +635,14 @@ export const CARDS = [
     }),
   },
   {
-    file: "film-sarjy-in-a-minute.png",
+    file: "films-sarjy-films.png",
     html: page({
       lang: "en",
       bg: "var(--sky-night-top)",
       ink: "var(--frost)",
       copy: {
-        title: "Sarjy, in a minute.",
-        body: "Tell it once, and it remembers. A one-minute film, in English and in Arabic.",
+        title: "Sarjy films.",
+        body: "Short films about Sarjy and the people it rides with. The Rafeeqs saved you a seat.",
         kicker: "Sarjy / Films",
       },
       scene: filmScene(false),
@@ -612,18 +650,48 @@ export const CARDS = [
     }),
   },
   {
-    file: "film-sarjy-fi-daqiqa.png",
+    file: "films-aflam-sarjy.png",
     html: page({
       lang: "ar",
       bg: "var(--sky-night-top)",
       ink: "var(--frost)",
       copy: {
-        title: "سرجي في دقيقة.",
-        body: "قلها مرة وحدة ويتذكرها. فيلم دقيقة، بالعربي وبالإنجليزي.",
+        title: "أفلام سرجي.",
+        body: "أفلام قصيرة عن سرجي واللي يمشي معهم. الرفقاء حاجزين لك مكان.",
         kicker: "سرجي · أفلام",
       },
       scene: filmScene(true),
       extraCss: filmCss,
+    }),
+  },
+  {
+    file: "film-sarjy-in-a-minute.png",
+    html: page({
+      lang: "en",
+      bg: "var(--sky-day-low)",
+      ink: "var(--saddle)",
+      copy: {
+        title: "Sarjy, in a minute.",
+        body: "Tell it once, and it remembers. The whole of it in one minute, in English and in Arabic.",
+        kicker: "Sarjy / A short film",
+      },
+      scene: minuteScene(false),
+      extraCss: minuteCss,
+    }),
+  },
+  {
+    file: "film-sarjy-fi-daqiqa.png",
+    html: page({
+      lang: "ar",
+      bg: "var(--sky-day-low)",
+      ink: "var(--saddle)",
+      copy: {
+        title: "سرجي في دقيقة.",
+        body: "قلها مرة وحدة ويتذكرها. كله في دقيقة، بالعربي وبالإنجليزي.",
+        kicker: "سرجي · فيلم قصير",
+      },
+      scene: minuteScene(true),
+      extraCss: minuteCss,
     }),
   },
   {

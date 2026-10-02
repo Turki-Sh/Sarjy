@@ -105,6 +105,10 @@ type HomeCopy = {
     cta: string;
     /** What the screen in the picture says over the film on it. */
     now: string;
+    /** With more films than the section shows, the way to all of them. */
+    all: (n: number) => string;
+    /** Drifter, woken by a tap in the middle of the film. */
+    awake: string;
   };
   footer: { tagline: string; made: string; film: string };
   /** The little one that rides along the page with you, one line per section. */
@@ -274,6 +278,8 @@ export const HOME: Record<Lang, HomeCopy> = {
       lede: "Short films about Sarjy and the people it rides with. Pull up a cushion; the Rafeeqs saved you a seat.",
       cta: "Watch the films",
       now: "Now showing",
+      all: (n) => `All ${n} films`,
+      awake: "I'm awake. I'm watching.",
     },
     finale: {
       title: "Who rides with you?",
@@ -449,6 +455,8 @@ export const HOME: Record<Lang, HomeCopy> = {
       lede: "أفلام قصيرة عن سرجي واللي يمشي معهم. خذ لك مخدة، الرفقاء حاجزين لك مكان.",
       cta: "شوف الأفلام",
       now: "يُعرض الحين",
+      all: (n) => `كل الأفلام (${n})`,
+      awake: "صاحي، صاحي. أتابع.",
     },
     finale: {
       title: "مين يمشي معك؟",

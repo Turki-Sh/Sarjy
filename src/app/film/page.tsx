@@ -1,19 +1,29 @@
-// /film: the newest film (Day 5), hosted with the app so the link is one place, with the others
-// listed under it. ?v= picks a version (/film?v=en); without it, the one in your language.
+// /film: the films, opening on the newest. It has its own link card (the films as a whole); each
+// film has its own page, link and card at /film/<id>. Once it has loaded, the address bar shows
+// the newest film's own link, so what you copy from it is that film's. ?v= picks a version.
 
 import type { Metadata } from "next";
 import { Film } from "@/client/ui/film/Film";
 import { readPreferences } from "@/server/preferences";
 import { DAYLIGHT_SCRIPT } from "@/shared/daylight";
+import { FILM } from "@/shared/film-copy";
 import { FEATURED, pickVersion } from "@/shared/films";
-import { filmMetadata } from "./film-metadata";
+import { cardImage, pickCard } from "@/shared/og";
+import { SITE_NAME } from "@/shared/site";
 
 type Props = { searchParams: Promise<{ v?: string }> };
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await readPreferences();
-  const version = pickVersion(FEATURED, lang, (await searchParams).v);
-  return filmMetadata(FEATURED, version, lang, "/film");
+  const { title, body: description } = FILM[lang].index;
+  const card = cardImage(pickCard("film", lang, "/film"));
+  return {
+    title,
+    description,
+    alternates: { canonical: "/film" },
+    openGraph: { type: "website", siteName: SITE_NAME, title, description, url: "/film", images: [card] },
+    twitter: { card: "summary_large_image", title, description, images: [card] },
+  };
 }
 
 export default async function FilmPage({ searchParams }: Props) {
@@ -23,7 +33,7 @@ export default async function FilmPage({ searchParams }: Props) {
     <>
       {/* Day or night by your clock (or your recent choice), set before the page paints. */}
       <script dangerouslySetInnerHTML={{ __html: DAYLIGHT_SCRIPT }} />
-      <Film lang={lang} film={FEATURED} version={version.lang} />
+      <Film lang={lang} film={FEATURED} version={version.lang} landing />
     </>
   );
 }

@@ -16,7 +16,7 @@ export type CardKind =
   | "image" // a moment with a picture in it
   | "majlis" // an invite to a Majlis (multiplayer room)
   | "talk" // the voice screen, /talk
-  | "film" // the films, /film (and a film's poster when it has none of its own)
+  | "film" // the films as a whole, /film (each film has its own, by file, in shared/films.ts)
   | "lost" // the 404: a page that isn't there
   | "handbook"; // the Sarjy Handbook (the build notes)
 
@@ -138,29 +138,42 @@ export const CARDS: Card[] = [
     kinds: ["talk"],
     lang: "ar",
   },
-  // Each film has its own pair (shared/films.ts picks them); "film" finds one when nothing else does.
+  // The films: /film's own pair, for the films as a whole...
+  {
+    file: "films-sarjy-films.png",
+    alt: "Sarjy films. An open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    kinds: ["film"],
+    lang: "en",
+  },
+  {
+    file: "films-aflam-sarjy.png",
+    alt: "أفلام سرجي: an open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
+    kinds: ["film"],
+    lang: "ar",
+  },
+  // ...and each film's own, at its own link (shared/films.ts names them; no kind picks them).
   {
     file: "film-end-of-winter.png",
     alt: "End of Winter. A winter night in the desert: Lantern by the fire, the dallah on the coals, Keeper on a Sadu cushion with a finjan.",
-    kinds: ["film"],
+    kinds: [],
     lang: "en",
   },
   {
     file: "film-akhir-alshita.png",
     alt: "آخر الشتاء: a winter night in the desert, Lantern by the fire, the dallah on the coals, Keeper on a Sadu cushion with a finjan.",
-    kinds: ["film"],
+    kinds: [],
     lang: "ar",
   },
   {
     file: "film-sarjy-in-a-minute.png",
-    alt: "Sarjy, in a minute. An open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
-    kinds: ["film"],
+    alt: "Sarjy, in a minute. A bright day on the dunes: the orb, a brass hourglass running beside it, Rider watching the sand.",
+    kinds: [],
     lang: "en",
   },
   {
     file: "film-sarjy-fi-daqiqa.png",
-    alt: "سرجي في دقيقة: an open-air screen in the dunes at night, the orb on it, five Rafeeqs on cushions watching.",
-    kinds: ["film"],
+    alt: "سرجي في دقيقة: a bright day on the dunes, the orb, a brass hourglass running beside it, Rider watching the sand.",
+    kinds: [],
     lang: "ar",
   },
   {

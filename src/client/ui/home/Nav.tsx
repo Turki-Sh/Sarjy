@@ -53,12 +53,7 @@ export function Nav({ lang, at = "home" }: { lang: Lang; at?: "home" | "films" }
         <a href={`${home}#day`}>{s.day}</a>
         <a href={`${home}#rafeeqs`}>{s.rafeeqs}</a>
         <a href={`${home}#majlis`}>{s.majlis}</a>
-        <a
-          href={at === "films" ? "/film" : "#films"}
-          className={styles.filmsLink}
-          aria-current={at === "films" ? "page" : undefined}
-        >
-          <Icon name="film" />
+        <a href={at === "films" ? "/film" : "#films"} aria-current={at === "films" ? "page" : undefined}>
           {s.films}
         </a>
       </nav>

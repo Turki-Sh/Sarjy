@@ -178,14 +178,23 @@ test("the films: in the bar, a section of their own, and the newest playing at /
   ).toHaveAttribute("href", "#films");
   const section = page.locator("#films");
   await expect(section.getByRole("heading", { name: "Stories from the road." })).toBeVisible();
-  await expect(section.getByRole("link", { name: /End of Winter/ })).toHaveAttribute("href", "/film");
+  await expect(section.getByRole("link", { name: /End of Winter/ })).toHaveAttribute(
+    "href",
+    "/film/end-of-winter",
+  );
   await expect(section.getByRole("link", { name: /Sarjy, in a minute/ })).toHaveAttribute(
     "href",
     "/film/sarjy-in-a-minute",
   );
+  // The audience plays along: popcorn for whoever you tap, and Drifter insists it was watching.
+  await section.locator('[data-actor="keeper"]').click();
+  await expect(section.locator('[class*="kernel"]').first()).toBeAttached();
+  await section.locator('[data-actor="drifter"]').click();
+  await expect(section.getByText("I'm awake. I'm watching.")).toBeVisible();
 
+  // /film opens on the newest, and the address bar then shows that film's own link.
   await page.locator("footer").getByRole("link", { name: "Films" }).click();
-  await expect(page).toHaveURL(/\/film$/);
+  await expect(page).toHaveURL(/\/film\/end-of-winter$/);
   await expect(page.getByRole("heading", { level: 1, name: "End of Winter" })).toBeVisible();
   const video = page.locator("video");
   await expect(video).toHaveAttribute("src", "/video/end-of-winter-1080.mp4");
@@ -204,8 +213,10 @@ test("the films: in the bar, a section of their own, and the newest playing at /
 
 test("a film in two languages is one film with a choice, and the choice goes in the link", async ({
   page,
+  context,
   request,
 }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/film/sarjy-in-a-minute");
   const video = page.locator("video");
   await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-en-1080.mp4");
@@ -219,8 +230,16 @@ test("a film in two languages is one film with a choice, and the choice goes in 
   await page.reload();
   await expect(video).toHaveAttribute("src", "/video/sarjy-in-a-minute-ar-1080.mp4");
 
-  // The newest's own address is /film; a film that isn't there is a 404.
+  // Share hands over the film's own link, with the version chosen (copied, where there is no share sheet).
+  await page.getByRole("button", { name: "Share" }).click();
+  await expect(page.getByRole("button", { name: "Link copied" })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+    /\/film\/sarjy-in-a-minute\?v=ar$/,
+  );
+
+  // The newest keeps its own link too; a film that isn't there is a 404.
   await page.goto("/film/end-of-winter");
-  await expect(page).toHaveURL(/\/film$/);
+  await expect(page).toHaveURL(/\/film\/end-of-winter$/);
+  await expect(page.getByRole("heading", { level: 1, name: "End of Winter" })).toBeVisible();
   expect((await request.get("/film/not-a-film")).status()).toBe(404);
 });

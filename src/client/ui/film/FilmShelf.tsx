@@ -2,7 +2,9 @@
 
 // The other films, on a shelf under the one playing: each its poster (in your language's version),
 // its title, how long it runs and what it is in. They come in one after another as the shelf
-// scrolls into view, like the home page's sections.
+// scrolls into view, like the home page's sections. A few sit in a grid; past ROW_AFTER they make
+// one row you swipe (or step through with the arrows), newest first, so ten films don't make the
+// page ten screens long.
 
 import Link from "next/link";
 import { useRef, useState, type CSSProperties } from "react";
@@ -15,9 +17,21 @@ import home from "../home/Home.module.css";
 import { useInView } from "../scene/hooks";
 import styles from "./Film.module.css";
 
+/** More than this many, and the grid becomes a row. */
+const ROW_AFTER = 3;
+
 export function FilmShelf({ lang, films }: { lang: Lang; films: FilmEntry[] }) {
   const s = FILM[lang];
   const shelf = useRef<HTMLElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+  const row = films.length > ROW_AFTER;
+  // A step is most of a screen's width of cards; in Arabic the row runs the other way.
+  const step = (by: 1 | -1) => {
+    const el = list.current;
+    if (!el) return;
+    const rtl = getComputedStyle(el).direction === "rtl";
+    el.scrollBy({ left: by * (rtl ? -1 : 1) * el.clientWidth * 0.85, behavior: "smooth" });
+  };
   const inView = useInView(shelf, "0px 0px -15% 0px");
   // Once in, they stay in: scrolling back up doesn't hide them again.
   const [seen, setSeen] = useState(false);
@@ -30,10 +44,22 @@ export function FilmShelf({ lang, films }: { lang: Lang; films: FilmEntry[] }) {
       data-in={seen || undefined}
       aria-labelledby="more-films"
     >
-      <h2 id="more-films" className={styles.shelfTitle}>
-        {s.more}
-      </h2>
-      <ul className={styles.list}>
+      <div className={styles.shelfHead}>
+        <h2 id="more-films" className={styles.shelfTitle}>
+          {s.more}
+        </h2>
+        {row && (
+          <div className={styles.arrows}>
+            <button type="button" className={styles.arrow} onClick={() => step(-1)} aria-label={s.previous}>
+              <Icon name="chev" />
+            </button>
+            <button type="button" className={styles.arrow} onClick={() => step(1)} aria-label={s.next}>
+              <Icon name="chev" />
+            </button>
+          </div>
+        )}
+      </div>
+      <ul ref={list} className={styles.list} data-row={row || undefined}>
         {films.map((film, i) => {
           const v = pickVersion(film, lang);
           return (

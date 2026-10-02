@@ -46,8 +46,8 @@ describe("link preview cards", () => {
     expect(pickCard("home", "ar", "a").file).toBe("home-ala-maqas-farisah.png");
     expect(pickCard("talk", "en", "a").file).toBe("talk-tell-it-once.png");
     expect(pickCard("talk", "ar", "a").file).toBe("talk-qulha-marra.png");
-    expect(pickCard("film", "en", "a").lang).toBe("en");
-    expect(pickCard("film", "ar", "a").lang).toBe("ar");
+    expect(pickCard("film", "en", "a").file).toBe("films-sarjy-films.png");
+    expect(pickCard("film", "ar", "a").file).toBe("films-aflam-sarjy.png");
     expect(pickCard("lost", "en", "a").file).toBe("lost-not-a-real-page.png");
     expect(pickCard("lost", "ar", "a").file).toBe("lost-mo-mawjouda.png");
     expect(pickCard("image", "en", "a").file).toBe("little-things-big-picture.png");
