@@ -4,7 +4,7 @@
 
 **A voice assistant that remembers what you tell it, answers from real tools, and shows you everything it keeps.** In English and everyday Saudi Arabic.
 
-**Live: [sarjy-three.vercel.app](https://sarjy-three.vercel.app)** (the app is at [/talk](https://sarjy-three.vercel.app/talk); no sign-up). Four short films about it: [/film](https://sarjy-three.vercel.app/film). The write-up, with measured latency, cost and red-team results: [docs/07-WRITEUP.md](docs/07-WRITEUP.md).
+**Live: [sarjy-three.vercel.app](https://sarjy-three.vercel.app)** (the app is at [/talk](https://sarjy-three.vercel.app/talk); no sign-up). Three short films about it: [/film](https://sarjy-three.vercel.app/film). The write-up, with measured latency, cost and red-team results: [docs/07-WRITEUP.md](docs/07-WRITEUP.md).
 
 > Shaped to its rider. على مقاس فارسه.
 

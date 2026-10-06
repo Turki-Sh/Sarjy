@@ -153,18 +153,6 @@ export const CARDS: Card[] = [
   },
   // ...and each film's own, at its own link (shared/films.ts names them; no kind picks them).
   {
-    file: "film-fennecs-travel-vlog.png",
-    alt: "Fennec's Travel Vlog. A bright day on the dunes: a half-lidded camel in a red halter burps a green cloud at Fennec, who grumbles. A REC badge in the corner.",
-    kinds: [],
-    lang: "en",
-  },
-  {
-    file: "film-fallog-fennec.png",
-    alt: "فلوق فنك: a bright day on the dunes, a half-lidded camel in a red halter burps a green cloud at Fennec, who grumbles. A REC badge in the corner.",
-    kinds: [],
-    lang: "ar",
-  },
-  {
     file: "film-the-star-in-the-well.png",
     alt: "The Star in the Well. An old stone well in the dunes at night, light pouring out of it and a little star peeking over the rim, Fennec and Keeper beside it.",
     kinds: [],
