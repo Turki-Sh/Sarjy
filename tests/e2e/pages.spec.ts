@@ -178,6 +178,11 @@ test("the films: in the bar, a section of their own, and the newest playing at /
   ).toHaveAttribute("href", "#films");
   const section = page.locator("#films");
   await expect(section.getByRole("heading", { name: "Stories from the road." })).toBeVisible();
+  // The newest three; past three, the button counts them all and the films page has the rest.
+  await expect(section.getByRole("link", { name: /Fennec's Travel Vlog/ })).toHaveAttribute(
+    "href",
+    "/film/fennecs-travel-vlog",
+  );
   await expect(section.getByRole("link", { name: /The Star in the Well/ })).toHaveAttribute(
     "href",
     "/film/the-star-in-the-well",
@@ -186,10 +191,7 @@ test("the films: in the bar, a section of their own, and the newest playing at /
     "href",
     "/film/end-of-winter",
   );
-  await expect(section.getByRole("link", { name: /Sarjy, in a minute/ })).toHaveAttribute(
-    "href",
-    "/film/sarjy-in-a-minute",
-  );
+  await expect(section.getByRole("link", { name: /Sarjy, in a minute/ })).toHaveCount(0);
   // The audience plays along: popcorn for whoever you tap, and Drifter insists it was watching.
   await section.locator('[data-actor="keeper"]').click();
   await expect(section.locator('[class*="kernel"]').first()).toBeAttached();
@@ -198,11 +200,11 @@ test("the films: in the bar, a section of their own, and the newest playing at /
 
   // /film opens on the newest, and the address bar then shows that film's own link.
   await expect(page.locator("footer").getByRole("link", { name: "Films" })).toHaveCount(0);
-  await section.getByRole("link", { name: "Watch the films" }).click();
-  await expect(page).toHaveURL(/\/film\/the-star-in-the-well$/);
-  await expect(page.getByRole("heading", { level: 1, name: "The Star in the Well" })).toBeVisible();
+  await section.getByRole("link", { name: "All 4 films" }).click();
+  await expect(page).toHaveURL(/\/film\/fennecs-travel-vlog$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Fennec's Travel Vlog" })).toBeVisible();
   const video = page.locator("video");
-  await expect(video).toHaveAttribute("src", "/video/the-star-in-the-well-en-1080.mp4");
+  await expect(video).toHaveAttribute("src", "/video/fennecs-travel-vlog-en-1080.mp4");
 
   // A film in one version, with subtitles: no choice, and what it is in said under it.
   await page.goto("/film/end-of-winter");
@@ -256,8 +258,8 @@ test("a film in two languages is one film with a choice, and the choice goes in 
   );
 
   // The newest keeps its own link too; a film that isn't there is a 404.
-  await page.goto("/film/the-star-in-the-well");
-  await expect(page).toHaveURL(/\/film\/the-star-in-the-well$/);
-  await expect(page.getByRole("heading", { level: 1, name: "The Star in the Well" })).toBeVisible();
+  await page.goto("/film/fennecs-travel-vlog");
+  await expect(page).toHaveURL(/\/film\/fennecs-travel-vlog$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Fennec's Travel Vlog" })).toBeVisible();
   expect((await request.get("/film/not-a-film")).status()).toBe(404);
 });

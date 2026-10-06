@@ -565,6 +565,68 @@ function wellScene(mirror: boolean) {
 
 const wellCss = `.sky{position:absolute;left:0;top:0}`;
 
+// ---- Fennec's Travel Vlog: the fourth film's own card. A bright day on the dunes; the camel, "the
+// desert's finest gentleman", leans in from the edge, half-lidded, and burps a cartoon cloud at
+// Fennec, who grumbles. A REC badge says it is her vlog. Flat shapes with one dark outline, the
+// burp in oasis green thinned with cream (the film draws it the same way).
+
+function vlogScene(mirror: boolean) {
+  const at = (x: number) => (mirror ? 1200 - x : x);
+  const flipG = mirror ? ` transform="translate(1200 0) scale(-1 1)"` : "";
+  const puff = (x: number, y: number, r: number) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="var(--burp)"/><circle cx="${x - r * 0.22}" cy="${y - r * 0.24}" r="${r * 0.6}" fill="var(--burp-light)"/>`;
+  return `<svg class="sky" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs>
+      <linearGradient id="vlogday" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky-day-top)"/><stop offset="1" stop-color="var(--sky-day-low)"/></linearGradient>
+      <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius="3.5" result="fat"/>
+        <feFlood style="flood-color:var(--saddle)"/><feComposite in2="fat" operator="in" result="line"/>
+        <feMerge><feMergeNode in="line"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect width="1200" height="630" fill="url(#vlogday)"/>
+    <path d="M0 470 C220 440 420 452 640 470 C860 488 1020 452 1200 460 V630 H0 Z" fill="var(--dune-light)"/>
+    <path d="M0 560 C240 534 520 540 760 556 C960 570 1080 548 1200 544 V630 H0 Z" fill="var(--dune-body)"/>
+    <g${flipG}>
+      <g filter="url(#ink)" fill="var(--seat-8)">
+        <path d="M1150 640 C1128 520 1110 420 1092 330 L1180 300 C1200 400 1232 520 1262 640 Z"/>
+        <ellipse cx="1078" cy="262" rx="90" ry="62" transform="rotate(-12 1078 262)"/>
+        <ellipse cx="984" cy="300" rx="74" ry="46" transform="rotate(10 984 300)"/>
+        <ellipse cx="1128" cy="200" rx="17" ry="30" transform="rotate(-28 1128 200)"/>
+      </g>
+      <ellipse cx="972" cy="302" rx="52" ry="32" fill="var(--camel-muzzle)" transform="rotate(10 972 302)"/>
+      <path d="M930 318 Q964 356 1012 332 Q972 334 930 318 Z" fill="var(--saddle)"/>
+      <path d="M946 322 h10 v9 h-10 Z M961 325 h10 v10 h-10 Z M976 326 h10 v9 h-10 Z" fill="var(--dune-cloth)" stroke="var(--saddle)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M926 286 q6 -6 12 0" fill="none" stroke="var(--saddle)" stroke-width="3.5" stroke-linecap="round"/>
+      <ellipse cx="1062" cy="246" rx="13" ry="10" fill="var(--saddle)"/>
+      <path d="M1046 240 h32 v-9 h-32 Z" fill="var(--seat-8)"/>
+      <path d="M1046 241 L1078 239" stroke="var(--saddle)" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M1012 262 Q996 312 1012 344 M1012 268 L1104 300" fill="none" stroke="var(--sadu-red)" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="1010" cy="300" r="7" fill="var(--sadu-red)" stroke="var(--saddle)" stroke-width="2"/>
+      <g filter="url(#ink)">
+        ${puff(928, 352, 26)}${puff(902, 378, 34)}${puff(940, 392, 24)}${puff(872, 408, 40)}${puff(908, 432, 30)}${puff(856, 448, 34)}
+      </g>
+    </g>
+    <g fill="none" stroke-linecap="round">
+      ${[0, 1, 2]
+        .map((k) => {
+          const x = at(752 + k * 46);
+          const y = 388 - (k === 1 ? 16 : 0);
+          const d = `M${x} ${y} q10 -14 0 -28 q-10 -14 0 -28`;
+          return `<path d="${d}" stroke="var(--saddle)" stroke-width="11"/><path d="${d}" stroke="var(--burp)" stroke-width="5"/>`;
+        })
+        .join("")}
+    </g>
+  </svg>
+  ${rafeeq("fennec", at(800), 592, 210, { mood: "grumble", flip: mirror })}
+  <div class="rec"><i></i>REC</div>`;
+}
+
+const vlogCss = (mirror: boolean) => `.sky{position:absolute;left:0;top:0}
+.card{--burp:color-mix(in srgb, var(--oasis) 45%, var(--dune-cloth));--burp-light:color-mix(in srgb, var(--oasis) 18%, var(--white));--camel-muzzle:color-mix(in srgb, var(--seat-8) 70%, var(--dune-cloth))}
+.rec{position:absolute;top:40px;${mirror ? "left" : "right"}:56px;display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;background:color-mix(in srgb, var(--white) 82%, transparent);font:500 15px/1 var(--font-data);letter-spacing:.1em;color:var(--saddle)}
+.rec i{width:11px;height:11px;border-radius:50%;background:var(--coral)}`;
+
 // ---- The cards. File names say what each one shows, like Turki's.
 
 export const CARDS = [
@@ -746,6 +808,36 @@ export const CARDS = [
       },
       scene: minuteScene(true),
       extraCss: minuteCss,
+    }),
+  },
+  {
+    file: "film-fennecs-travel-vlog.png",
+    html: page({
+      lang: "en",
+      bg: "var(--sky-day-low)",
+      ink: "var(--saddle)",
+      copy: {
+        title: "Fennec’s Travel Vlog.",
+        body: "Live from the desert, with its finest gentleman.<br>Camels: not cute.",
+        kicker: "Sarjy / Live from the desert",
+      },
+      scene: vlogScene(false),
+      extraCss: vlogCss(false),
+    }),
+  },
+  {
+    file: "film-fallog-fennec.png",
+    html: page({
+      lang: "ar",
+      bg: "var(--sky-day-low)",
+      ink: "var(--saddle)",
+      copy: {
+        title: "فلوق فنك.",
+        body: "مباشرة من البر، مع أشيك واحد فيه.<br>البعارين مو كيوت.",
+        kicker: "سرجي · مباشرة من البر",
+      },
+      scene: vlogScene(true),
+      extraCss: vlogCss(true),
     }),
   },
   {

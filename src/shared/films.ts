@@ -40,6 +40,32 @@ export type FilmEntry = {
 
 export const FILMS: FilmEntry[] = [
   {
+    // Live action with Fennec drawn in: real desert footage (Mixkit, free to use), Fennec a 2D
+    // puppet. Its lines are shorter in Arabic, so that cut runs 0:28 to the English 0:30.
+    id: "fennecs-travel-vlog",
+    versions: [
+      {
+        lang: "en",
+        src: "/video/fennecs-travel-vlog-en-1080.mp4",
+        poster: "/video/fennecs-travel-vlog-en.jpg",
+      },
+      {
+        lang: "ar",
+        src: "/video/fennecs-travel-vlog-ar-1080.mp4",
+        poster: "/video/fennecs-travel-vlog-ar.jpg",
+      },
+    ],
+    seconds: 30,
+    width: 1920,
+    height: 1080,
+    title: { en: "Fennec's Travel Vlog", ar: "فلوق فنك" },
+    body: {
+      en: "Fennec takes the camera out to the desert to meet its finest gentleman. It doesn't go well. Sarjy takes a note: camels, not cute.",
+      ar: "فنك تطلع بالكاميرا للبر تعرّفكم على أشيك واحد فيه، وما مشت السالفة. وسرجي حفظها: البعارين مو كيوت.",
+    },
+    card: { en: "film-fennecs-travel-vlog.png", ar: "film-fallog-fennec.png" },
+  },
+  {
     id: "the-star-in-the-well",
     versions: [
       {
